@@ -1,0 +1,248 @@
+.app {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.app.globe-mode {
+    background: #000;
+}
+
+.main-area {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-left: 44px;
+    overflow: hidden;
+}
+
+.map-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+/* Sidebar panel - drawer that slides from toolbar */
+.sidebar-panel {
+    position: fixed;
+    top: 0;
+    left: 44px;
+    width: 350px;
+    height: 100vh;
+    background: rgba(34,34,34,0.95);
+    box-shadow: 2px 0 15px rgba(0,0,0,0.3);
+    overflow-x: hidden;
+    z-index: 1500;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 12px 12px 0;
+}
+
+.sidebar-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 16px 12px;
+}
+
+.sidebar-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: #888;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.sidebar-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.15) transparent;
+    padding-bottom: 130px;
+}
+
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+.sidebar-panel.panel-hidden {
+    transform: translateX(-100%);
+}
+
+
+
+/* Layer Info Button */
+.layer-info-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: calc(100% - 40px);
+    margin: 10px 20px 20px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.08);
+    color: #ccc;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.layer-info-button:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .app {
+        height: 100dvh;
+    }
+
+    .main-area {
+        margin-left: 0;
+        margin-bottom: 52px; /* bottom toolbar height */
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .sidebar-panel {
+        width: 100vw;
+        left: 0;
+        top: 0;
+        height: 100dvh;
+        z-index: 1800;
+    }
+
+    .sidebar-content {
+        padding-bottom: 80px;
+    }
+
+    .layer-info-button {
+        font-size: 13px;
+        padding: 9px 12px;
+    }
+
+    .debug-panel {
+        left: 0;
+        bottom: 52px;
+        font-size: 10px;
+        padding: 8px 12px;
+    }
+
+    .debug-content {
+        gap: 10px;
+    }
+
+    .debug-value {
+        font-size: 10px;
+    }
+}
+
+.compare-options-panel {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.compare-options-header {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.compare-pane-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+}
+
+.compare-pane-label {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.compare-date-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.compare-date-label {
+  font-size: 12px;
+  color: #aaa;
+  flex-shrink: 0;
+}
+.compare-layer-select {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.compare-layer-select:focus {
+  outline: none;
+  border-color: rgba(255,154,60,0.5);
+}
+
+.compare-layer-select optgroup {
+  background: #333;
+  color: #999;
+  font-style: normal;
+  font-size: 12px;
+}
+
+.compare-layer-select option {
+  background: #222;
+  color: #fff;
+  font-size: 13px;
+  padding: 4px;
+}

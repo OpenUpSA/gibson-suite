@@ -1,0 +1,42 @@
+.crop-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.crop-overlay-shade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+
+.crop-overlay-shade-top {
+  top: 0;
+  cursor: s-resize;
+}
+
+.crop-overlay-shade-bottom {
+  bottom: 0;
+  cursor: n-resize;
+}
+
+.crop-overlay-handle {
+  position: absolute;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: grab;
+  z-index: 3;
+  transform: translateX(-50%);
+}
+
+.crop-overlay-handle:active {
+  cursor: grabbing;
+}

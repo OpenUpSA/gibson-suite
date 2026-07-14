@@ -1,0 +1,32 @@
+.legend-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    vertical-align: middle;
+}
+
+.legend-canvas-inline {
+    width: 200px;
+    height: 12px;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+.legend-labels-inline {
+    display: inline-flex;
+    gap: 4px;
+    font-size: 11px;
+    color: #666;
+    font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.legend-label-min::after {
+    content: ' -';
+}
+
+.legend-units {
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+}

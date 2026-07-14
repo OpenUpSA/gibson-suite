@@ -1,0 +1,249 @@
+.layer-info-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.layer-info-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.layer-info-content h1 {
+  font-size: 20px;
+  color: white;
+  margin: 0;
+  padding: 18px 24px;
+  background: #114151;
+  border-bottom: 2px solid #e0e0e0;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.layer-info-close {
+  background: transparent;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  color: white;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+
+.layer-info-close:hover {
+  transform: scale(1.2);
+}
+
+.layer-info-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.layer-info-header {
+  margin-bottom: 24px;
+}
+
+.layer-info-header h2 {
+  font-size: 22px;
+  color: #114151;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.layer-info-metadata {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.layer-info-id {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #666;
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.layer-info-description {
+  margin-bottom: 24px;
+}
+
+.layer-info-description h3 {
+  font-size: 16px;
+  color: #114151;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.layer-info-description p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+  margin: 0;
+}
+
+.layer-info-technical {
+  margin-bottom: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.layer-info-technical h3 {
+  font-size: 16px;
+  color: #114151;
+  margin: 0 0 16px 0;
+  font-weight: 600;
+}
+
+.layer-info-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.layer-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #f7fafc;
+  border-radius: 6px;
+}
+
+.layer-info-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.layer-info-value {
+  font-size: 14px;
+  color: #114151;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.layer-info-footer {
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.layer-info-footer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.layer-info-footer-label {
+  color: #718096;
+  font-weight: 500;
+}
+
+.layer-info-footer-value {
+  color: #333;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
+
+/* Scrollbar Styling */
+.layer-info-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.layer-info-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.layer-info-body::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.layer-info-body::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .layer-info-content {
+    max-height: 90vh;
+  }
+
+  .layer-info-content h1 {
+    font-size: 18px;
+    padding: 16px 20px;
+  }
+
+  .layer-info-body {
+    padding: 20px;
+  }
+
+  .layer-info-header h2 {
+    font-size: 20px;
+  }
+
+  .layer-info-description h3,
+  .layer-info-technical h3 {
+    font-size: 15px;
+  }
+
+  .layer-info-description p {
+    font-size: 14px;
+  }
+
+  .layer-info-close {
+    font-size: 28px;
+  }
+}

@@ -1,0 +1,256 @@
+{
+  "categories": {
+    "Corrected Reflectance": [
+      {
+        "id": "VIIRS_NOAA20_CorrectedReflectance_TrueColor",
+        "name": "VIIRS NOAA-20 True Color",
+        "description": "True-color imagery from VIIRS on NOAA-20 satellite. 375m resolution, complements SNPP coverage.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "time": "2024-11-20",
+        "legendId": null
+      },
+      {
+        "id": "VIIRS_SNPP_CorrectedReflectance_TrueColor",
+        "name": "VIIRS SNPP True Color",
+        "description": "True-color imagery from VIIRS on Suomi NPP. 375m resolution. Near-real-time, available within ~3 hours of acquisition.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "time": "2024-11-20",
+        "legendId": null
+      },
+      {
+        "id": "MODIS_Terra_CorrectedReflectance_TrueColor",
+        "name": "MODIS Terra True Color",
+        "description": "True-color corrected reflectance from MODIS on Terra. 250m resolution, morning overpass (~10:30am local). Longest continuous daily record from 2000.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "time": "2024-11-20",
+        "legendId": null
+      },
+      {
+        "id": "MODIS_Aqua_CorrectedReflectance_TrueColor",
+        "name": "MODIS Aqua True Color",
+        "description": "True-color corrected reflectance from MODIS on Aqua. 250m resolution, afternoon overpass (~1:30pm local). Pairs with Terra for fuller daily coverage.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "time": "2024-11-20",
+        "legendId": null
+      },
+      {
+        "id": "MODIS_Terra_CorrectedReflectance_Bands721",
+        "name": "MODIS Terra False Color (7-2-1)",
+        "description": "False-color imagery mapping SWIR/NIR/Red bands. Burn scars appear red-brown, snow and ice appear vivid blue, vegetation is bright green. Useful for fire and flood analysis.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "time": "2024-11-20",
+        "legendId": null
+      }
+    ],
+    "Temperature": [
+      {
+        "id": "AIRS_L3_Surface_Air_Temperature_Daily_Day",
+        "name": "Surface Air Temperature L3 (Day)",
+        "description": "L3 gridded daytime air temperature at 2m above surface from AIRS. Gap-free daily global coverage at ~1 degree resolution \u2014 no orbital banding. Preferred over L2 for full-coverage views.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "AIRS_Surface_Air_Temperature_Daily_Day"
+      },
+      {
+        "id": "AIRS_L3_Surface_Air_Temperature_Daily_Night",
+        "name": "Surface Air Temperature L3 (Night)",
+        "description": "L3 gridded nighttime air temperature at 2m above surface from AIRS. Gap-free daily global coverage at ~1 degree resolution \u2014 no orbital banding.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "AIRS_Surface_Air_Temperature_Daily_Night"
+      },
+      {
+        "id": "AIRS_L2_Surface_Air_Temperature_Day",
+        "name": "Surface Air Temperature L2 (Day) [swath]",
+        "description": "Raw daytime swath air temperature at 2m from AIRS. Shows individual orbital passes with banding gaps \u2014 use L3 version for gap-free coverage. Useful for seeing raw satellite geometry.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "AIRS_Surface_Air_Temperature_Daily_Day"
+      },
+      {
+        "id": "AIRS_L2_Surface_Air_Temperature_Night",
+        "name": "Surface Air Temperature L2 (Night) [swath]",
+        "description": "Raw nighttime swath air temperature from AIRS. Orbital banding visible \u2014 use L3 version for gap-free coverage. Night pass partially fills gaps left by day pass.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "AIRS_Surface_Air_Temperature_Daily_Night"
+      },
+      {
+        "id": "MODIS_Terra_L3_Land_Surface_Temp_Daily_Day",
+        "name": "Land Surface Temperature L3 (Terra, Day)",
+        "description": "L3 gridded daytime land surface temperature from MODIS Terra. 1km resolution, gap-filled daily composite. Shows ground temperature rather than air temperature \u2014 useful for drought, urban heat, and vegetation stress.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Land_Surface_Temp"
+      },
+      {
+        "id": "MODIS_Terra_Land_Surface_Temp_Day",
+        "name": "Land Surface Temperature (Terra, Day) [swath]",
+        "description": "Raw swath daytime land surface temperature from MODIS Terra. 1km resolution. Orbital banding visible. Use L3 version above for gap-free daily coverage.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Land_Surface_Temp"
+      },
+      {
+        "id": "MODIS_Aqua_Land_Surface_Temp_Day",
+        "name": "Land Surface Temperature (Aqua, Day) [swath]",
+        "description": "Raw swath afternoon land surface temperature from MODIS Aqua. 1km resolution. Use alongside Terra for diurnal temperature comparison.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Land_Surface_Temp"
+      }
+    ],
+    "Vegetation": [
+      {
+        "id": "MODIS_Terra_L3_NDVI_16Day",
+        "name": "NDVI 16-Day Composite (Terra L3)",
+        "description": "Normalised Difference Vegetation Index from MODIS Terra L3, 16-day composite. Values range from -1 (no vegetation) to +1 (dense vegetation). 1km resolution. Excellent for monitoring drought, crop stress, and seasonal greenness.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_NDVI"
+      },
+      {
+        "id": "MODIS_Terra_L3_EVI_16Day",
+        "name": "EVI 16-Day Composite (Terra L3)",
+        "description": "Enhanced Vegetation Index from MODIS Terra L3, 16-day composite. More sensitive than NDVI in high-biomass areas and reduces atmospheric and soil background influences. 1km resolution.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_EVI"
+      }
+    ],
+    "Snow & Ice": [
+      {
+        "id": "MODIS_Terra_L3_NDSI_Snow_Cover_Daily",
+        "name": "Snow Cover Daily (Terra, L3 NDSI)",
+        "description": "Daily snow cover from MODIS Terra at 500m resolution using the Normalised Difference Snow Index (NDSI). Shows presence and extent of snow on land and ice on water bodies.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Snow_Cover"
+      },
+      {
+        "id": "MODIS_Aqua_L3_NDSI_Snow_Cover_Daily",
+        "name": "Snow Cover Daily (Aqua, L3 NDSI)",
+        "description": "Daily snow cover from MODIS Aqua at 500m resolution using NDSI. Afternoon overpass complements Terra for fuller daily coverage, particularly useful where morning pass is cloud-obscured.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Snow_Cover"
+      }
+    ],
+    "Precipitation & Soil Moisture": [
+      {
+        "id": "IMERG_Precipitation_Rate",
+        "name": "Precipitation Rate (30-min, GPM)",
+        "description": "Global precipitation measurement from GPM satellite constellation. Shows rainfall intensity in near real-time. 10km resolution, 30-minute updates. Use a datetime timestamp e.g. 2024-11-29T23:30:00Z.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-29",
+        "legendId": "GPM_Precipitation_Rate"
+      }
+    ],
+    "Water Vapor & Clouds": [
+      {
+        "id": "MODIS_Aqua_Water_Vapor_5km_Day",
+        "name": "Water Vapor (MODIS Aqua, Day)",
+        "description": "Total column water vapor from MODIS Aqua. Shows atmospheric moisture content. 5km resolution, useful for weather forecasting and tracking storm systems.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Water_Vapor"
+      },
+      {
+        "id": "MODIS_Aqua_Cloud_Top_Temp_Day",
+        "name": "Cloud Top Temperature (Aqua, Day)",
+        "description": "Temperature at cloud tops from MODIS Aqua. Colder values indicate taller clouds and potentially severe weather. 5km resolution.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Cloud_Top_Temp"
+      },
+      {
+        "id": "MODIS_Terra_Cloud_Top_Temp_Day",
+        "name": "Cloud Top Temperature (Terra, Day)",
+        "description": "Cloud top temperature from MODIS Terra. Helps identify storm systems and convective activity. 5km resolution.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Cloud_Top_Temp"
+      }
+    ],
+    "Ocean & Water Quality": [
+      {
+        "id": "GHRSST_L4_MUR_Sea_Surface_Temperature",
+        "name": "Sea Surface Temperature (MUR, L4)",
+        "description": "Multi-sensor blended L4 sea surface temperature. Gap-free daily global coverage at 1km resolution. Shows ocean temperature patterns, upwelling zones, and thermal fronts. Uses MUR algorithm combining multiple satellite sensors.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "time": "2024-11-29",
+        "legendId": "GHRSST_Sea_Surface_Temperature"
+      },
+      {
+        "id": "MODIS_Aqua_L2_Chlorophyll_A",
+        "name": "Ocean Chlorophyll-a (MODIS Aqua L2)",
+        "description": "Ocean chlorophyll-a concentration from MODIS Aqua. Proxy for phytoplankton biomass and ocean primary productivity. 1km resolution. High values (green) indicate algal blooms; low values (blue) indicate clear open ocean.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Chlorophyll_A"
+      }
+    ],
+    "Aerosols & Air Quality": [
+      {
+        "id": "MODIS_Combined_Value_Added_AOD",
+        "name": "Aerosol Optical Depth (MODIS Combined)",
+        "description": "Combined aerosol optical depth from Terra and Aqua MODIS. Shows air quality, dust storms, and smoke from fires. Higher values indicate more aerosols. 10km resolution, daily.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Combined_Value_Added_AOD"
+      },
+      {
+        "id": "OMI_Aerosol_Index",
+        "name": "UV Aerosol Index (OMI)",
+        "description": "Absorbing aerosol index from OMI using UV measurements. Positive values indicate dust or smoke events. 13km resolution, daily. Good for tracking Saharan dust and wildfire smoke transport.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "time": "2024-11-20",
+        "legendId": "OMI_Aerosol_Index"
+      }
+    ]
+  },
+  "mapSettings": {
+    "center": [
+      0,
+      30
+    ],
+    "zoom": 3,
+    "minZoom": 2,
+    "maxZoom": 9
+  },
+  "wmtsBaseUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best",
+  "format": "image/png",
+  "_notes": {
+    "bandingIssue": "L2 layers (AIRS_L2_*, MODIS_Terra_Land_Surface_Temp_Day) show orbital swath gaps because they are single-pass products. Use the corresponding L3 layers for gap-free views. To partially fill gaps on L2 layers, stack day+night passes or request tiles across 2 consecutive dates.",
+    "timeFormat": "Most layers use YYYY-MM-DD. IMERG and GHRSST_MUR require full ISO datetime e.g. 2024-11-29T23:30:00Z.",
+    "l3Upgrades": "AIRS_L2 surface temperature replaced with AIRS_L3_Surface_Air_Temperature_Daily_Day/Night as primary layers. MODIS_Terra_L3_Land_Surface_Temp_Daily_Day added as primary LST layer. L2 swath layers retained as secondary options.",
+    "ndviEvi": "MODIS NDVI/EVI use 8-day composites \u2014 set time to the start of an 8-day period e.g. 2024-11-09 (check MODIS 8-day tile schedule). Not every daily date will return tiles.",
+    "layerValidation": "All 24 layers verified serving tiles (HTTP 200) against GIBS epsg3857/best as of 2026-06-09. 4 layers removed (thermal anomalies, night lights) \u2014 they exist in GIBS directory but never return tile data.",
+    "tileMatrixSets": "Each layer supports exactly one GoogleMapsCompatible_LevelX \u2014 verified per layer with multiple tile coordinates.",
+    "removedLayers": "VIIRS_SNPP_Thermal_Anomalies_375m_Day, VIIRS_SNPP_Thermal_Anomalies_375m_Night, MODIS_Combined_Thermal_Anomalies_All, VIIRS_SNPP_DayNightBand_ENCC \u2014 never serve tiles in epsg3857 WMTS endpoint."
+  }
+}

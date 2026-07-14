@@ -1,0 +1,75 @@
+.debug-panel {
+    position: fixed;
+    bottom: 70px;
+    right: 0;
+    left: 44px;
+    padding: 10px 20px;
+    background: white;
+    backdrop-filter: blur(10px);
+    border-top: 2px solid #e0e0e0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 900;
+}
+
+.debug-header {
+    display: none;
+}
+
+.debug-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+}
+
+.debug-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.debug-item.legend-wrapper {
+    gap: 0;
+}
+
+.debug-label {
+    font-size: 11px;
+    color: #718096;
+    font-weight: 500;
+}
+
+.debug-value {
+    font-size: 11px;
+    color: #333;
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+}
+
+.debug-separator {
+    color: #cbd5e0;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Responsive adjustments for TimeBar */
+@media (max-width: 1024px) {
+    .debug-panel {
+        bottom: 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    .debug-panel {
+        bottom: 55px;
+        left: 44px;
+        padding: 8px 15px;
+    }
+}
+
+@media (max-width: 640px) {
+    .debug-panel {
+        left: 44px;
+        bottom: 50px;
+    }
+}

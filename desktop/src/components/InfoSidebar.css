@@ -1,0 +1,46 @@
+.info-sidebar {
+  padding: 8px 20px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  margin-top: 4px;
+}
+
+.info-layer-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.info-date {
+  font-size: 13px;
+  color: #ccc;
+  font-family: 'Courier New', monospace;
+}
+
+.info-description {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.5;
+}
+
+.info-resolution {
+  font-size: 13px;
+  color: #fff;
+  font-style: italic;
+}
+
+.info-id {
+  font-size: 11px;
+  color: #777;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+}
+
+.info-no-legend {
+  font-size: 13px;
+  color: #777;
+  font-style: italic;
+}

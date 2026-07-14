@@ -1,0 +1,136 @@
+/* ── Brand button colour (#e5a700 gold) ─────────────────────────────── */
+/* The UI Kit scopes the primary-button tokens under .light and .dark.
+   We override them globally (inside this CSS module) with the gold brand
+   colour so every primary Button renders gold in both themes. */
+:global(.light),
+:global(.dark) {
+  --Kd3K9A: #e5a700; /* primary button background   */
+  --DVEAGQ: #c89200; /* hover                       */
+  --V0s6Og: #ab7d00; /* pressed                     */
+  --PqRKXQ: #ffffff; /* button text (kept white)    */
+}
+
+/* Date picker wrapper */
+.datePicker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-kit-space-100);
+}
+
+/* Scroll container */
+.scrollContainer {
+  box-sizing: border-box;
+  overflow-y: scroll;
+  height: 100%;
+  padding-top: var(--ui-kit-space-200);
+  padding-right: var(--ui-kit-space-200);
+  padding-bottom: var(--ui-kit-space-200);
+
+  /* for firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-kit-color-content-placeholder-fg) transparent;
+}
+
+.scrollContainer::-webkit-scrollbar {
+  position: absolute;
+  width: var(--ui-kit-base-unit);
+  height: 0;
+}
+
+.scrollContainer::-webkit-scrollbar-track {
+  background: transparent;
+  width: var(--ui-kit-base-unit);
+  margin-top: var(--ui-kit-space-100);
+  margin-bottom: var(--ui-kit-space-100);
+}
+
+.scrollContainer::-webkit-scrollbar-thumb {
+  border-radius: var(--ui-kit-radius-element-standard);
+  background: var(--ui-kit-color-content-placeholder-fg);
+  visibility: hidden;
+}
+
+.scrollContainer:hover::-webkit-scrollbar-thumb,
+.scrollContainer:focus::-webkit-scrollbar-thumb,
+.scrollContainer:focus-within::-webkit-scrollbar-thumb {
+  visibility: visible;
+}
+
+/* Date picker row */
+.datePickerRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-kit-space-100);
+}
+
+/* Calendar legend hint */
+.calendarHint {
+  font-size: 11px;
+  color: var(--ui-kit-color-content-subtle-fg);
+  text-align: center;
+}
+
+/* ── Accordion layer cards (tighter) ─────────────────────────────────── */
+/* The UI Kit cards are generously padded by default. Shrink them so the
+   browser fits more layers without scrolling. */
+:global([class*="cardContainer"]) {
+  padding-block: 2px !important;
+  padding-inline: 6px !important;
+  min-height: 0 !important;
+}
+:global([class*="horizontalWrapper"]) {
+  gap: 6px !important;
+}
+:global([class*="thumbnailArea"]) {
+  width: 36px !important;
+  flex-shrink: 0;
+}
+/* Tighten the accordion item spacing */
+:global([class*="accordionItem"]) {
+  padding-block: 2px;
+}
+/* Shrink the card title/description typography */
+:global([class*="cardContainer"] p) {
+  margin: 0;
+  line-height: 1.25;
+}
+
+/* ── Date stepper ──────────────────────────────────────────────────── */
+
+.dateStepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateStepperBoxes {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.dateStepperBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--ui-kit-color-surface-secondary-bg);
+  flex: 1;
+  min-width: 0;
+}
+
+.dateStepperBoxValue {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ui-kit-color-content-primary-fg);
+  line-height: 1.2;
+}
+
+.dateStepperBoxLabel {
+  font-size: 10px;
+  color: var(--ui-kit-color-content-tertiary-fg);
+  margin-top: 1px;
+}

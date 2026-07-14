@@ -1,0 +1,21 @@
+# gibson-suite — top-level ignores
+# Each sub-project may also carry its own .gitignore for finer control.
+
+# OS / editor cruft
+.DS_Store
+.idea
+
+# Secrets & local env
+.env
+.ssl
+
+# Logs
+*.log*
+
+# Build output & deps (apply across all sub-projects)
+dist
+node_modules
+.venv
+
+# Misc local data
+**/*/db.json

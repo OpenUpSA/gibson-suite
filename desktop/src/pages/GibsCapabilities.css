@@ -1,0 +1,208 @@
+.gibs-page {
+  min-height: 100vh;
+  background: #1a1a1a;
+  color: #ddd;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+.gibs-loading,
+.gibs-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 16px;
+  color: #999;
+}
+
+.gibs-error {
+  color: #e74c3c;
+}
+
+.gibs-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #222;
+  border-bottom: 1px solid #333;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gibs-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gibs-header-left h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.gibs-back-link {
+  color: #ffc93c;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: 1px solid rgba(255,201,60,0.3);
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.gibs-back-link:hover {
+  background: rgba(255,201,60,0.1);
+}
+
+.gibs-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gibs-count {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+}
+
+.gibs-search {
+  padding: 6px 12px;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #eee;
+  font-size: 13px;
+  width: 260px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.gibs-search:focus {
+  border-color: #ffc93c;
+}
+
+.gibs-search::placeholder {
+  color: #666;
+}
+
+.gibs-table-wrap {
+  flex: 1;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.gibs-table-wrap::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.gibs-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gibs-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+
+.gibs-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.gibs-table th {
+  position: sticky;
+  top: 0;
+  background: #2a2a2a;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+  z-index: 5;
+}
+
+.gibs-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid #2a2a2a;
+  vertical-align: top;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gibs-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.gibs-cell-id {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  color: #ffc93c;
+}
+
+.gibs-cell-abs {
+  max-width: 400px;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.gibs-expand-btn {
+  background: none;
+  border: none;
+  color: #ffc93c;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+.gibs-expand-btn:hover {
+  opacity: 1;
+}
+
+.gibs-cell-time {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.gibs-cell-bbox {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 11px;
+  color: #888;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gibs-cell-list {
+  font-size: 12px;
+  color: #aaa;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gibs-empty {
+  text-align: center;
+  padding: 40px 20px !important;
+  color: #666;
+  font-size: 14px;
+}

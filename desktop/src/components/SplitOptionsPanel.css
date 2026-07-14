@@ -1,0 +1,129 @@
+.split-options-panel {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.split-options-header {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.split-pane-row {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.split-pane-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.split-pane-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.split-pane-remove {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: rgba(255,80,80,0.15);
+  color: #ff6666;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.split-pane-remove:hover {
+  background: rgba(255,80,80,0.3);
+}
+
+.split-layer-select {
+  width: 100%;
+  padding: 7px 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.split-layer-select optgroup {
+  background: #333;
+  color: #999;
+  font-style: normal;
+  font-size: 11px;
+}
+
+.split-layer-select option {
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 12px;
+}
+
+.split-add-btn {
+  width: 100%;
+  padding: 9px;
+  background: rgba(255,255,255,0.06);
+  border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 4px;
+  color: #aaa;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.split-add-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border-color: rgba(255,255,255,0.3);
+}
+
+.split-sync-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 4px;
+  color: #aaa;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.split-sync-toggle:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border-color: rgba(255,255,255,0.2);
+}
+
+.split-sync-toggle.active {
+  background: rgba(255, 154, 60, 0.15);
+  border-color: rgba(255, 154, 60, 0.3);
+  color: #ff9a3c;
+}
+
+.split-sync-toggle.active:hover {
+  background: rgba(255, 154, 60, 0.25);
+}
+

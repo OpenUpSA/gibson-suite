@@ -1,0 +1,120 @@
+{
+  "categories": {
+    "Corrected Reflectance": [
+      {
+        "id": "VIIRS_NOAA20_CorrectedReflectance_TrueColor",
+        "name": "VIIRS NOAA-20 True Color",
+        "description": "True-color imagery from VIIRS on NOAA-20 satellite. 375m resolution, complements SNPP coverage.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "time": "2024-11-20",
+        "legendId": null
+      }
+    ],
+    "Temperature": [
+      {
+        "id": "AIRS_L2_Surface_Air_Temperature_Day",
+        "name": "Surface Air Temperature (Day)",
+        "description": "Daytime air temperature at 2 meters above surface. Useful for heat wave monitoring and climate analysis. From AIRS instrument.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "time": "2024-11-20",
+        "legendId": "AIRS_Surface_Air_Temperature_Daily_Day"
+      },
+      {
+        "id": "AIRS_L2_Surface_Air_Temperature_Night",
+        "name": "Surface Air Temperature (Night)",
+        "description": "Nighttime air temperature at 2 meters above surface. Shows temperature patterns and urban heat effects.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "time": "2024-11-20",
+        "legendId": "AIRS_Surface_Air_Temperature_Daily_Night"
+      },
+      {
+        "id": "MODIS_Terra_Land_Surface_Temp_Day",
+        "name": "Land Surface Temperature (Terra, Day)",
+        "description": "Daytime land surface temperature showing how hot the ground surface is. 1km resolution, useful for drought and urban heat monitoring.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Land_Surface_Temp"
+      },
+      {
+        "id": "MODIS_Aqua_Land_Surface_Temp_Day",
+        "name": "Land Surface Temperature (Aqua, Day)",
+        "description": "Afternoon land surface temperature from Aqua satellite. Complements Terra for diurnal temperature analysis. 1km resolution.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Land_Surface_Temp"
+      }
+    ],
+    "Precipitation & Soil Moisture": [
+      {
+        "id": "IMERG_Precipitation_Rate",
+        "name": "Precipitation Rate (30-min)",
+        "description": "Global precipitation measurement from GPM satellite constellation. Shows rainfall intensity in near real-time. 10km resolution, 30-minute updates.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "time": "2024-11-29T23:30:00Z",
+        "legendId": "GPM_Precipitation_Rate"
+      }
+    ],
+    "Water Vapor & Clouds": [
+      {
+        "id": "MODIS_Aqua_Water_Vapor_5km_Day",
+        "name": "Water Vapor (MODIS Aqua, Day)",
+        "description": "Total column water vapor from MODIS. Shows atmospheric moisture content. 5km resolution, useful for weather forecasting.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Water_Vapor"
+      },
+      {
+        "id": "MODIS_Aqua_Cloud_Top_Temp_Day",
+        "name": "Cloud Top Temperature (Aqua, Day)",
+        "description": "Temperature at cloud tops. Lower temperatures (colder) indicate taller clouds and potentially severe weather. 5km resolution.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Cloud_Top_Temp"
+      },
+      {
+        "id": "MODIS_Terra_Cloud_Top_Temp_Day",
+        "name": "Cloud Top Temperature (Terra, Day)",
+        "description": "Cloud top temperature from Terra satellite. Helps identify storm systems and convective activity. 5km resolution.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Cloud_Top_Temp"
+      }
+    ],
+    "Ocean & Water Quality": [
+      {
+        "id": "GHRSST_L4_MUR_Sea_Surface_Temperature",
+        "name": "Sea Surface Temperature",
+        "description": "Multi-sensor blended sea surface temperature. Shows ocean temperature patterns, upwelling zones, and thermal fronts. 1km resolution, daily.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "time": "2024-11-29T09:00:00Z",
+        "legendId": "GHRSST_Sea_Surface_Temperature"
+      }
+    ],
+    "Aerosols & Air Quality": [
+      {
+        "id": "MODIS_Combined_Value_Added_AOD",
+        "name": "Aerosol Optical Depth",
+        "description": "Combined aerosol optical depth from Terra and Aqua MODIS. Shows air quality, dust storms, smoke from fires. Higher values indicate more aerosols. 10km resolution.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "time": "2024-11-20",
+        "legendId": "MODIS_Combined_Value_Added_AOD"
+      },
+      {
+        "id": "OMI_Aerosol_Index",
+        "name": "UV Aerosol Index",
+        "description": "Detects absorbing aerosols like dust and smoke using UV measurements. Positive values show dust/smoke events. 13km resolution, daily coverage.",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "time": "2024-11-20",
+        "legendId": "OMI_Aerosol_Index"
+      }
+    ]
+  },
+  "mapSettings": {
+    "center": [0, 30],
+    "zoom": 3,
+    "minZoom": 2,
+    "maxZoom": 9
+  },
+  "wmtsBaseUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best",
+  "format": "image/png"
+}

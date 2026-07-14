@@ -1,0 +1,95 @@
+.date-selector {
+    position: sticky;
+    top: 0;
+    padding: 15px;
+    background: #114151;
+    border-bottom: 2px solid #0d3240;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.date-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-nav-btn {
+    background: #1a5a72;
+    border: 1px solid #1a5a72;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 0.2s;
+    min-width: 36px;
+    color: white;
+}
+
+.date-nav-btn:hover:not(:disabled) {
+    background: #236883;
+    color: white;
+    border-color: #236883;
+    transform: scale(1.05);
+}
+
+.date-nav-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.date-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.date-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #1a5a72;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #1a5a72;
+    color: white;
+}
+
+.date-input:hover {
+    border-color: #236883;
+    background: #236883;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #236883;
+    background: #236883;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.today-btn {
+    padding: 5px 10px;
+    background: #1a5a72;
+    border: 1px solid #1a5a72;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s;
+    color: white;
+}
+
+.today-btn:hover {
+    background: #236883;
+    color: white;
+    border-color: #236883;
+}
+
+.today-btn:active {
+    transform: scale(0.95);
+}

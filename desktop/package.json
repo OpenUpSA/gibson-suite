@@ -1,0 +1,28 @@
+{
+  "name": "gibs-layer-viewer",
+  "version": "0.3.0",
+  "description": "NASA GIBS Satellite Layer Viewer",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@formspree/react": "^3.0.0",
+    "@iconify/react": "^6.0.2",
+    "gif.js": "^0.2.0",
+    "mapbox-gl-draw-rectangle-mode": "^1.0.4",
+    "maplibre-gl": "^5.24.0",
+    "maplibre-gl-draw": "^1.6.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-map-gl": "^7.1.7",
+    "react-router-dom": "^7.17.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.2"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}

@@ -1,0 +1,134 @@
+.tileurl-panel {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tileurl-empty {
+  font-size: 13px;
+  color: #888;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.tileurl-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.tileurl-url-block {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 10px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tileurl-url-text {
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: #bbb;
+  word-break: break-all;
+  line-height: 1.5;
+  user-select: all;
+}
+
+.tileurl-copy-btn {
+  align-self: flex-end;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tileurl-copy-btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+.tileurl-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 4px 0;
+}
+
+.tileurl-hint {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tileurl-pick-btn {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: #ccc;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.tileurl-pick-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.tileurl-pick-btn.active {
+  background: rgba(255,154,60,0.15);
+  border-color: rgba(255,154,60,0.4);
+  color: #ff9a3c;
+}
+
+.tileurl-pick-btn.active:hover {
+  background: rgba(255,154,60,0.22);
+}
+
+.tileurl-tile-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tileurl-tile-coords {
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: #aaa;
+}
+
+.tileurl-tile-actions {
+  display: flex;
+  gap: 6px;
+  align-self: flex-end;
+}
+
+.tileurl-open-btn {
+  background: rgba(255,154,60,0.12);
+  border: 1px solid rgba(255,154,60,0.3);
+  border-radius: 4px;
+  color: #ff9a3c;
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+  display: inline-block;
+}
+
+.tileurl-open-btn:hover {
+  background: rgba(255,154,60,0.22);
+  color: #ffb870;
+}

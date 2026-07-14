@@ -1,0 +1,117 @@
+/* Calendar grid */
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-kit-space-100);
+  font-family: var(--ui-kit-typography-font-family, inherit);
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--ui-kit-space-050);
+}
+
+.calendarMonthName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ui-kit-color-content-fg);
+}
+
+.calendarNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--ui-kit-radius-element-standard);
+  background: transparent;
+  color: var(--ui-kit-color-content-fg);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.calendarNav:hover:not(:disabled) {
+  background: var(--ui-kit-color-action-tertiary-bg-hovered);
+}
+
+.calendarNav:disabled {
+  color: var(--ui-kit-color-content-subtlest-fg);
+  cursor: default;
+}
+
+.calendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+}
+
+.calendarWeekday {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ui-kit-color-content-subtle-fg);
+  padding: var(--ui-kit-space-050) 0;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendarCell,
+.calendarCellSelected,
+.calendarCellDisabled,
+.calendarCellBlank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: var(--ui-kit-radius-element-standard);
+  font-size: 12px;
+  line-height: 1;
+  position: relative;
+}
+
+.calendarCell {
+  background: transparent;
+  color: var(--ui-kit-color-content-fg);
+  cursor: pointer;
+}
+
+.calendarCell:hover {
+  background: var(--ui-kit-color-action-tertiary-bg-hovered);
+}
+
+.calendarCellSelected {
+  background: var(--ui-kit-color-action-primary-bg);
+  color: var(--ui-kit-color-action-primary-fg);
+  font-weight: 600;
+  cursor: default;
+}
+
+.calendarCellDisabled {
+  color: var(--ui-kit-color-content-subtlest-fg);
+  cursor: default;
+}
+
+.calendarCellBlank {
+  pointer-events: none;
+}
+
+/* Availability dot */
+.calendarDot {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ui-kit-color-content-positive-fg);
+}
