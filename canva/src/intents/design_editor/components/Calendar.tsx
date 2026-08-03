@@ -18,15 +18,7 @@ type CalendarProps = {
   availableDays?: Set<number>;
 };
 
-const WEEKDAY_LABELS = [
-  "Su",
-  "Mo",
-  "Tu",
-  "We",
-  "Th",
-  "Fr",
-  "Sa",
-] as const;
+const WEEKDAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] as const;
 
 /** Compare two `DateObj`s for equality. */
 const isSameDay = (a: DateObj, b: DateObj): boolean =>
@@ -90,10 +82,7 @@ export const Calendar = ({
       y = min.year;
       m = min.month;
     }
-    const day = Math.min(
-      value.day,
-      new Date(y, m, 0).getDate(),
-    );
+    const day = Math.min(value.day, new Date(y, m, 0).getDate());
     onChange({ year: y, month: m, day });
   };
 
@@ -109,10 +98,7 @@ export const Calendar = ({
       y = max.year;
       m = max.month;
     }
-    const day = Math.min(
-      value.day,
-      new Date(y, m, 0).getDate(),
-    );
+    const day = Math.min(value.day, new Date(y, m, 0).getDate());
     onChange({ year: y, month: m, day });
   };
 
@@ -187,7 +173,9 @@ export const Calendar = ({
       <div className={styles.calendarGrid}>
         {cells.map((cell, i) => {
           if (!cell) {
-            return <span key={`blank-${i}`} className={styles.calendarCellBlank} />;
+            return (
+              <span key={`blank-${i}`} className={styles.calendarCellBlank} />
+            );
           }
           const { day } = cell;
           const dateObj = { year: viewYear, month: viewMonth, day };

@@ -1,4 +1,10 @@
-import { Button, ChevronLeftIcon, ChevronRightIcon } from "@canva/app-ui-kit";
+import {
+  Button,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+} from "@canva/app-ui-kit";
 import type { DateObj } from "../utils/gibs";
 import { useIntl } from "react-intl";
 import * as styles from "styles/components.css";
@@ -41,30 +47,66 @@ const clampDate = (value: DateObj, min: DateObj, max: DateObj): DateObj => {
   return value;
 };
 
+/** Number of days in a given month (1-indexed). */
+const daysInMonth = (year: number, month: number): number =>
+  new Date(Date.UTC(year, month, 0)).getUTCDate();
+
 /**
- * A compact day / month / year date stepper, mirroring the reference app's
- * `DatePicker` (`gibson/src/components/DatePicker.jsx`). Prev/next chevrons
- * step a day at a time; the three boxes show the current day, month, and year.
+ * A compact date stepper. Each field — day, month, year — has its own
+ * up/down chevron buttons so the user can change any component individually.
+ * Outer left/right chevrons still step a whole day at a time for convenience.
  * Constrained to the GIBS availability range `[min, max]`.
  */
-export const DatePicker = ({
-  value,
-  min,
-  max,
-  onChange,
-}: DatePickerProps) => {
+export const DatePicker = ({ value, min, max, onChange }: DatePickerProps) => {
   const intl = useIntl();
 
   const atMin = dateObjToDays(value) <= dateObjToDays(min);
   const atMax = dateObjToDays(value) >= dateObjToDays(max);
 
-  const step = (delta: number) => {
+  /** Step a single day by `delta`. */
+  const stepDay = (delta: number) => {
     const next = clampDate(
       { year: value.year, month: value.month, day: value.day + delta },
       min,
       max,
     );
     onChange(next);
+  };
+
+  /** Step the month by `delta`, clamping the day to the new month's length. */
+  const stepMonth = (delta: number) => {
+    let newMonth = value.month + delta;
+    let newYear = value.year;
+
+    // Wrap around the year boundary.
+    if (newMonth < 1) {
+      newMonth = 12;
+      newYear -= 1;
+    } else if (newMonth > 12) {
+      newMonth = 1;
+      newYear += 1;
+    }
+
+    // Clamp the day to the new month's length (e.g. Jan 31 → Feb 28).
+    const maxDay = daysInMonth(newYear, newMonth);
+    const newDay = Math.min(value.day, maxDay);
+
+    onChange(
+      clampDate({ year: newYear, month: newMonth, day: newDay }, min, max),
+    );
+  };
+
+  /** Step the year by `delta`, clamping the day to Feb's length on leap years. */
+  const stepYear = (delta: number) => {
+    const newYear = value.year + delta;
+
+    // Clamp the day (handles Feb 29 on non-leap years).
+    const maxDay = daysInMonth(newYear, value.month);
+    const newDay = Math.min(value.day, maxDay);
+
+    onChange(
+      clampDate({ year: newYear, month: value.month, day: newDay }, min, max),
+    );
   };
 
   const dayLabel = intl.formatMessage({
@@ -80,49 +122,134 @@ export const DatePicker = ({
     description: "Label for the year box in the date stepper.",
   });
 
+  const prevDayLabel = intl.formatMessage({
+    defaultMessage: "Previous day",
+    description: "Accessible label for the date stepper's previous-day button.",
+  });
+  const nextDayLabel = intl.formatMessage({
+    defaultMessage: "Next day",
+    description: "Accessible label for the date stepper's next-day button.",
+  });
+  const dayUpLabel = intl.formatMessage({
+    defaultMessage: "Increase day",
+    description: "Accessible label for the date stepper's increase-day button.",
+  });
+  const dayDownLabel = intl.formatMessage({
+    defaultMessage: "Decrease day",
+    description: "Accessible label for the date stepper's decrease-day button.",
+  });
+  const monthUpLabel = intl.formatMessage({
+    defaultMessage: "Increase month",
+    description:
+      "Accessible label for the date stepper's increase-month button.",
+  });
+  const monthDownLabel = intl.formatMessage({
+    defaultMessage: "Decrease month",
+    description:
+      "Accessible label for the date stepper's decrease-month button.",
+  });
+  const yearUpLabel = intl.formatMessage({
+    defaultMessage: "Increase year",
+    description:
+      "Accessible label for the date stepper's increase-year button.",
+  });
+  const yearDownLabel = intl.formatMessage({
+    defaultMessage: "Decrease year",
+    description:
+      "Accessible label for the date stepper's decrease-year button.",
+  });
+
   return (
     <div className={styles.dateStepper}>
       <Button
         variant="tertiary"
         size="small"
         icon={ChevronLeftIcon}
-        ariaLabel={intl.formatMessage({
-          defaultMessage: "Previous day",
-          description:
-            "Accessible label for the date stepper's previous-day button.",
-        })}
+        ariaLabel={prevDayLabel}
         disabled={atMin}
-        onClick={() => step(-1)}
+        onClick={() => stepDay(-1)}
       />
       <div className={styles.dateStepperBoxes}>
         <div className={styles.dateStepperBox}>
-          <span className={styles.dateStepperBoxValue}>
-            {String(value.day).padStart(2, "0")}
-          </span>
-          <span className={styles.dateStepperBoxLabel}>{dayLabel}</span>
+          <Button
+            variant="tertiary"
+            size="small"
+            icon={ChevronUpIcon}
+            ariaLabel={dayUpLabel}
+            disabled={atMax}
+            onClick={() => stepDay(1)}
+          />
+          <div className={styles.dateStepperBoxText}>
+            <span className={styles.dateStepperBoxValue}>
+              {String(value.day).padStart(2, "0")}
+            </span>
+            <span className={styles.dateStepperBoxLabel}>{dayLabel}</span>
+          </div>
+          <Button
+            variant="tertiary"
+            size="small"
+            icon={ChevronDownIcon}
+            ariaLabel={dayDownLabel}
+            disabled={atMin}
+            onClick={() => stepDay(-1)}
+          />
         </div>
+
         <div className={styles.dateStepperBox}>
-          <span className={styles.dateStepperBoxValue}>
-            {MONTH_NAMES[value.month - 1]}
-          </span>
-          <span className={styles.dateStepperBoxLabel}>{monthLabel}</span>
+          <Button
+            variant="tertiary"
+            size="small"
+            icon={ChevronUpIcon}
+            ariaLabel={monthUpLabel}
+            disabled={atMax}
+            onClick={() => stepMonth(1)}
+          />
+          <div className={styles.dateStepperBoxText}>
+            <span className={styles.dateStepperBoxValue}>
+              {MONTH_NAMES[value.month - 1]}
+            </span>
+            <span className={styles.dateStepperBoxLabel}>{monthLabel}</span>
+          </div>
+          <Button
+            variant="tertiary"
+            size="small"
+            icon={ChevronDownIcon}
+            ariaLabel={monthDownLabel}
+            disabled={atMin}
+            onClick={() => stepMonth(-1)}
+          />
         </div>
+
         <div className={styles.dateStepperBox}>
-          <span className={styles.dateStepperBoxValue}>{value.year}</span>
-          <span className={styles.dateStepperBoxLabel}>{yearLabel}</span>
+          <Button
+            variant="tertiary"
+            size="small"
+            icon={ChevronUpIcon}
+            ariaLabel={yearUpLabel}
+            disabled={atMax}
+            onClick={() => stepYear(1)}
+          />
+          <div className={styles.dateStepperBoxText}>
+            <span className={styles.dateStepperBoxValue}>{value.year}</span>
+            <span className={styles.dateStepperBoxLabel}>{yearLabel}</span>
+          </div>
+          <Button
+            variant="tertiary"
+            size="small"
+            icon={ChevronDownIcon}
+            ariaLabel={yearDownLabel}
+            disabled={atMin}
+            onClick={() => stepYear(-1)}
+          />
         </div>
       </div>
       <Button
         variant="tertiary"
         size="small"
         icon={ChevronRightIcon}
-        ariaLabel={intl.formatMessage({
-          defaultMessage: "Next day",
-          description:
-            "Accessible label for the date stepper's next-day button.",
-        })}
+        ariaLabel={nextDayLabel}
         disabled={atMax}
-        onClick={() => step(1)}
+        onClick={() => stepDay(1)}
       />
     </div>
   );

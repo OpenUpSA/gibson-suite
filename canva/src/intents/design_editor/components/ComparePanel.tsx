@@ -1,13 +1,6 @@
 import { type useFeatureSupport } from "@canva/app-hooks";
 import { upload, type ImageRef } from "@canva/asset";
-import {
-  Alert,
-  Button,
-  Rows,
-  Select,
-  Text,
-  Title,
-} from "@canva/app-ui-kit";
+import { Alert, Button, Rows, Select, Text, Title } from "@canva/app-ui-kit";
 import { initAppElement, type AppElementClient } from "@canva/design";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
@@ -31,8 +24,9 @@ const MIN_DATE: DateObj = { year: 2010, month: 1, day: 1 };
 const PREVIEW_WIDTH = 512;
 const PREVIEW_HEIGHT = 256;
 
-const UPLOAD_WIDTH = 2048;
-const UPLOAD_HEIGHT = 1024;
+// Match the single-layer upload resolution (8192x4096) for maximum detail.
+const UPLOAD_WIDTH = 8192;
+const UPLOAD_HEIGHT = 4096;
 
 // Each image half is 300px wide; the group is 600x300.
 const HALF_WIDTH = 300;
@@ -122,7 +116,9 @@ export const ComparePanel = ({ isSupported }: ComparePanelProps) => {
     const second =
       ALL_LAYERS.find(
         (l) => l.id === "MODIS_Terra_CorrectedReflectance_TrueColor",
-      ) ?? ALL_LAYERS[1] ?? firstLayer;
+      ) ??
+      ALL_LAYERS[1] ??
+      firstLayer;
     return {
       layer: second as GibsLayer,
       date: getLayerLatestDateObj(second?.id ?? "") ?? daysAgo(3),
@@ -144,15 +140,10 @@ export const ComparePanel = ({ isSupported }: ComparePanelProps) => {
   );
   // The most recent change event, kept in a ref so async handlers can call
   // `element.update()` after a fresh upload completes.
-  const selectionEventRef = useRef<
-    | {
-        data: CompareElementData;
-        update: (opts: {
-          data: CompareElementData;
-        }) => Promise<void>;
-      }
-    | null
-  >(null);
+  const selectionEventRef = useRef<{
+    data: CompareElementData;
+    update: (opts: { data: CompareElementData }) => Promise<void>;
+  } | null>(null);
 
   useEffect(() => {
     const unregister = elementRef.current?.registerOnElementChange(
@@ -274,11 +265,13 @@ export const ComparePanel = ({ isSupported }: ComparePanelProps) => {
     if (selectedData && !isAdding) {
       setIsAdding(true);
       setHasError(false);
-      updatePaneOnCanvas(which, next, dateObjToString(newDate)).catch(() => {
-        setHasError(true);
-      }).finally(() => {
-        setIsAdding(false);
-      });
+      updatePaneOnCanvas(which, next, dateObjToString(newDate))
+        .catch(() => {
+          setHasError(true);
+        })
+        .finally(() => {
+          setIsAdding(false);
+        });
     }
   };
 
@@ -292,11 +285,13 @@ export const ComparePanel = ({ isSupported }: ComparePanelProps) => {
     if (selectedData && !isStaticLayer(layer.id) && !isAdding) {
       setIsAdding(true);
       setHasError(false);
-      updatePaneOnCanvas(which, layer, dateObjToString(newDate)).catch(() => {
-        setHasError(true);
-      }).finally(() => {
-        setIsAdding(false);
-      });
+      updatePaneOnCanvas(which, layer, dateObjToString(newDate))
+        .catch(() => {
+          setHasError(true);
+        })
+        .finally(() => {
+          setIsAdding(false);
+        });
     }
   };
 

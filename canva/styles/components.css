@@ -63,6 +63,30 @@
   gap: var(--ui-kit-space-100);
 }
 
+/* Resolution selector row */
+.resolutionRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-kit-space-100);
+}
+
+/* Sidebar list of satellite images on the canvas */
+.elementList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-kit-space-100);
+}
+
+/* A single list item — card + remove button */
+.elementListItemSelected {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-kit-space-050);
+  padding: var(--ui-kit-space-100);
+  border-radius: var(--ui-kit-border-radius-100);
+  background: var(--ui-kit-color-surface-hover);
+}
+
 /* Calendar legend hint */
 .calendarHint {
   font-size: 11px;
@@ -70,29 +94,141 @@
   text-align: center;
 }
 
-/* ── Accordion layer cards (tighter) ─────────────────────────────────── */
-/* The UI Kit cards are generously padded by default. Shrink them so the
-   browser fits more layers without scrolling. */
-:global([class*="cardContainer"]) {
-  padding-block: 2px !important;
-  padding-inline: 6px !important;
-  min-height: 0 !important;
+/* ── Region selection map ───────────────────────────────────────────── */
+
+.regionMapWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-kit-space-100);
 }
-:global([class*="horizontalWrapper"]) {
-  gap: 6px !important;
+
+.regionMap {
+  width: 100%;
+  height: 180px;
+  border-radius: var(--ui-kit-radius-element-standard);
+  overflow: hidden;
+  background: #0a1428;
+  border: 1px solid var(--ui-kit-color-border-standard);
+  cursor: grab;
 }
-:global([class*="thumbnailArea"]) {
-  width: 36px !important;
-  flex-shrink: 0;
+
+.regionMap:active {
+  cursor: grabbing;
 }
-/* Tighten the accordion item spacing */
+
+/* Leaflet zoom controls — compact for the small map */
+:global(.leaflet-control-zoom) {
+  margin: 4px !important;
+}
+
+:global(.leaflet-control-zoom a) {
+  border-radius: 4px !important;
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  font-size: 14px !important;
+}
+
+:global(.leaflet-container) {
+  font: inherit;
+  background: #0a1428;
+}
+
+/* Resize handles on the drawn rectangle. The leaf element is an empty box;
+   the visible square is the inner span, which paints a gold border on a
+   dark background. */
+:global(.gibs-resize-handle) {
+  background: transparent;
+  border: 0;
+}
+:global(.gibs-resize-handle__inner) {
+  display: block;
+  box-sizing: border-box;
+  background: #1a1a1a;
+  border: 2px solid #e5a700;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+:global(.gibs-resize-handle__inner--corner) {
+  border-radius: 3px;
+}
+
+/* Top-row mode buttons (Free / 1:1 / 16:10 / Full globe / Specify).
+   Wraps onto multiple lines on narrow viewports so the row never
+   overflows the panel. */
+.regionMapModes {
+  display: flex;
+  gap: var(--ui-kit-space-100);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Coordinate input panel (Start / End lat, lon) shown only when the
+   user has selected the "Specify" mode button. */
+.regionMapCoords {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-kit-space-100);
+}
+
+/* ── Accordion layer cards (custom button, no thumbnail) ─────────────── */
+/* A thumbnailless, full-width button that shows the layer name and a
+   free-flowing description. The description wraps to as many lines as
+   needed instead of being clamped to a single line. */
+.layerCard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  margin: 0;
+  border: 0;
+  border-radius: var(--ui-kit-radius-element-standard);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.layerCard:hover:not([aria-disabled="true"]):not([data-selected]) {
+  background: var(--ui-kit-color-surface-hover);
+}
+
+.layerCard:focus-visible {
+  outline: 2px solid var(--ui-kit-color-action-primary-bg);
+  outline-offset: -2px;
+}
+
+.layerCard[aria-disabled="true"],
+.layerCard[data-selected] {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Tighten the accordion item spacing so the cards sit close together. */
 :global([class*="accordionItem"]) {
   padding-block: 2px;
 }
-/* Shrink the card title/description typography */
-:global([class*="cardContainer"] p) {
+
+/* Tighter typography for the layer card text (the Text component uses <p>). */
+.layerCard p {
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.3;
+  /* Allow the text to wrap to as many lines as needed (override the
+     Typography default lineClamp). */
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  -webkit-box-orient: unset;
+  box-orient: unset;
+  display: block;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 /* ── Date stepper ──────────────────────────────────────────────────── */
@@ -115,11 +251,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4px 8px;
+  padding: 2px 4px;
   border-radius: 6px;
   background: var(--ui-kit-color-surface-secondary-bg);
   flex: 1;
   min-width: 0;
+  gap: 0;
+}
+
+.dateStepperBoxText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1px 6px 3px;
 }
 
 .dateStepperBoxValue {

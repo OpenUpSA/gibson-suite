@@ -1,6 +1,8 @@
-import { Accordion, AccordionItem, HorizontalCard } from "@canva/app-ui-kit";
+import { Accordion, AccordionItem, Text } from "@canva/app-ui-kit";
+import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { DUMMY_THUMBNAIL, type GibsLayerCategory } from "../config/layers";
+import * as styles from "styles/components.css";
+import type { GibsLayerCategory } from "../config/layers";
 
 type LayerBrowserProps = {
   /** The themed categories to render as accordion sections. */
@@ -15,9 +17,12 @@ type LayerBrowserProps = {
  * An accordion browser for GIBS layers, mirroring the collapsible category
  * list in the reference app (`gibson/src/components/LayerSelector.jsx`).
  *
- * Each category is an `AccordionItem`; each layer inside it is a
- * `HorizontalCard` with a (dummy) thumbnail, the layer name as the title and
- * the layer description. Clicking a card selects that layer.
+ * Each category is an `AccordionItem`; each layer inside it is a thumbnailless
+ * card containing the layer name (bold) and description (subtle). Both text
+ * blocks wrap freely to multiple lines so long layer names and descriptions
+ * are never truncated. The card is a `<div role="button">` so it can hold the
+ * multi-line text layout (the App UI Kit's `Button` only takes a single
+ * string) while still being keyboard accessible.
  */
 export const LayerBrowser = ({
   categories,
@@ -40,34 +45,63 @@ export const LayerBrowser = ({
             { name: category.name, count: category.layers.length },
           )}
         >
-          {category.layers.map((layer) => (
-            <HorizontalCard
-              key={layer.id}
-              title={layer.name}
-              description={layer.description}
-              thumbnail={{
-                url: DUMMY_THUMBNAIL,
-                alt: intl.formatMessage(
-                  {
-                    defaultMessage: "Thumbnail for {name}",
-                    description:
-                      "Alt text for a layer card thumbnail in the GIBS layer browser.",
-                  },
-                  { name: layer.name },
-                ),
-              }}
-              ariaLabel={intl.formatMessage(
-                {
-                  defaultMessage: "Select {name}",
-                  description:
-                    "Accessible label for selecting a GIBS layer from the browser.",
-                },
-                { name: layer.name },
-              )}
-              disabled={selectedLayerId === layer.id}
-              onClick={() => onSelect(layer.id)}
-            />
-          ))}
+          {category.layers.map((layer) => {
+            const isSelected = selectedLayerId === layer.id;
+            const ariaLabel = intl.formatMessage(
+              {
+                defaultMessage: "Select {name}",
+                description:
+                  "Accessible label for selecting a GIBS layer from the browser.",
+              },
+              { name: layer.name },
+            );
+            // Space/Enter activate the card for keyboard users. The
+            // `aria-disabled` attribute conveys the selected state to
+            // assistive tech (a real `disabled` attribute would prevent
+            // focus, which we don't want here).
+            const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+              if (isSelected) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(layer.id);
+              }
+            };
+            const content: ReactNode = (
+              <>
+                <Text size="small" variant="bold">
+                  {layer.name}
+                </Text>
+                <Text size="xsmall" tone="tertiary">
+                  {layer.description}
+                </Text>
+              </>
+            );
+            return isSelected ? (
+              <div
+                key={layer.id}
+                className={styles.layerCard}
+                role="button"
+                tabIndex={-1}
+                aria-label={ariaLabel}
+                aria-disabled
+                data-selected
+              >
+                {content}
+              </div>
+            ) : (
+              <div
+                key={layer.id}
+                className={styles.layerCard}
+                role="button"
+                tabIndex={0}
+                aria-label={ariaLabel}
+                onClick={() => onSelect(layer.id)}
+                onKeyDown={handleKeyDown}
+              >
+                {content}
+              </div>
+            );
+          })}
         </AccordionItem>
       ))}
     </Accordion>

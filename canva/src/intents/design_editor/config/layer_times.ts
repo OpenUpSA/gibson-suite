@@ -25,7 +25,7 @@ export type LayerTimeData = {
 };
 
 export const LAYER_TIMES: Record<string, LayerTimeData> = {
-  "AIRS_L2_Dust_Score_Day": {
+  AIRS_L2_Dust_Score_Day: {
     default: "2026-07-10",
     intervals: [
       { start: "2002-08-30", end: "2002-10-19", period: "P1D" },
@@ -40,7 +40,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-29", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "AIRS_L2_Dust_Score_Night": {
+  AIRS_L2_Dust_Score_Night: {
     default: "2026-07-10",
     intervals: [
       { start: "2002-08-30", end: "2002-10-19", period: "P1D" },
@@ -55,7 +55,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-29", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "AIRS_L2_Total_Cloud_Fraction_Day": {
+  AIRS_L2_Total_Cloud_Fraction_Day: {
     default: "2026-07-10",
     intervals: [
       { start: "2002-08-30", end: "2002-10-19", period: "P1D" },
@@ -70,7 +70,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-29", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "AIRS_L3_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Daily_Day": {
+  AIRS_L3_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Daily_Day: {
     default: "2026-07-06",
     intervals: [
       { start: "2002-09-01", end: "2002-10-19", period: "P1D" },
@@ -99,7 +99,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-16", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "AIRS_L3_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Daily_Night": {
+  AIRS_L3_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Daily_Night: {
     default: "2026-07-06",
     intervals: [
       { start: "2002-09-01", end: "2002-10-19", period: "P1D" },
@@ -127,7 +127,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-16", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "AIRS_L3_Methane_400hPa_Volume_Mixing_Ratio_Daily_Day": {
+  AIRS_L3_Methane_400hPa_Volume_Mixing_Ratio_Daily_Day: {
     default: "2026-07-06",
     intervals: [
       { start: "2002-09-01", end: "2002-10-19", period: "P1D" },
@@ -157,7 +157,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-16", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "AIRS_L3_Methane_400hPa_Volume_Mixing_Ratio_Daily_Night": {
+  AIRS_L3_Methane_400hPa_Volume_Mixing_Ratio_Daily_Night: {
     default: "2026-07-06",
     intervals: [
       { start: "2002-09-01", end: "2002-10-19", period: "P1D" },
@@ -185,7 +185,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-16", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "AIRS_L3_Surface_Air_Temperature_Daily_Day": {
+  AIRS_L3_Surface_Air_Temperature_Daily_Day: {
     default: "2026-07-06",
     intervals: [
       { start: "2002-09-01", end: "2002-10-19", period: "P1D" },
@@ -210,7 +210,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-16", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "AIRS_L3_Surface_Air_Temperature_Daily_Night": {
+  AIRS_L3_Surface_Air_Temperature_Daily_Night: {
     default: "2026-07-06",
     intervals: [
       { start: "2002-09-01", end: "2002-10-19", period: "P1D" },
@@ -236,7 +236,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-16", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "AIRS_Precipitation_Day": {
+  AIRS_Precipitation_Day: {
     default: "2026-07-10",
     intervals: [
       { start: "2012-05-08", end: "2014-03-22", period: "P1D" },
@@ -252,25 +252,19 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-23", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "AMSRU2_Sea_Ice_Concentration_12km": {
+  AMSRU2_Sea_Ice_Concentration_12km: {
     default: "2025-09-01",
-    intervals: [
-      { start: "2012-07-02", end: "2025-09-01", period: "P1D" },
-    ],
+    intervals: [{ start: "2012-07-02", end: "2025-09-01", period: "P1D" }],
   },
   "GEDI_ISS_L3_Canopy_Height_Mean_RH100_201904-202303": {
     default: "2019-04-18",
-    intervals: [
-      { start: "2019-04-18", end: "2019-04-18", period: "P1429D" },
-    ],
+    intervals: [{ start: "2019-04-18", end: "2019-04-18", period: "P1429D" }],
   },
   "GEDI_ISS_L4B_Aboveground_Biomass_Density_Mean_201904-202303": {
     default: "2019-04-18",
-    intervals: [
-      { start: "2019-04-18", end: "2019-04-18", period: "P1429D" },
-    ],
+    intervals: [{ start: "2019-04-18", end: "2019-04-18", period: "P1429D" }],
   },
-  "GHRSST_L4_GAMSSA_GDS2_Sea_Surface_Temperature": {
+  GHRSST_L4_GAMSSA_GDS2_Sea_Surface_Temperature: {
     default: "2026-07-09",
     intervals: [
       { start: "2008-07-23", end: "2008-08-26", period: "P1D" },
@@ -291,7 +285,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-05-07", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "GHRSST_L4_MUR_Sea_Ice_Concentration": {
+  GHRSST_L4_MUR_Sea_Ice_Concentration: {
     default: "2026-07-09",
     intervals: [
       { start: "2002-06-01", end: "2021-02-19", period: "P1D" },
@@ -302,7 +296,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2024-07-03", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "GHRSST_L4_MUR_Sea_Surface_Temperature": {
+  GHRSST_L4_MUR_Sea_Surface_Temperature: {
     default: "2026-07-09",
     intervals: [
       { start: "2002-06-01", end: "2021-02-19", period: "P1D" },
@@ -313,7 +307,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2024-07-03", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies": {
+  GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies: {
     default: "2026-07-09",
     intervals: [
       { start: "2019-07-23", end: "2021-02-19", period: "P1D" },
@@ -325,13 +319,11 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-11", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "GLDAS_Surface_Total_Precipitation_Rate_Monthly": {
+  GLDAS_Surface_Total_Precipitation_Rate_Monthly: {
     default: "2026-01-01",
-    intervals: [
-      { start: "2000-01-01", end: "2026-01-01", period: "P1M" },
-    ],
+    intervals: [{ start: "2000-01-01", end: "2026-01-01", period: "P1M" }],
   },
-  "GMI_Precipitation_Rate_Asc": {
+  GMI_Precipitation_Rate_Asc: {
     default: "2026-07-10",
     intervals: [
       { start: "2014-03-04", end: "2026-02-10", period: "P1D" },
@@ -340,7 +332,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-05-28", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI": {
+  GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI: {
     default: "2022-07-01",
     intervals: [
       { start: "2002-04-04", end: "2002-04-04", period: "P28D" },
@@ -409,7 +401,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2020-02-01", end: "2022-07-01", period: "P1M" },
     ],
   },
-  "IMERG_Precipitation_Rate": {
+  IMERG_Precipitation_Rate: {
     default: "2026-07-09",
     intervals: [
       { start: "2000-06-01", end: "2025-10-22", period: "P1D" },
@@ -419,7 +411,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-05-27", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "IMERG_Precipitation_Rate_30min": {
+  IMERG_Precipitation_Rate_30min: {
     default: "2026-07-10",
     intervals: [
       { start: "1998-01-01", end: "2025-09-13", period: "PT30M" },
@@ -428,32 +420,26 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-02-10", end: "2026-07-10", period: "PT30M" },
     ],
   },
-  "JPL_MEaSUREs_L4_Sea_Surface_Height_Anomalies": {
+  JPL_MEaSUREs_L4_Sea_Surface_Height_Anomalies: {
     default: "2019-01-22",
     intervals: [
       { start: "1992-09-30", end: "2017-10-19", period: "P5D" },
       { start: "2017-10-29", end: "2019-01-22", period: "P5D" },
     ],
   },
-  "LIS_Very_High_Resolution_Lightning_Full_Climatology_LIS_Mean_Flash_Rate": {
+  LIS_Very_High_Resolution_Lightning_Full_Climatology_LIS_Mean_Flash_Rate: {
     default: "1998-01-01",
-    intervals: [
-      { start: "1998-01-01", end: "1998-01-01", period: "P5844D" },
-    ],
+    intervals: [{ start: "1998-01-01", end: "1998-01-01", period: "P5844D" }],
   },
-  "LIS_Very_High_Resolution_Lightning_Monthly_Climatology_LIS_Mean_Flash_Rate": {
+  LIS_Very_High_Resolution_Lightning_Monthly_Climatology_LIS_Mean_Flash_Rate: {
     default: "2013-12-01",
-    intervals: [
-      { start: "1998-01-01", end: "2013-12-01", period: "P1M" },
-    ],
+    intervals: [{ start: "1998-01-01", end: "2013-12-01", period: "P1M" }],
   },
-  "LIS_Very_High_Resolution_Lightning_Seasonal_Climatology_LIS_Mean_Flash_Rate": {
+  LIS_Very_High_Resolution_Lightning_Seasonal_Climatology_LIS_Mean_Flash_Rate: {
     default: "2013-10-01",
-    intervals: [
-      { start: "1998-01-01", end: "2013-10-01", period: "P3M" },
-    ],
+    intervals: [{ start: "1998-01-01", end: "2013-10-01", period: "P3M" }],
   },
-  "LPRM_AMSR2_Surface_Soil_Moisture_C1_Band_Day_Daily": {
+  LPRM_AMSR2_Surface_Soil_Moisture_C1_Band_Day_Daily: {
     default: "2026-07-05",
     intervals: [
       { start: "2012-07-03", end: "2013-05-10", period: "P1D" },
@@ -473,25 +459,19 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-13", end: "2026-07-05", period: "P1D" },
     ],
   },
-  "MERRA2_Carbon_Monoxide_Emission_Monthly": {
+  MERRA2_Carbon_Monoxide_Emission_Monthly: {
     default: "2026-04-01",
-    intervals: [
-      { start: "1980-01-01", end: "2026-04-01", period: "P1M" },
-    ],
+    intervals: [{ start: "1980-01-01", end: "2026-04-01", period: "P1M" }],
   },
-  "MERRA2_Dust_Surface_Mass_Concentration_PM25_Monthly": {
+  MERRA2_Dust_Surface_Mass_Concentration_PM25_Monthly: {
     default: "2026-04-01",
-    intervals: [
-      { start: "1980-01-01", end: "2026-04-01", period: "P1M" },
-    ],
+    intervals: [{ start: "1980-01-01", end: "2026-04-01", period: "P1M" }],
   },
-  "MEaSUREs_Daily_Landscape_Freeze_Thaw_AMSRE": {
+  MEaSUREs_Daily_Landscape_Freeze_Thaw_AMSRE: {
     default: "2011-09-27",
-    intervals: [
-      { start: "2002-06-09", end: "2011-09-27", period: "P1D" },
-    ],
+    intervals: [{ start: "2002-06-09", end: "2011-09-27", period: "P1D" }],
   },
-  "MODIS_Aqua_Cloud_Top_Temp_Day": {
+  MODIS_Aqua_Cloud_Top_Temp_Day: {
     default: "2026-07-10",
     intervals: [
       { start: "2002-07-03", end: "2002-07-30", period: "P1D" },
@@ -501,7 +481,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-04-17", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "MODIS_Aqua_CorrectedReflectance_TrueColor": {
+  MODIS_Aqua_CorrectedReflectance_TrueColor: {
     default: "2026-07-10",
     intervals: [
       { start: "2002-07-03", end: "2002-07-30", period: "P1D" },
@@ -510,7 +490,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-04-17", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "MODIS_Aqua_L2_Chlorophyll_A": {
+  MODIS_Aqua_L2_Chlorophyll_A: {
     default: "2026-07-09",
     intervals: [
       { start: "2002-07-04", end: "2002-07-29", period: "P1D" },
@@ -520,7 +500,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-04-16", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "MODIS_Aqua_L3_Land_Surface_Temp_8Day_Day": {
+  MODIS_Aqua_L3_Land_Surface_Temp_8Day_Day: {
     default: "2026-06-26",
     intervals: [
       { start: "2002-07-04", end: "2002-12-27", period: "P8D" },
@@ -552,7 +532,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-02-10", end: "2026-06-26", period: "P8D" },
     ],
   },
-  "MODIS_Aqua_L3_Land_Surface_Temp_8Day_Night": {
+  MODIS_Aqua_L3_Land_Surface_Temp_8Day_Night: {
     default: "2026-06-26",
     intervals: [
       { start: "2002-07-04", end: "2002-12-27", period: "P8D" },
@@ -583,7 +563,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-01", end: "2026-06-26", period: "P8D" },
     ],
   },
-  "MODIS_Aqua_L3_Land_Surface_Temp_Daily_Day": {
+  MODIS_Aqua_L3_Land_Surface_Temp_Daily_Day: {
     default: "2026-07-08",
     intervals: [
       { start: "2002-07-04", end: "2002-07-29", period: "P1D" },
@@ -592,7 +572,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-04-17", end: "2026-07-08", period: "P1D" },
     ],
   },
-  "MODIS_Aqua_L3_Land_Surface_Temp_Daily_Night": {
+  MODIS_Aqua_L3_Land_Surface_Temp_Daily_Night: {
     default: "2026-07-08",
     intervals: [
       { start: "2002-07-04", end: "2002-07-29", period: "P1D" },
@@ -601,7 +581,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-04-17", end: "2026-07-08", period: "P1D" },
     ],
   },
-  "MODIS_Aqua_L3_NDSI_Snow_Cover_Daily": {
+  MODIS_Aqua_L3_NDSI_Snow_Cover_Daily: {
     default: "2026-07-08",
     intervals: [
       { start: "2002-07-04", end: "2002-07-29", period: "P1D" },
@@ -612,7 +592,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-02-09", end: "2026-07-08", period: "P1D" },
     ],
   },
-  "MODIS_Aqua_Water_Vapor_5km_Day": {
+  MODIS_Aqua_Water_Vapor_5km_Day: {
     default: "2026-07-10",
     intervals: [
       { start: "2002-07-03", end: "2002-07-30", period: "P1D" },
@@ -652,20 +632,18 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2023-07-26", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "MODIS_Combined_L3_Black_Sky_Albedo_Daily": {
+  MODIS_Combined_L3_Black_Sky_Albedo_Daily: {
     default: "2026-07-09",
     intervals: [
       { start: "2000-05-18", end: "2001-06-23", period: "P1D" },
       { start: "2001-06-26", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "MODIS_Combined_L3_IGBP_Land_Cover_Type_Annual": {
+  MODIS_Combined_L3_IGBP_Land_Cover_Type_Annual: {
     default: "2024-01-01",
-    intervals: [
-      { start: "2001-01-01", end: "2024-01-01", period: "P1Y" },
-    ],
+    intervals: [{ start: "2001-01-01", end: "2024-01-01", period: "P1Y" }],
   },
-  "MODIS_Combined_L3_White_Sky_Albedo_Daily": {
+  MODIS_Combined_L3_White_Sky_Albedo_Daily: {
     default: "2026-07-09",
     intervals: [
       { start: "2000-05-18", end: "2001-05-16", period: "P1D" },
@@ -673,14 +651,14 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2001-06-26", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "MODIS_Combined_Thermal_Anomalies_All": {
+  MODIS_Combined_Thermal_Anomalies_All: {
     default: "2026-07-10",
     intervals: [
       { start: "2002-07-04", end: "2023-07-08", period: "P1D" },
       { start: "2023-07-10", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "MODIS_Combined_Value_Added_AOD": {
+  MODIS_Combined_Value_Added_AOD: {
     default: "2026-07-09",
     intervals: [
       { start: "2017-04-19", end: "2018-09-19", period: "P1D" },
@@ -694,7 +672,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2024-01-10", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "MODIS_Terra_Cloud_Top_Temp_Day": {
+  MODIS_Terra_Cloud_Top_Temp_Day: {
     default: "2026-07-10",
     intervals: [
       { start: "2000-02-24", end: "2000-08-06", period: "P1D" },
@@ -707,7 +685,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-10-23", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "MODIS_Terra_CorrectedReflectance_Bands721": {
+  MODIS_Terra_CorrectedReflectance_Bands721: {
     default: "2026-07-10",
     intervals: [
       { start: "2000-02-24", end: "2000-04-25", period: "P1D" },
@@ -722,7 +700,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-12-18", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "MODIS_Terra_CorrectedReflectance_TrueColor": {
+  MODIS_Terra_CorrectedReflectance_TrueColor: {
     default: "2026-07-10",
     intervals: [
       { start: "2000-02-24", end: "2000-04-25", period: "P1D" },
@@ -736,13 +714,11 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-10-23", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "MODIS_Terra_EVI_8Day": {
+  MODIS_Terra_EVI_8Day: {
     default: "2026-07-09",
-    intervals: [
-      { start: "2025-02-12", end: "2026-07-09", period: "P1D" },
-    ],
+    intervals: [{ start: "2025-02-12", end: "2026-07-09", period: "P1D" }],
   },
-  "MODIS_Terra_L3_EVI_16Day": {
+  MODIS_Terra_L3_EVI_16Day: {
     default: "2026-06-10",
     intervals: [
       { start: "2000-03-05", end: "2000-12-18", period: "P16D" },
@@ -774,7 +750,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-01", end: "2026-06-10", period: "P16D" },
     ],
   },
-  "MODIS_Terra_L3_Land_Surface_Temp_8Day_Day": {
+  MODIS_Terra_L3_Land_Surface_Temp_8Day_Day: {
     default: "2026-06-26",
     intervals: [
       { start: "2000-02-26", end: "2000-12-26", period: "P8D" },
@@ -807,7 +783,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-09", end: "2026-06-26", period: "P8D" },
     ],
   },
-  "MODIS_Terra_L3_Land_Surface_Temp_8Day_Night": {
+  MODIS_Terra_L3_Land_Surface_Temp_8Day_Night: {
     default: "2026-06-26",
     intervals: [
       { start: "2000-02-26", end: "2000-12-26", period: "P8D" },
@@ -840,7 +816,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-01", end: "2026-06-26", period: "P8D" },
     ],
   },
-  "MODIS_Terra_L3_Land_Surface_Temp_Daily_Day": {
+  MODIS_Terra_L3_Land_Surface_Temp_Daily_Day: {
     default: "2026-07-09",
     intervals: [
       { start: "2000-02-25", end: "2000-04-25", period: "P1D" },
@@ -856,7 +832,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-02-10", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "MODIS_Terra_L3_Land_Surface_Temp_Daily_Night": {
+  MODIS_Terra_L3_Land_Surface_Temp_Daily_Night: {
     default: "2026-07-09",
     intervals: [
       { start: "2000-02-25", end: "2000-04-25", period: "P1D" },
@@ -871,7 +847,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-10-23", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "MODIS_Terra_L3_NDSI_Snow_Cover_Daily": {
+  MODIS_Terra_L3_NDSI_Snow_Cover_Daily: {
     default: "2026-07-08",
     intervals: [
       { start: "2000-02-24", end: "2000-08-05", period: "P1D" },
@@ -885,7 +861,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-10-23", end: "2026-07-08", period: "P1D" },
     ],
   },
-  "MODIS_Terra_L3_NDVI_16Day": {
+  MODIS_Terra_L3_NDVI_16Day: {
     default: "2026-06-10",
     intervals: [
       { start: "2000-03-05", end: "2000-12-18", period: "P16D" },
@@ -917,21 +893,21 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-01-01", end: "2026-06-10", period: "P16D" },
     ],
   },
-  "MODIS_Terra_L3_NDVI_Monthly": {
+  MODIS_Terra_L3_NDVI_Monthly: {
     default: "2026-05-01",
     intervals: [
       { start: "2000-03-01", end: "2025-03-01", period: "P1M" },
       { start: "2025-05-01", end: "2026-05-01", period: "P1M" },
     ],
   },
-  "MODIS_Terra_NDVI_8Day": {
+  MODIS_Terra_NDVI_8Day: {
     default: "2026-07-09",
     intervals: [
       { start: "2025-02-12", end: "2026-02-08", period: "P1D" },
       { start: "2026-02-10", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "MODIS_Terra_Water_Vapor_5km_Day": {
+  MODIS_Terra_Water_Vapor_5km_Day: {
     default: "2026-07-10",
     intervals: [
       { start: "2000-02-24", end: "2000-08-06", period: "P1D" },
@@ -979,7 +955,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2025-08-13", end: "2025-09-29", period: "P1D" },
     ],
   },
-  "OMI_Aerosol_Index": {
+  OMI_Aerosol_Index: {
     default: "2026-07-10",
     intervals: [
       { start: "2004-10-01", end: "2006-02-27", period: "P1D" },
@@ -999,7 +975,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2024-09-12", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "OMI_Nitrogen_Dioxide_Tropo_Column": {
+  OMI_Nitrogen_Dioxide_Tropo_Column: {
     default: "2026-07-06",
     intervals: [
       { start: "2004-10-01", end: "2004-11-18", period: "P1D" },
@@ -1016,7 +992,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-28", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "OMI_Ozone_DOAS_Total_Column": {
+  OMI_Ozone_DOAS_Total_Column: {
     default: "2026-07-06",
     intervals: [
       { start: "2004-10-01", end: "2004-11-19", period: "P1D" },
@@ -1036,7 +1012,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-28", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "OMI_SO2_Lower_Troposphere": {
+  OMI_SO2_Lower_Troposphere: {
     default: "2026-07-10",
     intervals: [
       { start: "2005-01-01", end: "2006-02-28", period: "P1D" },
@@ -1097,7 +1073,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-24", end: "2026-06-29", period: "P1D" },
     ],
   },
-  "OSCAR_Sea_Surface_Currents_Meridional": {
+  OSCAR_Sea_Surface_Currents_Meridional: {
     default: "2024-07-17",
     intervals: [
       { start: "2014-10-22", end: "2014-12-21", period: "P5D" },
@@ -1202,7 +1178,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2024-07-07", end: "2024-07-17", period: "P5D" },
     ],
   },
-  "OSCAR_Sea_Surface_Currents_Zonal": {
+  OSCAR_Sea_Surface_Currents_Zonal: {
     default: "2024-07-17",
     intervals: [
       { start: "2014-10-22", end: "2014-12-21", period: "P5D" },
@@ -1307,7 +1283,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2024-07-07", end: "2024-07-17", period: "P5D" },
     ],
   },
-  "OrbitTracks_Aqua_Ascending": {
+  OrbitTracks_Aqua_Ascending: {
     default: "2026-07-10",
     intervals: [
       { start: "2002-07-07", end: "2024-08-15", period: "P1D" },
@@ -1317,18 +1293,16 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2025-08-08", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "OrbitTracks_GPM_Ascending": {
+  OrbitTracks_GPM_Ascending: {
     default: "2026-07-10",
     intervals: [
       { start: "2014-02-27", end: "2025-07-28", period: "P1D" },
       { start: "2025-07-30", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "OrbitTracks_ISS_Ascending": {
+  OrbitTracks_ISS_Ascending: {
     default: "2026-07-10",
-    intervals: [
-      { start: "1998-11-20", end: "2026-07-10", period: "P1D" },
-    ],
+    intervals: [{ start: "1998-11-20", end: "2026-07-10", period: "P1D" }],
   },
   "OrbitTracks_Landsat-9_Descending": {
     default: "2026-07-09",
@@ -1350,25 +1324,23 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
   },
   "OrbitTracks_Sentinel-5P_Ascending": {
     default: "2026-07-10",
-    intervals: [
-      { start: "2017-10-13", end: "2026-07-10", period: "P1D" },
-    ],
+    intervals: [{ start: "2017-10-13", end: "2026-07-10", period: "P1D" }],
   },
-  "OrbitTracks_Suomi_NPP_Ascending": {
+  OrbitTracks_Suomi_NPP_Ascending: {
     default: "2026-07-10",
     intervals: [
       { start: "2011-10-28", end: "2011-11-17", period: "P1D" },
       { start: "2011-11-19", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "OrbitTracks_Terra_Descending": {
+  OrbitTracks_Terra_Descending: {
     default: "2026-07-10",
     intervals: [
       { start: "1999-12-18", end: "2025-05-08", period: "P1D" },
       { start: "2025-05-10", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "S3A_OLCI_Chlorophyll_a": {
+  S3A_OLCI_Chlorophyll_a: {
     default: "2026-04-28",
     intervals: [
       { start: "2016-04-25", end: "2018-05-29", period: "P1D" },
@@ -1376,7 +1348,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2018-06-07", end: "2026-04-28", period: "P1D" },
     ],
   },
-  "SMAP_L3_Passive_Day_Soil_Moisture": {
+  SMAP_L3_Passive_Day_Soil_Moisture: {
     default: "2026-07-03",
     intervals: [
       { start: "2015-03-31", end: "2015-05-12", period: "P1D" },
@@ -1391,7 +1363,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-30", end: "2026-07-03", period: "P1D" },
     ],
   },
-  "SMAP_L3_Sea_Surface_Salinity_CAP_8Day_RunningMean": {
+  SMAP_L3_Sea_Surface_Salinity_CAP_8Day_RunningMean: {
     default: "2026-07-06",
     intervals: [
       { start: "2015-05-08", end: "2020-12-19", period: "P1D" },
@@ -1414,7 +1386,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-03-29", end: "2026-07-06", period: "P1D" },
     ],
   },
-  "SMAP_L3_Sea_Surface_Salinity_CAP_Monthly": {
+  SMAP_L3_Sea_Surface_Salinity_CAP_Monthly: {
     default: "2026-06-01",
     intervals: [
       { start: "2015-04-01", end: "2022-08-01", period: "P1M" },
@@ -1422,7 +1394,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2025-01-01", end: "2026-06-01", period: "P1M" },
     ],
   },
-  "SMAP_L4_Analyzed_Root_Zone_Soil_Moisture": {
+  SMAP_L4_Analyzed_Root_Zone_Soil_Moisture: {
     default: "2026-07-02",
     intervals: [
       { start: "2015-03-31", end: "2025-10-09", period: "P1D" },
@@ -1431,7 +1403,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-30", end: "2026-07-02", period: "P1D" },
     ],
   },
-  "SMAP_L4_Analyzed_Surface_Soil_Moisture": {
+  SMAP_L4_Analyzed_Surface_Soil_Moisture: {
     default: "2026-07-02",
     intervals: [
       { start: "2015-03-31", end: "2025-10-09", period: "P1D" },
@@ -1440,7 +1412,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-30", end: "2026-07-02", period: "P1D" },
     ],
   },
-  "TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column": {
+  TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column: {
     default: "2026-07-07",
     intervals: [
       { start: "2018-05-06", end: "2024-12-03", period: "P1D" },
@@ -1448,7 +1420,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-06-23", end: "2026-07-07", period: "P1D" },
     ],
   },
-  "TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column": {
+  TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column: {
     default: "2026-07-06",
     intervals: [
       { start: "2018-05-06", end: "2026-01-24", period: "P1D" },
@@ -1479,7 +1451,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2025-06-24", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA20_AOD_Dark_Target_Land_Ocean": {
+  VIIRS_NOAA20_AOD_Dark_Target_Land_Ocean: {
     default: "2026-07-10",
     intervals: [
       { start: "2018-02-17", end: "2018-02-22", period: "P1D" },
@@ -1489,7 +1461,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2024-05-03", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA20_Chlorophyll_a": {
+  VIIRS_NOAA20_Chlorophyll_a: {
     default: "2026-07-09",
     intervals: [
       { start: "2017-12-13", end: "2017-12-29", period: "P1D" },
@@ -1497,7 +1469,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2018-02-24", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA20_Cloud_Top_Height_Day": {
+  VIIRS_NOAA20_Cloud_Top_Height_Day: {
     default: "2026-07-08",
     intervals: [
       { start: "2018-02-17", end: "2018-02-21", period: "P1D" },
@@ -1531,7 +1503,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-01-14", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA20_CorrectedReflectance_TrueColor": {
+  VIIRS_NOAA20_CorrectedReflectance_TrueColor: {
     default: "2026-07-10",
     intervals: [
       { start: "2018-01-05", end: "2018-02-21", period: "P1D" },
@@ -1541,19 +1513,15 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2022-01-14", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA20_DayNightBand": {
+  VIIRS_NOAA20_DayNightBand: {
     default: "2026-07-10",
-    intervals: [
-      { start: "2018-01-05", end: "2026-07-10", period: "P1D" },
-    ],
+    intervals: [{ start: "2018-01-05", end: "2026-07-10", period: "P1D" }],
   },
-  "VIIRS_NOAA20_EVI_8Day": {
+  VIIRS_NOAA20_EVI_8Day: {
     default: "2026-07-08",
-    intervals: [
-      { start: "2025-09-22", end: "2026-07-08", period: "P1D" },
-    ],
+    intervals: [{ start: "2025-09-22", end: "2026-07-08", period: "P1D" }],
   },
-  "VIIRS_NOAA20_Land_Surface_Temp_Day": {
+  VIIRS_NOAA20_Land_Surface_Temp_Day: {
     default: "2026-07-10",
     intervals: [
       { start: "2018-01-05", end: "2018-02-22", period: "P1D" },
@@ -1561,7 +1529,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2023-10-01", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA20_Land_Surface_Temp_Night": {
+  VIIRS_NOAA20_Land_Surface_Temp_Night: {
     default: "2026-07-09",
     intervals: [
       { start: "2018-01-05", end: "2018-02-21", period: "P1D" },
@@ -1570,20 +1538,18 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2023-10-01", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA20_NDSI_Snow_Cover": {
+  VIIRS_NOAA20_NDSI_Snow_Cover: {
     default: "2026-07-10",
     intervals: [
       { start: "2018-01-05", end: "2018-02-22", period: "P1D" },
       { start: "2018-02-24", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA20_NDVI_8Day": {
+  VIIRS_NOAA20_NDVI_8Day: {
     default: "2026-07-08",
-    intervals: [
-      { start: "2025-09-22", end: "2026-07-08", period: "P1D" },
-    ],
+    intervals: [{ start: "2025-09-22", end: "2026-07-08", period: "P1D" }],
   },
-  "VIIRS_NOAA20_Thermal_Anomalies_375m_All": {
+  VIIRS_NOAA20_Thermal_Anomalies_375m_All: {
     default: "2026-07-09",
     intervals: [
       { start: "2020-01-01", end: "2020-03-17", period: "P1D" },
@@ -1595,7 +1561,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2025-07-08", end: "2026-07-09", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA21_CorrectedReflectance_TrueColor": {
+  VIIRS_NOAA21_CorrectedReflectance_TrueColor: {
     default: "2026-07-10",
     intervals: [
       { start: "2023-02-10", end: "2023-02-23", period: "P1D" },
@@ -1604,20 +1570,18 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2024-02-29", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "VIIRS_NOAA21_Thermal_Anomalies_375m_All": {
+  VIIRS_NOAA21_Thermal_Anomalies_375m_All: {
     default: "2026-07-09",
-    intervals: [
-      { start: "2024-01-17", end: "2026-07-09", period: "P1D" },
-    ],
+    intervals: [{ start: "2024-01-17", end: "2026-07-09", period: "P1D" }],
   },
-  "VIIRS_Night_Lights": {
+  VIIRS_Night_Lights: {
     default: "2016-01-01",
     intervals: [
       { start: "2012-01-01", end: "2012-01-01", period: "P1Y" },
       { start: "2016-01-01", end: "2016-01-01", period: "P1Y" },
     ],
   },
-  "VIIRS_SNPP_CorrectedReflectance_TrueColor": {
+  VIIRS_SNPP_CorrectedReflectance_TrueColor: {
     default: "2026-07-10",
     intervals: [
       { start: "2015-11-24", end: "2022-07-27", period: "P1D" },
@@ -1629,7 +1593,7 @@ export const LAYER_TIMES: Record<string, LayerTimeData> = {
       { start: "2026-04-30", end: "2026-07-10", period: "P1D" },
     ],
   },
-  "VIIRS_SNPP_Thermal_Anomalies_375m_All": {
+  VIIRS_SNPP_Thermal_Anomalies_375m_All: {
     default: "2026-07-10",
     intervals: [
       { start: "2012-01-20", end: "2012-03-24", period: "P1D" },
