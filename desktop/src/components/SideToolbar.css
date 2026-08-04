@@ -16,12 +16,20 @@
   border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.side-toolbar-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
 .side-tool-btn {
   width: 34px;
   height: 34px;
   border: none;
   background: transparent;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -32,10 +40,10 @@
 
 .side-tool-btn:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .side-tool-btn.active {
   background: rgba(255, 255, 255, 0.18);
-  color: #ffc93c;
+  color: #fff;
 }

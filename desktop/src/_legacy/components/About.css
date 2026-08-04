@@ -137,7 +137,7 @@
 }
 
 .about-section a {
-  color: #ffc93c;
+  color: #E3A520;
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: all 0.2s;
@@ -145,7 +145,7 @@
 
 .about-section a:hover {
   color: #ffdb70;
-  border-bottom-color: #ffc93c;
+  border-bottom-color: #E3A520;
 }
 
 .about-section ul {
@@ -165,7 +165,7 @@
 
 .about-section ul li::before {
   content: "•";
-  color: #ffc93c;
+  color: #E3A520;
   font-weight: bold;
   position: absolute;
   left: 8px;
@@ -187,7 +187,7 @@
   background: rgba(255,255,255,0.06);
   padding: 20px;
   border-radius: 8px;
-  border-left: 4px solid #ffc93c;
+  border-left: 4px solid #E3A520;
 }
 
 .link-category h3 {
@@ -222,7 +222,7 @@
 
 .link-category a:hover {
   color: #fff;
-  border-bottom-color: #ffc93c;
+  border-bottom-color: #E3A520;
 }
 
 .about-footer {
@@ -238,7 +238,7 @@
 }
 
 .about-footer a {
-  color: #ffc93c;
+  color: #E3A520;
   text-decoration: none;
   font-weight: 600;
 }

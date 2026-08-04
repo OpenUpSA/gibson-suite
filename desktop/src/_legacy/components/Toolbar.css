@@ -44,12 +44,12 @@
 }
 
 .toolbar-globe {
-  color: #ffc93c;
+  color: #E3A520;
 }
 
 .toolbar-globe:hover {
   background: rgba(255, 201, 60, 0.12);
-  color: #ffc93c;
+  color: #E3A520;
 }
 
 .toolbar-divider {

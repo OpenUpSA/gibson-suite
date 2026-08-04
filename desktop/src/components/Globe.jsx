@@ -66,9 +66,10 @@ const initialBySection = {
 
 // Per-layer settings. Only imagery layers have adjustable opacity — base is
 // fixed at 1, reference at 0.9, and neither exposes an opacity control.
+// Default opacity: base 1, imagery 1, reference 0.9.
 const DEFAULT_SETTINGS = (layer) => ({
   quality: 'low',
-  opacity: layerSection(layer) === 'imagery' ? 0.8 : (layerSection(layer) === 'base' ? 1 : 0.9)
+  opacity: layerSection(layer) === 'imagery' ? 1 : (layerSection(layer) === 'base' ? 1 : 0.9)
 })
 const initialSettings = Object.fromEntries(
   layerCatalog.map(l => [l.id, DEFAULT_SETTINGS(l)])
@@ -89,6 +90,7 @@ export default function Globe() {
   const mapRef = useRef(null)
   const [activeBySection, setActiveBySection] = useState(initialBySection)
   const [layerSettings, setLayerSettings] = useState(initialSettings)
+  const [hiddenLayers, setHiddenLayers] = useState(new Set())
   const [activeTool, setActiveTool] = useState('layers') // 'layers' | null
   const [addLayerOpen, setAddLayerOpen] = useState(false)
 
@@ -96,11 +98,13 @@ export default function Globe() {
   // activeRef holds the flattened ordered list (index 0 = top) used by the map.
   const activeRef = useRef(flattenActive(activeBySection))
   const settingsRef = useRef(layerSettings)
+  const hiddenRef = useRef(hiddenLayers)
   const readyRef = useRef(false)
   const prevActiveRef = useRef(flattenActive(activeBySection))
   const prevSettingsRef = useRef(layerSettings)
   activeRef.current = flattenActive(activeBySection)
   settingsRef.current = layerSettings
+  hiddenRef.current = hiddenLayers
 
   // Add a single layer (source + layer) to the map.
   const addLayerToMap = useCallback((id) => {
@@ -116,7 +120,7 @@ export default function Globe() {
       id: srcId,
       type: 'raster',
       source: srcId,
-      paint: { 'raster-opacity': s.opacity }
+      paint: { 'raster-opacity': hiddenRef.current.has(id) ? 0 : s.opacity }
     })
   }, [])
 
@@ -241,6 +245,18 @@ export default function Globe() {
     prevSettingsRef.current = layerSettings
   }, [layerSettings, rebuildLayer])
 
+  // Visibility changes — set raster-opacity to 0 for hidden layers.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!readyRef.current || !map) return
+    for (const id of activeRef.current) {
+      if (!map.getLayer(`layer-${id}`)) continue
+      const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layerById.get(id))
+      const opacity = hiddenLayers.has(id) ? 0 : s.opacity
+      map.setPaintProperty(`layer-${id}`, 'raster-opacity', opacity)
+    }
+  }, [hiddenLayers])
+
   const addLayer = (layer) => {
     const section = layerSection(layer)
     setActiveBySection(prev => {
@@ -263,6 +279,15 @@ export default function Globe() {
     setLayerSettings(prev => ({ ...prev, [id]: { ...prev[id], ...patch } }))
   }
 
+  const toggleVisibility = useCallback((id) => {
+    setHiddenLayers(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
   // Toolbar: clicking the active tool closes its panel; clicking another
   // switches to it. Opening one panel closes the other.
   const handleToolClick = (tool) => {
@@ -278,9 +303,11 @@ export default function Globe() {
         layerById={layerById}
         layerSection={layerSection}
         layerSettings={layerSettings}
+        hiddenLayers={hiddenLayers}
         onRemove={removeLayer}
         onReorder={reorderSection}
         onSettingsChange={updateLayerSettings}
+        onToggleVisibility={toggleVisibility}
         onAddClick={() => setAddLayerOpen(true)}
         open={activeTool === 'layers'}
         onClose={() => setActiveTool(null)}

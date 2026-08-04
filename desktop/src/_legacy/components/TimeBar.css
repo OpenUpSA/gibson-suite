@@ -190,7 +190,7 @@
 .timebar-marker.year-start::before {
   height: 24px;
   opacity: 0.9;
-  background: #ffc93c;
+  background: #E3A520;
 }
 
 .timebar-marker-label {
@@ -207,7 +207,7 @@
 }
 
 .timebar-marker.year-start .timebar-marker-label {
-  color: #ffc93c;
+  color: #E3A520;
   font-weight: 700;
   font-size: 10px;
 }

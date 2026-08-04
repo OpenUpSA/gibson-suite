@@ -7,6 +7,7 @@ const TOOLS = [
 
 const SideToolbar = ({ activeTool, onToolClick }) => (
   <div className="side-toolbar">
+    <img src="/gibson-icon.png" alt="Gibson" className="side-toolbar-logo" />
     {TOOLS.map(tool => (
       <button
         key={tool.id}
