@@ -1,6 +1,6 @@
 import React from 'react';
 import './About.css';
-import { APP_VERSION } from '../config/version';
+import { APP_VERSION } from '../../config/version';
 import Logo from './Logo';
 
 const About = ({ onClose }) => {

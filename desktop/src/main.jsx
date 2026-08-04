@@ -1,17 +1,28 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import App from './App'
-import GibsCapabilities from './pages/GibsCapabilities'
+import Globe from './components/Globe'
 import './index.css'
+
+// Lazy-loaded so the legacy app's CSS (App.css) only loads when visiting
+// /legacy — its rules (e.g. .sidebar-section-title) would otherwise collide
+// with the new Globe page's Sidebar.css on every route.
+const App = lazy(() => import('./_legacy/App'))
+const GibsCapabilities = lazy(() => import('./_legacy/pages/GibsCapabilities'))
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <Routes>
-        <Route path="/gibs" element={<GibsCapabilities />} />
-        <Route path="*" element={<App />} />
-      </Routes>
+      <Suspense fallback={null}>
+        <Routes>
+          {/* New minimal rebuild — just the globe and a base layer */}
+          <Route path="/" element={<Globe />} />
+          {/* Old app kept for reference while we rebuild */}
+          <Route path="/legacy" element={<App />} />
+          <Route path="/gibs" element={<GibsCapabilities />} />
+          <Route path="*" element={<Globe />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   </React.StrictMode>,
 )

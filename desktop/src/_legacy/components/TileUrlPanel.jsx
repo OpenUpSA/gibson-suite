@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import './TileUrlPanel.css'
-import { buildTileUrlTemplate } from '../config/tileUrl'
+import { buildTileUrlTemplate } from '../../config/tileUrl'
 
 const TileUrlPanel = ({ layer, config, selectedTile, pickActive, onTogglePick }) => {
   const [copiedTemplate, setCopiedTemplate] = useState(false)

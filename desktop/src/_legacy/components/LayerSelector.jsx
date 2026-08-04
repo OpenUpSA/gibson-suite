@@ -3,22 +3,14 @@ import { Icon } from '@iconify/react'
 import './LayerSelector.css'
 
 const CATEGORY_ICONS = {
-  'Aerosols & Air Quality':     'fluent:weather-fog-20-filled',
-  'Corrected Reflectance':      'fluent:eye-20-filled',
-  'Elevation & Terrain':        'ph:mountains-fill',
-  'Fires & Thermal Anomalies':  'fluent:fire-20-filled',
-  'Floods & Surface Water':     'fluent:drop-20-filled',
-  'Natural Hazard Risk':        'fluent:warning-20-filled',
-  'Night Lights':               'fluent:weather-moon-20-filled',
-  'Ocean & Water Quality':      'fluent:globe-20-filled',
-  'Orbit Tracks':               'fluent:radar-20-filled',
-  'Population & Land Use':      'fluent:building-20-filled',
-  'Precipitation':              'fluent:weather-rain-20-filled',
-  'Snow & Ice':                 'fluent:weather-snowflake-20-filled',
-  'Soil Moisture':              'fluent:beaker-20-filled',
-  'Temperature':                'fluent:temperature-20-filled',
-  'Vegetation & Land Cover':    'fluent:leaf-20-filled',
-  'Water Vapor & Clouds':       'fluent:weather-cloudy-20-filled',
+  'Base Imagery':       'fluent:eye-20-filled',
+  'Precipitation':      'fluent:weather-rain-20-filled',
+  'Vegetation':         'fluent:leaf-20-filled',
+  'Air Quality':        'fluent:weather-fog-20-filled',
+  'Wildfire':           'fluent:fire-20-filled',
+  'Floods':             'fluent:drop-20-filled',
+  'Drought':            'fluent:weather-sunny-20-filled',
+  'Context':            'fluent:globe-20-filled',
 }
 
 const LayerSelector = ({ config, onLayerSelect, selectedLayer }) => {

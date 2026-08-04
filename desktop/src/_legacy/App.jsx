@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import GIF from 'gif.js'
-import { buildTileUrlTemplate } from './config/tileUrl'
+import { buildTileUrlTemplate } from '../config/tileUrl'
 import gifWorkerSource from 'gif.js/dist/gif.worker.js?raw'
 
 const gifWorkerUrl = URL.createObjectURL(
@@ -22,13 +22,14 @@ import SearchPanel from './components/SearchPanel'
 import TileUrlPanel from './components/TileUrlPanel'
 import FeedbackPanel from './components/FeedbackPanel'
 
-import layersConfig from './config/layers.json'
+import layersConfig from '../config/layers-full-backup.json'
 import './App.css'
 
 function App() {
-  const defaultLayer = layersConfig.categories["Corrected Reflectance"].find(
-    layer => layer.id === "VIIRS_NOAA20_CorrectedReflectance_TrueColor"
-  ) || layersConfig.categories["Corrected Reflectance"][0]
+  const baseLayers = layersConfig.categories["Base Imagery"] || []
+  const defaultLayer = baseLayers.find(
+    layer => layer.id === "VIIRS_NOAA21_CorrectedReflectance_TrueColor"
+  ) || baseLayers[0]
 
   const defaultDateObj = new Date()
   defaultDateObj.setDate(defaultDateObj.getDate() - 3)

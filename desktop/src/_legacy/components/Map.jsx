@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import 'maplibre-gl-draw/dist/mapbox-gl-draw.css'
 import './Map.css'
 import LegendBar from './LegendBar'
-import { buildTileUrlTemplate } from '../config/tileUrl'
+import { buildTileUrlTemplate } from '../../config/tileUrl'
 import TimelapseSelectionOverlay from './TimelapseSelectionOverlay'
 
 const COLORMAP_BASE = '/colormaps'

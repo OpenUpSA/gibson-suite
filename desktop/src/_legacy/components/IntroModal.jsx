@@ -2,7 +2,7 @@ import React from 'react'
 import Logo from './Logo'
 import './IntroModal.css'
 import './About.css'
-import { APP_VERSION } from '../config/version'
+import { APP_VERSION } from '../../config/version'
 
 const IntroModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null

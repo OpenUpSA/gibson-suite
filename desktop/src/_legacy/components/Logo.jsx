@@ -1,6 +1,6 @@
 import React from 'react'
 import './Logo.css'
-import { APP_VERSION } from '../config/version'
+import { APP_VERSION } from '../../config/version'
 
 const Logo = ({ secondary = false }) => {
   // Use specific logo for secondary (ADH logo)

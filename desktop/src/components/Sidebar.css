@@ -1,0 +1,298 @@
+/* Layer sidebar — slides in from the left, next to the toolbar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 44px;
+  bottom: 0;
+  width: 300px;
+  max-width: calc(85vw - 44px);
+  background: rgba(2, 2, 2, 0.75);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 35;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(6px);
+  /* Disable text selection everywhere inside the sidebar */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.sidebar.sidebar-open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.sidebar-close {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+}
+
+.sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px 16px;
+}
+
+/* Pinned footer holding the Add Layer button */
+.sidebar-footer {
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Add Layer button */
+.add-layer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 12px;
+  background: rgba(255, 201, 60, 0.12);
+  color: #ffc93c;
+  border: 1px dashed rgba(255, 201, 60, 0.4);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.add-layer-btn:hover {
+  background: rgba(255, 201, 60, 0.2);
+  border-color: rgba(255, 201, 60, 0.7);
+}
+
+.sidebar-empty {
+  padding: 18px 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+}
+
+/* Section headers (Base layers / Imagery layers / Reference layers) */
+.sidebar-section {
+  margin-bottom: 10px;
+}
+
+.sidebar-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0 16px 12px;
+}
+
+/* Layer row — top bar + expandable settings */
+.layer-row {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.layer-row:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.layer-row.dragging {
+  opacity: 0.5;
+}
+
+/* Drop indicator — highlighted when a dragged row hovers over it */
+.layer-row.drop-target {
+  border-color: #ffc93c;
+  background: rgba(255, 201, 60, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 201, 60, 0.4);
+}
+
+.layer-row-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: grab;
+  /* Background covers the whole collapsed row (drag handle + name + buttons);
+     the expanded settings panel below stays plain. */
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.layer-drag-handle {
+  color: rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  user-select: none;
+  flex-shrink: 0;
+  padding: 2px;
+  cursor: grab;
+}
+
+.layer-drag-handle:active {
+  cursor: grabbing;
+}
+
+.layer-row-name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Layer name — slightly bold */
+.layer-row-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Layer subtitle — smaller and dimmer */
+.layer-row-subtitle {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.layer-settings-btn,
+.layer-remove-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 4px;
+  display: flex;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.layer-settings-btn:hover,
+.layer-remove-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.layer-settings-btn.active {
+  color: #ffc93c;
+}
+
+.layer-remove-btn:hover {
+  color: #ff6b6b;
+}
+
+/* Expanded settings */
+.layer-settings {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Fainter background than the top bar so the accordion reads as recessed */
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.layer-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layer-setting-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.5);
+  width: 68px;
+  flex-shrink: 0;
+}
+
+.layer-res-segment {
+  display: flex;
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.layer-res-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 4px 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.layer-res-btn + .layer-res-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.layer-res-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.layer-res-btn.active {
+  background: rgba(255, 201, 60, 0.18);
+  color: #ffc93c;
+}
+
+.layer-opacity {
+  flex: 1;
+  min-width: 0;
+  accent-color: #ffc93c;
+  cursor: pointer;
+}
+
+.layer-opacity-val {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+}

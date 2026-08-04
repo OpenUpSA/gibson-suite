@@ -1,7 +1,7 @@
 import React from 'react'
 import { Icon } from '@iconify/react'
 import './Toolbar.css'
-import { APP_VERSION } from '../config/version'
+import { APP_VERSION } from '../../config/version'
 
 const Toolbar = ({ isLayersView, onTogglePanel, isSplitView, onToggleSplit, isCompareView, onToggleCompare, isExportPanelVisible, onToggleExportPanel, onToggleAbout, isTimelapsePanelVisible, onToggleTimelapsePanel, isSearchPanelVisible, onToggleSearchPanel, isZenMode, onToggleZen, isTileUrlPanelVisible, onToggleTileUrlPanel, isGlobe, onToggleGlobe, isFeedbackPanelVisible, onToggleFeedbackPanel }) => {
   return (

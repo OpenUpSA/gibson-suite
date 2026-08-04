@@ -63,14 +63,19 @@ export const DatePicker = ({ value, min, max, onChange }: DatePickerProps) => {
   const atMin = dateObjToDays(value) <= dateObjToDays(min);
   const atMax = dateObjToDays(value) >= dateObjToDays(max);
 
-  /** Step a single day by `delta`. */
+  /** Step a single day by `delta`, rolling over month/year boundaries. */
   const stepDay = (delta: number) => {
-    const next = clampDate(
-      { year: value.year, month: value.month, day: value.day + delta },
-      min,
-      max,
-    );
-    onChange(next);
+    // Normalise through a real UTC Date so month-end wraps correctly:
+    // e.g. 01 June − 1 day → 31 May, 01 Jan − 1 day → 31 Dec prev year.
+    // (A naive `value.day + delta` would produce day 0 / −1.)
+    const base = new Date(Date.UTC(value.year, value.month - 1, value.day));
+    base.setUTCDate(base.getUTCDate() + delta);
+    const next = {
+      year: base.getUTCFullYear(),
+      month: base.getUTCMonth() + 1,
+      day: base.getUTCDate(),
+    };
+    onChange(clampDate(next, min, max));
   };
 
   /** Step the month by `delta`, clamping the day to the new month's length. */
