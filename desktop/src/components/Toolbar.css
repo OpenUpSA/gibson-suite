@@ -1,0 +1,93 @@
+.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 100vh;
+  background: rgba(34,34,34,0.9);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 12px;
+}
+
+.toolbar-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.toolbar-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.toolbar-btn.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+.toolbar-globe {
+  color: #E3A520;
+}
+
+.toolbar-globe:hover {
+  background: rgba(255, 201, 60, 0.12);
+  color: #E3A520;
+}
+
+.toolbar-divider {
+  width: 20px;
+  height: 1px;
+  background: rgba(255,255,255,0.15);
+  margin: 4px 0;
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: 52px;
+    flex-direction: row;
+    padding: 0 8px;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    justify-content: center;
+  }
+
+  .toolbar-buttons {
+    flex-direction: row;
+    gap: 2px;
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .toolbar-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .toolbar-divider {
+    width: 1px;
+    height: 20px;
+    margin: 0 2px;
+  }
+}

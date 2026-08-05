@@ -15,6 +15,81 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MD = Path('/tmp')  # metadata markdown files live here after download
 
+# ---- layer metadata (mission, satellite, sensors, etc.) -------------------
+METADATA = {
+    'BlueMarble_NextGeneration': {
+        'mission': 'Earth Observing System (EOS)',
+        'satellite': 'Terra (EOS PM-1)',
+        'sensors': 'MODIS',
+        'orbit': 'Sun-synchronous, 705 km altitude',
+        'energySource': 'Solar',
+        'spectralRange': 'Visible (3–14 µm, 36 bands)',
+        'spectralResolution': '29 spectral bands (0.41–14.24 µm)',
+        'spatialCoverage': 'Global',
+        'spatialResolution': '500 m',
+        'temporalResolution': 'Static (2004 composite)',
+    },
+    'VIIRS_NOAA21_CorrectedReflectance_TrueColor': {
+        'mission': 'Joint Polar Satellite System (JPSS)',
+        'satellite': 'NOAA-21 (JPSS-2)',
+        'sensors': 'VIIRS',
+        'orbit': 'Sun-synchronous, 824 km altitude',
+        'energySource': 'Solar',
+        'spectralRange': 'Visible–IR (0.41–12.01 µm, 22 bands)',
+        'spectralResolution': '5 I-bands (375 m), 16 M-bands (750 m), 1 DNB',
+        'spatialCoverage': 'Global',
+        'spatialResolution': '375 m (I-bands), 750 m (M-bands)',
+        'temporalResolution': 'Daily',
+    },
+    'MODIS_Terra_CorrectedReflectance_TrueColor': {
+        'mission': 'Earth Observing System (EOS)',
+        'satellite': 'Terra (EOS PM-1)',
+        'sensors': 'MODIS',
+        'orbit': 'Sun-synchronous, 705 km altitude',
+        'energySource': 'Solar',
+        'spectralRange': 'Visible–IR (0.41–14.24 µm, 36 bands)',
+        'spectralResolution': '29 spectral bands (0.41–14.24 µm)',
+        'spatialCoverage': 'Global',
+        'spatialResolution': '250 m, 500 m, 1 km',
+        'temporalResolution': 'Daily',
+    },
+    'Coastlines': {
+        'mission': 'N/A (Vector data)',
+        'satellite': 'N/A', 'sensors': 'N/A', 'orbit': 'N/A',
+        'energySource': 'N/A', 'spectralRange': 'N/A', 'spectralResolution': 'N/A',
+        'spatialCoverage': 'Global', 'spatialResolution': 'Vector (scales with zoom)',
+        'temporalResolution': 'Static',
+    },
+    'Reference_Labels': {
+        'mission': 'N/A (Vector data)',
+        'satellite': 'N/A', 'sensors': 'N/A', 'orbit': 'N/A',
+        'energySource': 'N/A', 'spectralRange': 'N/A', 'spectralResolution': 'N/A',
+        'spatialCoverage': 'Global', 'spatialResolution': 'Vector (scales with zoom)',
+        'temporalResolution': 'Static',
+    },
+    'Reference_Features': {
+        'mission': 'N/A (Vector data)',
+        'satellite': 'N/A', 'sensors': 'N/A', 'orbit': 'N/A',
+        'energySource': 'N/A', 'spectralRange': 'N/A', 'spectralResolution': 'N/A',
+        'spatialCoverage': 'Global', 'spatialResolution': 'Vector (scales with zoom)',
+        'temporalResolution': 'Static',
+    },
+    'Graticule_15m': {
+        'mission': 'N/A (Vector data)',
+        'satellite': 'N/A', 'sensors': 'N/A', 'orbit': 'N/A',
+        'energySource': 'N/A', 'spectralRange': 'N/A', 'spectralResolution': 'N/A',
+        'spatialCoverage': 'Global', 'spatialResolution': 'Vector (15 arc-minute grid)',
+        'temporalResolution': 'Static',
+    },
+    'OSM_Land_Mask': {
+        'mission': 'N/A (Vector data)',
+        'satellite': 'N/A', 'sensors': 'N/A', 'orbit': 'N/A',
+        'energySource': 'N/A', 'spectralRange': 'N/A', 'spectralResolution': 'N/A',
+        'spatialCoverage': 'Global', 'spatialResolution': 'Vector (scales with zoom)',
+        'temporalResolution': 'Static',
+    },
+}
+
 # ---- markdown -> minimal HTML ----------------------------------------------
 def md_to_html(text: str) -> str:
     if not text:
@@ -101,6 +176,7 @@ def main():
                 'legendId': None,
                 'startDate': None,
                 'endDate': None,
+                'metadata': METADATA['BlueMarble_NextGeneration'],
             }
         ],
         'imagery': [
@@ -118,6 +194,7 @@ def main():
                 'format': 'image/jpeg',
                 'legendId': None,
                 **dates['VIIRS_NOAA21_CorrectedReflectance_TrueColor'],
+                'metadata': METADATA['VIIRS_NOAA21_CorrectedReflectance_TrueColor'],
             },
             {
                 'id': 'MODIS_Terra_CorrectedReflectance_TrueColor',
@@ -133,6 +210,7 @@ def main():
                 'format': 'image/jpeg',
                 'legendId': None,
                 **dates['MODIS_Terra_CorrectedReflectance_TrueColor'],
+                'metadata': METADATA['MODIS_Terra_CorrectedReflectance_TrueColor'],
             },
         ],
         'reference': [
@@ -151,6 +229,7 @@ def main():
                 'legendId': None,
                 'startDate': None,
                 'endDate': None,
+                'metadata': METADATA['Coastlines'],
             },
             {
                 'id': 'Reference_Labels',
@@ -167,6 +246,7 @@ def main():
                 'legendId': None,
                 'startDate': None,
                 'endDate': None,
+                'metadata': METADATA['Reference_Labels'],
             },
             {
                 'id': 'Reference_Features',
@@ -183,6 +263,7 @@ def main():
                 'legendId': None,
                 'startDate': None,
                 'endDate': None,
+                'metadata': METADATA['Reference_Features'],
             },
             {
                 'id': 'Graticule_15m',
@@ -199,6 +280,7 @@ def main():
                 'legendId': None,
                 'startDate': None,
                 'endDate': None,
+                'metadata': METADATA['Graticule_15m'],
             },
             {
                 'id': 'OSM_Land_Mask',
@@ -215,6 +297,7 @@ def main():
                 'legendId': None,
                 'startDate': None,
                 'endDate': None,
+                'metadata': METADATA['OSM_Land_Mask'],
             },
         ],
     }

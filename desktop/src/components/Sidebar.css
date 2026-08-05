@@ -4,7 +4,7 @@
   top: 0;
   left: 44px;
   bottom: 0;
-  width: 300px;
+  width: 330px;
   max-width: calc(85vw - 44px);
   background: rgba(2, 2, 2, 0.85);
   border-right: 1px solid rgba(255, 255, 255, 0.12);
@@ -69,16 +69,20 @@
 }
 
 /* Add Layer button */
+.sidebar-add-layer-row {
+  padding: 0 0 4px;
+}
+
 .add-layer-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   width: 100%;
-  padding: 9px 12px;
-  background: rgba(255, 201, 60, 0.12);
-  color: #E3A520;
-  border: 1px dashed rgba(255, 201, 60, 0.4);
+  padding: 7px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   font: inherit;
   font-size: 12px;
@@ -90,8 +94,9 @@
 }
 
 .add-layer-btn:hover {
-  background: rgba(255, 201, 60, 0.2);
-  border-color: rgba(255, 201, 60, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .sidebar-empty {
@@ -103,16 +108,103 @@
 
 /* Section headers (Base layers / Imagery layers / Reference layers) */
 .sidebar-section {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+  margin-top: 10px;
+  position: relative;
+}
+
+.sidebar-section-title-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 9px 10px 12px;
+  margin: 0 -10px 6px;
+  background: rgba(79, 195, 217, 0.08);
+  border-top: 1px solid rgba(79, 195, 217, 0.15);
+  border-bottom: 1px solid rgba(79, 195, 217, 0.15);
 }
 
 .sidebar-section-title {
   font-size: 11px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.7);
+  color: #4FC3D9;
   text-transform: uppercase;
   letter-spacing: 1px;
-  padding: 0 16px 12px;
+  flex: 1;
+}
+
+.sidebar-add-wrap {
+  position: relative;
+}
+
+.sidebar-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  padding: 0;
+}
+
+.sidebar-add-btn:hover {
+  background: rgba(227, 165, 32, 0.15);
+  color: #E3A520;
+  border-color: rgba(227, 165, 32, 0.4);
+}
+
+/* Quick-add flyout */
+.sidebar-flyout {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  padding: 4px;
+}
+
+.sidebar-flyout-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 7px 10px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  transition: background 0.12s;
+}
+
+.sidebar-flyout-item:hover {
+  background: rgba(227, 165, 32, 0.12);
+}
+
+.sidebar-flyout-name {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sidebar-flyout-sub {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.3;
 }
 
 /* Layer row — top bar + expandable settings */
@@ -226,10 +318,15 @@
   color: rgba(255, 255, 255, 0.25);
 }
 
+.layer-remove-quick:hover {
+  background: rgba(220, 50, 50, 0.15);
+  color: #e74c3c;
+}
+
 /* Expanded settings */
 .layer-settings {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 8px 10px 10px;
+  padding: 18px 10px 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -392,4 +489,220 @@
 
 .confirm-delete:hover {
   background: rgba(255, 80, 80, 0.35);
+}
+
+/* ── Custom scrollbars ────────────────────────────────────────────────── */
+.sidebar-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-flyout {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.sidebar-flyout::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-flyout::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-flyout::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.sidebar-flyout::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Layer info button & panel ─────────────────────────────────────────── */
+.layer-info-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 4px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-top: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.layer-info-btn:hover {
+  color: #4FC3D9;
+  background: rgba(79, 195, 217, 0.08);
+}
+
+.layer-info-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+/* ── Layer info modal ─────────────────────────────────────────────────── */
+.info-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.info-modal {
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  width: 520px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.info-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.info-modal-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.info-modal-close {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+}
+
+.info-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.info-modal-body {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.info-modal-body::-webkit-scrollbar { width: 6px; }
+.info-modal-body::-webkit-scrollbar-track { background: transparent; }
+.info-modal-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+
+.info-modal-layer-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.info-modal-layer-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 12px;
+}
+
+.info-modal-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.info-modal-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.info-modal-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+}
+
+.info-modal-card--availability {
+  grid-column: 1 / -1;
+  background: rgba(79, 195, 217, 0.06);
+  border-color: rgba(79, 195, 217, 0.12);
+}
+
+.info-modal-card-icon {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 1px;
+}
+
+.info-modal-card-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.info-modal-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 2px;
+}
+
+.info-modal-value {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+}
+
+.layer-info-dates {
+  margin-top: 6px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
 }

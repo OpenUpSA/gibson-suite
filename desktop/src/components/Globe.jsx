@@ -5,6 +5,7 @@ import './Globe.css'
 import SideToolbar from './SideToolbar'
 import Sidebar from './Sidebar'
 import AddLayerModal from './AddLayerModal'
+import DatePicker from './DatePicker'
 
 import layersConfig from '../config/layers.json'
 import { buildTileUrlTemplate } from '../config/tileUrl'
@@ -41,7 +42,7 @@ const defaultDate = (() => {
 
 // Base imagery is dated (yesterday). Static reference overlays use GIBS's
 // literal 'default' time keyword, so they are date-independent.
-const layerTime = (layer) => (layerSection(layer) === 'reference' ? 'default' : defaultDate)
+const layerTime = (layer, date) => (layerSection(layer) === 'reference' ? 'default' : (date || defaultDate))
 
 // Per-layer resolution presets — caps the finest zoom level of tiles requested.
 // The base layer is native at Level9; lower qualities let coarser tiles
@@ -93,6 +94,7 @@ export default function Globe() {
   const [hiddenLayers, setHiddenLayers] = useState(new Set())
   const [activeTool, setActiveTool] = useState('layers') // 'layers' | null
   const [addLayerOpen, setAddLayerOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(defaultDate)
 
   // Refs mirror state so the map 'load' handler and effects read fresh values.
   // activeRef holds the flattened ordered list (index 0 = top) used by the map.
@@ -111,10 +113,10 @@ export default function Globe() {
     const map = mapRef.current
     const layer = layerById.get(id)
     if (!map || !layer) return
-    const srcId = `layer-${id}`
+    const srcId = layerSrcMapRef.current[id] || `layer-${id}`
     if (map.getSource(srcId)) return
     const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layer)
-    const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer))
+    const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, selectedDate))
     map.addSource(srcId, rasterSource([url], QUALITY_MAXZOOM[s.quality]))
     map.addLayer({
       id: srcId,
@@ -122,17 +124,18 @@ export default function Globe() {
       source: srcId,
       paint: { 'raster-opacity': hiddenRef.current.has(id) ? 0 : s.opacity }
     })
-  }, [])
+  }, [selectedDate])
 
   // Remove a single layer (source + layer) from the map.
   const removeLayerFromMap = useCallback((id) => {
     const map = mapRef.current
     if (!map) return
-    const srcId = `layer-${id}`
+    const srcId = layerSrcMapRef.current[id] || `layer-${id}`
     try {
       if (map.getLayer(srcId)) map.removeLayer(srcId)
       if (map.getSource(srcId)) map.removeSource(srcId)
     } catch { /* already gone */ }
+    delete layerSrcMapRef.current[id]
   }, [])
 
   // Normalize stacking so index 0 (top of list) renders on top, without
@@ -141,7 +144,7 @@ export default function Globe() {
     const map = mapRef.current
     if (!map) return
     for (const id of [...activeRef.current].reverse()) {
-      const srcId = `layer-${id}`
+      const srcId = layerSrcMapRef.current[id] || `layer-${id}`
       if (map.getLayer(srcId)) map.moveLayer(srcId)
     }
   }, [])
@@ -164,7 +167,10 @@ export default function Globe() {
     for (const srcId of Object.keys(map.getStyle().sources || {}).filter(id => id.startsWith('layer-'))) {
       try { map.removeLayer(srcId); map.removeSource(srcId) } catch { /* already gone */ }
     }
+    layerSrcMapRef.current = {}
     for (const id of [...activeRef.current].reverse()) {
+      const canonicalId = `layer-${id}`
+      layerSrcMapRef.current[id] = canonicalId
       addLayerToMap(id)
     }
     applyOrder()
@@ -175,6 +181,7 @@ export default function Globe() {
 
     const map = new maplibregl.Map({
       container: containerRef.current,
+      attributionControl: false,
       style: {
         version: 8,
         // Flat Mercator projection (default) — world wraps horizontally.
@@ -237,8 +244,9 @@ export default function Globe() {
       if (p.quality !== s.quality) {
         if (activeRef.current.includes(id)) rebuildLayer(id)
       } else if (p.opacity !== s.opacity) {
-        if (activeRef.current.includes(id) && map?.getLayer(`layer-${id}`)) {
-          map.setPaintProperty(`layer-${id}`, 'raster-opacity', s.opacity)
+        const curSrc = layerSrcMapRef.current[id] || `layer-${id}`
+        if (activeRef.current.includes(id) && map?.getLayer(curSrc)) {
+          map.setPaintProperty(curSrc, 'raster-opacity', s.opacity)
         }
       }
     }
@@ -250,10 +258,11 @@ export default function Globe() {
     const map = mapRef.current
     if (!readyRef.current || !map) return
     for (const id of activeRef.current) {
-      if (!map.getLayer(`layer-${id}`)) continue
+      const curSrc = layerSrcMapRef.current[id] || `layer-${id}`
+      if (!map.getLayer(curSrc)) continue
       const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layerById.get(id))
       const opacity = hiddenLayers.has(id) ? 0 : s.opacity
-      map.setPaintProperty(`layer-${id}`, 'raster-opacity', opacity)
+      map.setPaintProperty(curSrc, 'raster-opacity', opacity)
     }
   }, [hiddenLayers])
 
@@ -294,6 +303,105 @@ export default function Globe() {
     setActiveTool(prev => (prev === tool ? null : tool))
   }
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      // Ctrl+Shift+1 — toggle layers sidebar
+      if (e.ctrlKey && e.shiftKey && e.code === 'Digit1') {
+        e.preventDefault()
+        setActiveTool(prev => (prev === 'layers' ? null : 'layers'))
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  // Map layer ID → current source/layer ID on the map
+  const layerSrcMapRef = useRef({})
+
+  // Active crossfade animations — keyed by layer id
+  const activeFadesRef = useRef({})
+
+  const handleDateChange = useCallback((newDate) => {
+    setSelectedDate(newDate)
+    const map = mapRef.current
+    if (!map) return
+
+    const imageryIds = activeRef.current.filter(id => {
+      const layer = layerById.get(id)
+      return layer && layerSection(layer) !== 'reference'
+    })
+
+    for (const id of imageryIds) {
+      // Cancel any in-progress fade for this layer
+      if (activeFadesRef.current[id]) {
+        activeFadesRef.current[id].cancelled = true
+        delete activeFadesRef.current[id]
+      }
+
+      const layer = layerById.get(id)
+      const oldSrcId = layerSrcMapRef.current[id] || `layer-${id}`
+      if (!map.getLayer(oldSrcId)) continue
+
+      const newSrcId = `layer-${id}-v${Date.now()}`
+      const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layer)
+      const isHidden = hiddenRef.current.has(id)
+      const targetOpacity = isHidden ? 0 : s.opacity
+      const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, newDate))
+      const maxZoom = parseInt(layer.tileMatrixSet?.match(/Level(\d+)/)?.[1]) || QUALITY_MAXZOOM[s.quality]
+
+      // Add new source + layer DIRECTLY BELOW old one, at opacity 0
+      map.addSource(newSrcId, rasterSource([url], maxZoom))
+      map.addLayer({
+        id: newSrcId,
+        type: 'raster',
+        source: newSrcId,
+        paint: { 'raster-opacity': 0 }
+      }, oldSrcId) // inserts below oldSrcId
+
+      const fadeState = { cancelled: false }
+      activeFadesRef.current[id] = fadeState
+
+      // After a short delay (tiles start loading from CDN), begin crossfade
+      setTimeout(() => {
+        if (fadeState.cancelled) return
+
+        const duration = 800
+        const start = performance.now()
+
+        const step = (now) => {
+          if (fadeState.cancelled) return
+          const elapsed = now - start
+          const t = Math.min(elapsed / duration, 1)
+          const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2 // ease-in-out
+
+          try {
+            // Fade in new layer
+            map.setPaintProperty(newSrcId, 'raster-opacity', targetOpacity * ease)
+            // Fade out old layer
+            if (map.getLayer(oldSrcId)) {
+              map.setPaintProperty(oldSrcId, 'raster-opacity', targetOpacity * (1 - ease))
+            }
+          } catch { return }
+
+          if (t < 1) {
+            requestAnimationFrame(step)
+          } else {
+            // Crossfade done — remove old, make new the canonical layer
+            try {
+              if (map.getLayer(oldSrcId)) map.removeLayer(oldSrcId)
+              if (map.getSource(oldSrcId)) map.removeSource(oldSrcId)
+            } catch { /* ok */ }
+            layerSrcMapRef.current[id] = newSrcId
+            delete activeFadesRef.current[id]
+          }
+        }
+
+        requestAnimationFrame(step)
+      }, 400) // 400ms for tiles to start streaming from GIBS CDN
+    }
+  }, [])
+
   return (
     <div className="globe-root">
       <div ref={containerRef} className="globe-map" />
@@ -304,21 +412,31 @@ export default function Globe() {
         layerSection={layerSection}
         layerSettings={layerSettings}
         hiddenLayers={hiddenLayers}
+        layerCatalog={layerCatalog}
         onRemove={removeLayer}
         onReorder={reorderSection}
         onSettingsChange={updateLayerSettings}
         onToggleVisibility={toggleVisibility}
+        onQuickAdd={addLayer}
         onAddClick={() => setAddLayerOpen(true)}
         open={activeTool === 'layers'}
         onClose={() => setActiveTool(null)}
       />
       <AddLayerModal
         catalog={layerCatalog}
+        categories={layersConfig.categories || {}}
         activeLayers={flattenActive(activeBySection)}
         onAdd={addLayer}
+        onRemove={removeLayer}
         open={addLayerOpen}
         onClose={() => setAddLayerOpen(false)}
       />
+      <div className="globe-bottom-bar">
+        <DatePicker
+          selectedDate={selectedDate}
+          onDateChange={handleDateChange}
+        />
+      </div>
     </div>
   )
 }

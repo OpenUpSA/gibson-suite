@@ -26,10 +26,10 @@ import layersConfig from './config/layers.json'
 import './App.css'
 
 function App() {
-  const baseLayers = layersConfig.categories["Base Imagery"] || []
-  const defaultLayer = baseLayers.find(
+  const trueColorLayers = layersConfig.categories["True Color"] || []
+  const defaultLayer = trueColorLayers.find(
     layer => layer.id === "VIIRS_NOAA21_CorrectedReflectance_TrueColor"
-  ) || baseLayers[0]
+  ) || trueColorLayers[0]
 
   const defaultDateObj = new Date()
   defaultDateObj.setDate(defaultDateObj.getDate() - 3)

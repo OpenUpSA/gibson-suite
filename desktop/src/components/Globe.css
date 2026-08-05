@@ -3,10 +3,20 @@
   /* Map sits beside the 44px static toolbar on the left */
   inset: 0 0 0 44px;
   background: #000;
+  display: flex;
+  flex-direction: column;
 }
 
 .globe-map {
   width: 100%;
-  height: 100%;
+  flex: 1;
+}
+
+.globe-bottom-bar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
 }
 
