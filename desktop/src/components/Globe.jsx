@@ -1,10 +1,36 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, Fragment } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './Globe.css'
 
 // ── Autosave utilities ────────────────────────────────────────────────
 const AUTOSAVE_KEY = 'gibson-app-state'
+const PANE_SIZES_KEY = 'gibson-pane-sizes'
+
+const savePaneSizes = (sizes) => {
+  try {
+    localStorage.setItem(PANE_SIZES_KEY, JSON.stringify(sizes))
+  } catch (e) {
+    console.error('Failed to save pane sizes:', e)
+  }
+}
+
+const loadPaneSizes = (tabCount) => {
+  try {
+    const saved = localStorage.getItem(PANE_SIZES_KEY)
+    if (saved) {
+      const sizes = JSON.parse(saved)
+      // Verify sizes array matches tab count
+      if (Array.isArray(sizes) && sizes.length === tabCount) {
+        return sizes
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load pane sizes:', e)
+  }
+  // Default: equal widths
+  return Array(tabCount).fill(100 / Math.max(tabCount, 1))
+}
 
 const saveAppState = (appState) => {
   try {
@@ -307,6 +333,12 @@ export default function Globe() {
   })
   const [isTabbedMode, setIsTabbedMode] = useState(true)
 
+  // ── Pane resize state ──────────────────────────────────────────────
+  const [paneSizes, setPaneSizes] = useState(() => loadPaneSizes(tabs.length))
+  const [isResizing, setIsResizing] = useState(false)
+  const resizeIndexRef = useRef(null)
+  const containerRef = useRef(null)
+
   // Get active tab's state
   const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0]
   const activeBySection = activeTab.activeBySection
@@ -410,6 +442,73 @@ export default function Globe() {
     return () => clearTimeout(timer)
   }, [tabs, activeTabId])
 
+  // ── Pane resize handlers ──────────────────────────────────────────────
+  useEffect(() => {
+    const handleMouseDown = (e, index) => {
+      e.preventDefault()
+      setIsResizing(true)
+      resizeIndexRef.current = index
+    }
+
+    const handleMouseMove = (e) => {
+      if (!isResizing || resizeIndexRef.current === null || !containerRef.current) return
+
+      const container = containerRef.current
+      const rect = container.getBoundingClientRect()
+      const newX = e.clientX - rect.left
+      const percent = (newX / rect.width) * 100
+
+      setPaneSizes(prev => {
+        const newSizes = [...prev]
+        const index = resizeIndexRef.current
+        const oldSize1 = newSizes[index]
+        const oldSize2 = newSizes[index + 1]
+        const totalSize = oldSize1 + oldSize2
+
+        // Constraint: each pane min 20%, max 80%
+        let newSize1 = percent
+        newSize1 = Math.max(20, Math.min(newSize1, 80))
+        let newSize2 = totalSize - newSize1
+
+        if (newSize2 < 20) {
+          newSize2 = 20
+          newSize1 = totalSize - newSize2
+        } else if (newSize2 > 80) {
+          newSize2 = 80
+          newSize1 = totalSize - newSize2
+        }
+
+        newSizes[index] = newSize1
+        newSizes[index + 1] = newSize2
+        return newSizes
+      })
+    }
+
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false)
+        savePaneSizes(paneSizes)
+        resizeIndexRef.current = null
+      }
+    }
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isResizing, paneSizes])
+
+  // Update pane sizes when tab count changes
+  useEffect(() => {
+    if (paneSizes.length !== tabs.length) {
+      setPaneSizes(loadPaneSizes(tabs.length))
+    }
+  }, [tabs.length])
+
   const handleTabAdd = useCallback(() => {
     const newId = `tab-${Date.now()}`
     const sourceTab = tabs.find(t => t.id === activeTabId) || tabs[0]
@@ -441,24 +540,35 @@ export default function Globe() {
     setActiveTabId(tabId)
   }, [])
 
+  const handleResizeStart = useCallback((e, index) => {
+    e.preventDefault()
+    setIsResizing(true)
+    resizeIndexRef.current = index
+  }, [])
+
   return (
     <div className="globe-root">
-      <div className="globe-maps-container">
+      <div className="globe-maps-container" ref={containerRef}>
         {tabs.map((tab, index) => (
-          <div key={tab.id} className="globe-map-pane" style={{ width: `${100 / tabs.length}%` }}>
-            <MapInstance
-              tab={tab}
-              layerById={layerById}
-              layerCatalog={layerCatalog}
-              wmtsBaseUrl={wmtsBaseUrl}
-              mapSettings={mapSettings}
-              onMapReady={(map) => { /* store map instance if needed */ }}
-              onMapPositionChange={handleMapPositionChange}
-            />
+          <Fragment key={tab.id}>
+            <div className="globe-map-pane" style={{ width: `${paneSizes[index]}%` }}>
+              <MapInstance
+                tab={tab}
+                layerById={layerById}
+                layerCatalog={layerCatalog}
+                wmtsBaseUrl={wmtsBaseUrl}
+                mapSettings={mapSettings}
+                onMapReady={(map) => { /* store map instance if needed */ }}
+                onMapPositionChange={handleMapPositionChange}
+              />
+            </div>
             {index < tabs.length - 1 && (
-              <div className="globe-pane-divider" />
+              <div 
+                className={`globe-pane-divider ${isResizing && resizeIndexRef.current === index ? 'resizing' : ''}`}
+                onMouseDown={(e) => handleResizeStart(e, index)}
+              />
             )}
-          </div>
+          </Fragment>
         ))}
       </div>
       <SideToolbar activeTool={activeTool} onToolClick={handleToolClick} />

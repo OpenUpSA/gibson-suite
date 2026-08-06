@@ -15,9 +15,9 @@
 
 .globe-map-pane {
   display: flex;
-  flex: 1;
-  min-width: 0;
+  flex: none;
   position: relative;
+  overflow: hidden;
 }
 
 .globe-map {
@@ -30,9 +30,11 @@
   background: rgba(255, 255, 255, 0.2);
   cursor: col-resize;
   transition: background 0.15s ease;
+  flex-shrink: 0;
 }
 
-.globe-pane-divider:hover {
+.globe-pane-divider:hover,
+.globe-pane-divider.resizing {
   background: rgba(227, 165, 32, 0.5);
 }
 
