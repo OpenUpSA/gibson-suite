@@ -1,36 +1,36 @@
 .datepicker {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(20, 20, 20, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px 16px;
+  gap: 6px;
   user-select: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1;
 }
 
 .datepicker-controls {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
 }
 
 .datepicker-nav-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.2s ease;
   padding: 0;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .datepicker-nav-btn:hover {
@@ -46,13 +46,14 @@
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  padding: 8px 12px;
+  padding: 4px 6px;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 12px;
   font-family: 'Courier New', monospace;
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
+  flex: 1;
 }
 
 .datepicker-select:hover {
@@ -66,13 +67,16 @@
 }
 
 .datepicker-year-select {
-  min-width: 80px;
+  flex: 1;
+  min-width: 0;
 }
 
 .datepicker-month-select {
-  min-width: 75px;
+  flex: 1;
+  min-width: 0;
 }
 
 .datepicker-day-select {
-  min-width: 60px;
+  flex: 1;
+  min-width: 0;
 }

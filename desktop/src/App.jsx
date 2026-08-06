@@ -8,6 +8,7 @@ const gifWorkerUrl = URL.createObjectURL(
 )
 import Map from './components/Map'
 import LayerSelector from './components/LayerSelector'
+import TabbedSidebar from './components/TabbedSidebar'
 import IntroModal from './components/IntroModal'
 import About from './components/About'
 import TimeBar from './components/TimeBar'
@@ -668,6 +669,55 @@ function App() {
       }, 'image/jpeg', 0.95)
     }, 800)
   }, [isSplitView, isCompareView, selectedLayer, selectedDate, splitPanes, comparePanes, exportTexts, exportOverlayColor, exportOverlayOpacity, exportTextColor, exportCrop])
+
+  // ── Tab state management ──────────────────────────────────────────────
+  const [tabs, setTabs] = useState([
+    { id: 'tab-1', label: 'View 1', mode: 'layers', layer: defaultLayer, date: defaultDate }
+  ])
+  const [activeTabId, setActiveTabId] = useState('tab-1')
+  const [isTabbedMode, setIsTabbedMode] = useState(false)
+
+  const handleTabAdd = useCallback(() => {
+    const newId = `tab-${Date.now()}`
+    const newTab = {
+      id: newId,
+      label: `View ${tabs.length + 1}`,
+      mode: 'selector', // Start in selector mode to choose a layer
+      layer: defaultLayer,
+      date: defaultDate
+    }
+    setTabs(prev => [...prev, newTab])
+    setActiveTabId(newId)
+    setIsTabbedMode(true)
+  }, [tabs.length, defaultLayer, defaultDate])
+
+  const handleTabRemove = useCallback((tabId) => {
+    setTabs(prev => {
+      if (prev.length <= 1) return prev // Don't remove the last tab
+      const newTabs = prev.filter(t => t.id !== tabId)
+      if (activeTabId === tabId) {
+        setActiveTabId(newTabs[0].id)
+      }
+      return newTabs
+    })
+  }, [activeTabId])
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTabId(tabId)
+  }, [])
+
+  const handleTabLayerSelect = useCallback((tabId, layer) => {
+    setTabs(prev => prev.map(tab => 
+      tab.id === tabId 
+        ? { ...tab, mode: 'layers', layer, date: defaultDate }
+        : tab
+    ))
+  }, [defaultDate])
+
+  const handleTabLayerAdd = useCallback((tabId, layer) => {
+    // For now, just switch to layers mode with the selected layer
+    handleTabLayerSelect(tabId, layer)
+  }, [handleTabLayerSelect])
 
   return (
     <div className={`app${isGlobe ? ' globe-mode' : ''}`}>

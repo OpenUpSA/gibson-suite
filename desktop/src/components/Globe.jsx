@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './Globe.css'
 import SideToolbar from './SideToolbar'
-import Sidebar from './Sidebar'
+import TabbedSidebar from './TabbedSidebar'
 import AddLayerModal from './AddLayerModal'
 import DatePicker from './DatePicker'
 
@@ -95,321 +95,198 @@ const rasterSource = (tiles, maxzoom) => ({
 // This works because MapLibre animates the transition on the SAME tick
 // that both setPaintProperty calls fire — no black frames.
 
-export default function Globe() {
+// MapInstance component - renders a single map pane for a tab
+function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
-  const [activeBySection, setActiveBySection] = useState(initialBySection)
-  const [layerSettings, setLayerSettings] = useState(initialSettings)
-  const [hiddenLayers, setHiddenLayers] = useState(new Set())
-  const [activeTool, setActiveTool] = useState('layers') // 'layers' | null
-  const [addLayerOpen, setAddLayerOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(defaultDate)
+  const layerSrcMapRef = useRef({})
+  const transitionsRef = useRef({})
+  const prevDateRef = useRef(tab.date)
+  const [mapReady, setMapReady] = useState(false)
 
-  // Refs mirror state so the map 'load' handler and effects read fresh values.
-  // activeRef holds the flattened ordered list (index 0 = top) used by the map.
-  const activeRef = useRef(flattenActive(activeBySection))
-  const settingsRef = useRef(layerSettings)
-  const hiddenRef = useRef(hiddenLayers)
-  const readyRef = useRef(false)
-  const prevActiveRef = useRef(flattenActive(activeBySection))
-  const prevSettingsRef = useRef(layerSettings)
-  activeRef.current = flattenActive(activeBySection)
-  settingsRef.current = layerSettings
-  hiddenRef.current = hiddenLayers
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return
 
-  // Add a single layer (source + layer) to the map.
-  // When immediate=false (default), waits for tiles then fades in.
-  const addLayerToMap = useCallback((id, { immediate = false } = {}) => {
-    const map = mapRef.current
-    const layer = layerById.get(id)
-    if (!map || !layer) return
-    const srcId = layerSrcMapRef.current[id] || `layer-${id}`
-    const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layer)
-    const targetOpacity = hiddenRef.current.has(id) ? 0 : s.opacity
-
-    // If source already exists (e.g. fading-out), cancel pending removal
-    // and fade back in from wherever the opacity is now.
-    if (map.getSource(srcId)) {
-      if (transitionsRef.current[id]) {
-        if (transitionsRef.current[id].cleanup) transitionsRef.current[id].cleanup()
-        delete transitionsRef.current[id]
-      }
-      map.setPaintProperty(srcId, 'raster-opacity-transition', { duration: 600, delay: 0 })
-      map.setPaintProperty(srcId, 'raster-opacity', targetOpacity)
-      return
-    }
-
-    const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, selectedDate))
-    map.addSource(srcId, rasterSource([url], QUALITY_MAXZOOM[s.quality]))
-    map.addLayer({
-      id: srcId,
-      type: 'raster',
-      source: srcId,
-      paint: {
-        'raster-opacity': immediate ? targetOpacity : 0,
-        'raster-opacity-transition': { duration: 600, delay: 0 }
-      }
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: {
+        version: 8,
+        sources: {},
+        layers: []
+      },
+      center: mapSettings.center || [0, 30],
+      zoom: mapSettings.zoom || 4,
+      minZoom: mapSettings.minZoom || 2,
+      maxZoom: mapSettings.maxZoom || 12,
+      attributionControl: false
     })
 
-    if (immediate || targetOpacity <= 0) return
+    map.on('load', () => {
+      mapRef.current = map
+      setMapReady(true)
+      onMapReady?.(map)
+    })
 
-    // Fade in slowly — even if tiles aren't ready, the old layer (underneath)
-    // stays visible. As new tiles arrive, they become visible through the
-    // gradually-increasing opacity.
-    setTimeout(() => {
-      delete transitionsRef.current[id]
-      try {
-        map.setPaintProperty(srcId, 'raster-opacity', targetOpacity)
-      } catch {}
-    }, 300)
-    transitionsRef.current[id] = { cleanup: () => {} }
-  }, [selectedDate])
+    map.addControl(new maplibregl.NavigationControl(), 'top-right')
 
-  // Remove a single layer (source + layer) from the map.
-  // Fades out via MapLibre's transition, then removes.
-  const removeLayerFromMap = useCallback((id) => {
+    return () => {
+      map.remove()
+      mapRef.current = null
+    }
+  }, [])
+
+  // Update map layers when tab state changes
+  useEffect(() => {
     const map = mapRef.current
-    if (!map) return
-    const srcId = layerSrcMapRef.current[id] || `layer-${id}`
-    if (!map.getLayer(srcId)) {
-      delete layerSrcMapRef.current[id]
-      return
-    }
+    if (!map || !mapReady) return
 
-    // Cancel any pending fade-in
-    if (transitionsRef.current[id]) {
-      if (transitionsRef.current[id].cleanup) transitionsRef.current[id].cleanup()
-      delete transitionsRef.current[id]
-    }
+    const activeLayers = flattenActive(tab.activeBySection)
+    const prevLayers = Object.keys(layerSrcMapRef.current)
+    const dateChanged = prevDateRef.current !== tab.date
+    prevDateRef.current = tab.date
 
-    const curOpacity = map.getPaintProperty(srcId, 'raster-opacity') || 0
-    if (curOpacity <= 0.01) {
-      // Already invisible — remove immediately
-      try {
-        map.removeLayer(srcId)
-        if (map.getSource(srcId)) map.removeSource(srcId)
-      } catch {}
-      delete layerSrcMapRef.current[id]
-      return
-    }
-
-    // Fade out via MapLibre's built-in transition, then remove after it completes.
-    const duration = 400
-    let cancelled = false
-    const cleanup = () => { cancelled = true; clearTimeout(timeoutId) }
-    try {
-      map.setPaintProperty(srcId, 'raster-opacity-transition', { duration, delay: 0 })
-      map.setPaintProperty(srcId, 'raster-opacity', 0)
-    } catch {
-      try {
-        map.removeLayer(srcId)
-        if (map.getSource(srcId)) map.removeSource(srcId)
-      } catch {}
-      delete layerSrcMapRef.current[id]
-      return
-    }
-    const timeoutId = setTimeout(() => {
-      if (cancelled) return
-      // Only remove if this srcId is still the canonical one (not re-added)
-      if (layerSrcMapRef.current[id] === srcId) {
+    // Remove layers that are no longer active
+    for (const layerId of prevLayers) {
+      if (!activeLayers.includes(layerId)) {
+        const srcId = layerSrcMapRef.current[layerId]
         try {
           if (map.getLayer(srcId)) map.removeLayer(srcId)
           if (map.getSource(srcId)) map.removeSource(srcId)
         } catch {}
-        delete layerSrcMapRef.current[id]
+        delete layerSrcMapRef.current[layerId]
       }
-    }, duration + 100)
-    transitionsRef.current[id] = { cleanup }
-  }, [])
-
-  // Normalize stacking so index 0 (top of list) renders on top, without
-  // rebuilding any sources — moves each layer to the top in reverse order.
-  const applyOrder = useCallback(() => {
-    const map = mapRef.current
-    if (!map) return
-    for (const id of [...activeRef.current].reverse()) {
-      const srcId = layerSrcMapRef.current[id] || `layer-${id}`
-      if (map.getLayer(srcId)) map.moveLayer(srcId)
-    }
-  }, [])
-
-  // Rebuild a single layer's source (needed when its resolution changes —
-  // source maxzoom is fixed at creation). Crossfades old → new in place,
-  // matching the legacy Map.jsx sourcedata → idle → transition pattern.
-  const rebuildLayer = useCallback((id) => {
-    const map = mapRef.current
-    const layer = layerById.get(id)
-    if (!map || !layer) return
-    const oldSrcId = layerSrcMapRef.current[id] || `layer-${id}`
-
-    // Cancel any in-progress transition
-    if (transitionsRef.current[id]) {
-      if (transitionsRef.current[id].cleanup) transitionsRef.current[id].cleanup()
-      delete transitionsRef.current[id]
     }
 
-    const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layer)
-    const targetOpacity = hiddenRef.current.has(id) ? 0 : s.opacity
+    // Add/update active layers and reorder them
+    for (const layerId of activeLayers) {
+      const layer = layerById.get(layerId)
+      if (!layer) continue
 
-    if (!map.getLayer(oldSrcId)) {
-      addLayerToMap(id, { immediate: true })
-      applyOrder()
-      return
-    }
+      const srcId = `layer-${layerId}`
+      const settings = tab.layerSettings[layerId] ?? { quality: 'low', opacity: 1 }
+      const isHidden = tab.hiddenLayers.has(layerId)
+      const targetOpacity = isHidden ? 0 : settings.opacity
 
-    const newSrcId = `layer-${id}-v${Date.now()}`
-    const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, selectedDate))
-    const maxZoom = QUALITY_MAXZOOM[s.quality]
-
-    // Add new source + layer on top of old. The old layer STAYS at full
-    // opacity (never faded out) — only the new layer fades in. This
-    // guarantees no black screen even if tiles take seconds to load.
-    map.addSource(newSrcId, rasterSource([url], maxZoom))
-    map.addLayer({
-      id: newSrcId,
-      type: 'raster',
-      source: newSrcId,
-      paint: {
-        'raster-opacity': 0,
-        'raster-opacity-transition': { duration: 1500, delay: 0 }
-      }
-    })
-
-    // Start fade-in immediately. Old layer stays fully visible underneath.
-    setTimeout(() => {
-      delete transitionsRef.current[id]
-      try {
-        map.setPaintProperty(newSrcId, 'raster-opacity', targetOpacity)
-      } catch {}
-    }, 300)
-
-    // Remove old layer AFTER a long delay (3s) to give tiles plenty of time.
-    setTimeout(() => {
-      if (layerSrcMapRef.current[id] === newSrcId) {
+      if (!map.getSource(srcId)) {
         try {
-          if (map.getLayer(oldSrcId)) map.removeLayer(oldSrcId)
-          if (map.getSource(oldSrcId)) map.removeSource(oldSrcId)
+          const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, tab.date))
+          const maxzoom = QUALITY_MAXZOOM[settings.quality]
+          map.addSource(srcId, rasterSource([url], maxzoom))
+          map.addLayer({
+            id: srcId,
+            type: 'raster',
+            source: srcId,
+            paint: {
+              'raster-opacity': targetOpacity,
+              'raster-opacity-transition': { duration: 300, delay: 0 }
+            }
+          })
+          layerSrcMapRef.current[layerId] = srcId
+        } catch (err) {
+          console.warn('Failed to add layer:', layerId, err)
+        }
+      } else if (map.getLayer(srcId)) {
+        // Layer exists - update opacity
+        try {
+          map.setPaintProperty(srcId, 'raster-opacity', targetOpacity)
         } catch {}
-      }
-    }, 3000)
-    transitionsRef.current[id] = { cleanup: () => {} }
-  }, [selectedDate, addLayerToMap, applyOrder])
-
-  // Initial build — called once when the style loads.
-  // Layers are added at opacity 0 and fade in together.
-  const buildAllLayers = useCallback(() => {
-    const map = mapRef.current
-    if (!map) return
-    for (const srcId of Object.keys(map.getStyle().sources || {}).filter(id => id.startsWith('layer-'))) {
-      try { map.removeLayer(srcId); map.removeSource(srcId) } catch {}
-    }
-    layerSrcMapRef.current = {}
-    for (const id of [...activeRef.current].reverse()) {
-      const canonicalId = `layer-${id}`
-      layerSrcMapRef.current[id] = canonicalId
-      addLayerToMap(id) // fades in from 0
-    }
-    applyOrder()
-  }, [addLayerToMap, applyOrder])
-
-  useEffect(() => {
-    if (mapRef.current) return
-
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      attributionControl: false,
-      style: {
-        version: 8,
-        // Flat Mercator projection (default) — world wraps horizontally.
-        // Sky fills the space beyond the world edges. Layer sources are added
-        // dynamically once the style loads.
-        sky: {
-          'sky-color': '#0b1026',
-          'sky-horizon-blend': 0.3
-        },
-        sources: {},
-        layers: []
-      },
-      center: INITIAL_CENTER,
-      zoom: INITIAL_ZOOM,
-      minZoom: mapSettings.minZoom,
-      maxZoom: mapSettings.maxZoom
-    })
-
-    map.on('load', () => {
-      buildAllLayers()
-      readyRef.current = true
-      prevActiveRef.current = activeRef.current
-      prevSettingsRef.current = settingsRef.current
-    })
-    mapRef.current = map
-
-    return () => {
-      // Cancel every in-progress crossfade so nothing touches the map after unmount
-      for (const h of Object.values(transitionsRef.current)) {
-        if (h.cleanup) h.cleanup()
-      }
-      transitionsRef.current = {}
-      map.remove()
-      mapRef.current = null
-    }
-  }, [buildAllLayers])
-
-  // Add/remove/reorder — apply only the diff, not a full rebuild.
-  useEffect(() => {
-    if (!readyRef.current) { prevActiveRef.current = flattenActive(activeBySection); return }
-    const prev = prevActiveRef.current
-    const next = flattenActive(activeBySection)
-    prevActiveRef.current = next
-
-    for (const id of prev) {
-      if (!next.includes(id)) removeLayerFromMap(id)
-    }
-    for (const id of next) {
-      if (!prev.includes(id)) addLayerToMap(id)
-    }
-    if (prev.join(',') !== next.join(',')) applyOrder()
-  }, [activeBySection, removeLayerFromMap, addLayerToMap, applyOrder])
-
-  // Settings changes — opacity via paint property (no rebuild); resolution
-  // rebuilds only that layer's source.
-  useEffect(() => {
-    const prev = prevSettingsRef.current
-    if (!readyRef.current) { prevSettingsRef.current = layerSettings; return }
-    const map = mapRef.current
-
-    for (const id of Object.keys(layerSettings)) {
-      const s = layerSettings[id]
-      const p = prev[id]
-      if (!p) continue
-      if (p.quality !== s.quality) {
-        if (activeRef.current.includes(id)) rebuildLayer(id)
-      } else if (p.opacity !== s.opacity) {
-        const curSrc = layerSrcMapRef.current[id] || `layer-${id}`
-        if (activeRef.current.includes(id) && map?.getLayer(curSrc)) {
-          map.setPaintProperty(curSrc, 'raster-opacity', s.opacity)
+        
+        // If date changed, update the tile source URLs
+        if (dateChanged) {
+          try {
+            const source = map.getSource(srcId)
+            if (source && typeof source.setTiles === 'function') {
+              const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, tab.date))
+              console.warn(`[MapInstance] Updating tiles for tab "${tab.label}": new URL =`, url)
+              source.setTiles([url])
+              // Trigger a repaint to immediately show the new tiles
+              map.triggerRepaint()
+            }
+          } catch (err) {
+            console.warn('Failed to update source tiles for date change:', layerId, err)
+          }
         }
       }
     }
-    prevSettingsRef.current = layerSettings
-  }, [layerSettings, rebuildLayer])
 
-  // Visibility changes — set raster-opacity to 0 for hidden layers.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!readyRef.current || !map) return
-    for (const id of activeRef.current) {
-      const curSrc = layerSrcMapRef.current[id] || `layer-${id}`
-      if (!map.getLayer(curSrc)) continue
-      const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layerById.get(id))
-      const opacity = hiddenLayers.has(id) ? 0 : s.opacity
-      map.setPaintProperty(curSrc, 'raster-opacity', opacity)
+    // Reorder layers to match active order (reverse because 0 = top in our model)
+    for (let i = activeLayers.length - 1; i >= 0; i--) {
+      const layerId = activeLayers[i]
+      const srcId = `layer-${layerId}`
+      if (map.getLayer(srcId)) {
+        try {
+          map.moveLayer(srcId)
+        } catch {}
+      }
     }
-  }, [hiddenLayers])
+  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, mapReady, layerById, wmtsBaseUrl])
+
+  return <div ref={containerRef} className="globe-map" />
+}
+
+export default function Globe() {
+  const [activeTool, setActiveTool] = useState('layers')
+  const [addLayerOpen, setAddLayerOpen] = useState(false)
+
+  // ── Tab state management ──────────────────────────────────────────────
+  // Each tab has its own independent layer state (activeBySection, layerSettings, hiddenLayers)
+  const [tabs, setTabs] = useState([
+    {
+      id: 'tab-1',
+      label: 'View 1',
+      activeBySection: initialBySection,
+      layerSettings: initialSettings,
+      hiddenLayers: new Set(),
+      date: defaultDate
+    }
+  ])
+  const [activeTabId, setActiveTabId] = useState('tab-1')
+  const [isTabbedMode, setIsTabbedMode] = useState(true)
+
+  // Get active tab's state
+  const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0]
+  const activeBySection = activeTab.activeBySection
+  const layerSettings = activeTab.layerSettings
+  const hiddenLayers = activeTab.hiddenLayers
+
+  const updateActiveTab = useCallback((updates) => {
+    setTabs(prev => prev.map(tab =>
+      tab.id === activeTabId ? { ...tab, ...updates } : tab
+    ))
+  }, [activeTabId])
+
+  const handleTabDateChange = useCallback((newDate) => {
+    updateActiveTab({ date: newDate })
+  }, [updateActiveTab])
+
+  // Wrappers to update the active tab's state
+  const setActiveBySectionTabbed = useCallback((updater) => {
+    if (typeof updater === 'function') {
+      updateActiveTab({ activeBySection: updater(activeBySection) })
+    } else {
+      updateActiveTab({ activeBySection: updater })
+    }
+  }, [activeBySection, updateActiveTab])
+
+  const setLayerSettingsTabbed = useCallback((updater) => {
+    if (typeof updater === 'function') {
+      updateActiveTab({ layerSettings: updater(layerSettings) })
+    } else {
+      updateActiveTab({ layerSettings: updater })
+    }
+  }, [layerSettings, updateActiveTab])
+
+  const setHiddenLayersTabbed = useCallback((updater) => {
+    if (typeof updater === 'function') {
+      updateActiveTab({ hiddenLayers: updater(hiddenLayers) })
+    } else {
+      updateActiveTab({ hiddenLayers: updater })
+    }
+  }, [hiddenLayers, updateActiveTab])
 
   const addLayer = (layer) => {
     const section = layerSection(layer)
-    setActiveBySection(prev => {
+    setActiveBySectionTabbed(prev => {
       if (prev[section].includes(layer.id)) return prev
       return { ...prev, [section]: [layer.id, ...prev[section]] }
     })
@@ -418,25 +295,25 @@ export default function Globe() {
 
   const removeLayer = (id) => {
     const section = layerSection(layerById.get(id) || {})
-    setActiveBySection(prev => ({ ...prev, [section]: prev[section].filter(x => x !== id) }))
+    setActiveBySectionTabbed(prev => ({ ...prev, [section]: prev[section].filter(x => x !== id) }))
   }
 
   const reorderSection = (section, nextIds) => {
-    setActiveBySection(prev => ({ ...prev, [section]: nextIds }))
+    setActiveBySectionTabbed(prev => ({ ...prev, [section]: nextIds }))
   }
 
   const updateLayerSettings = (id, patch) => {
-    setLayerSettings(prev => ({ ...prev, [id]: { ...prev[id], ...patch } }))
+    setLayerSettingsTabbed(prev => ({ ...prev, [id]: { ...prev[id], ...patch } }))
   }
 
   const toggleVisibility = useCallback((id) => {
-    setHiddenLayers(prev => {
+    setHiddenLayersTabbed(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
     })
-  }, [])
+  }, [setHiddenLayersTabbed])
 
   // Toolbar: clicking the active tool closes its panel; clicking another
   // switches to it. Opening one panel closes the other.
@@ -457,81 +334,57 @@ export default function Globe() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  // Map layer ID → current source/layer ID on the map
-  const layerSrcMapRef = useRef({})
-
-  // Active crossfade animations — keyed by layer id.
-  // Each entry: { cancelled: boolean }
-  const transitionsRef = useRef({})
-
-  const handleDateChange = useCallback((newDate) => {
-    setSelectedDate(newDate)
-    const map = mapRef.current
-    if (!map) return
-
-    const imageryIds = activeRef.current.filter(id => {
-      const layer = layerById.get(id)
-      return layer && layerSection(layer) !== 'reference'
-    })
-
-    for (const id of imageryIds) {
-      // Cancel any in-progress transition for this layer
-      if (transitionsRef.current[id]) {
-        if (transitionsRef.current[id].cleanup) transitionsRef.current[id].cleanup()
-        delete transitionsRef.current[id]
-      }
-
-      const layer = layerById.get(id)
-      const oldSrcId = layerSrcMapRef.current[id] || `layer-${id}`
-      if (!map.getLayer(oldSrcId)) continue
-
-      const newSrcId = `layer-${id}-v${Date.now()}`
-      const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layer)
-      const isHidden = hiddenRef.current.has(id)
-      const targetOpacity = isHidden ? 0 : s.opacity
-      const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, newDate))
-      const maxZoom = parseInt(layer.tileMatrixSet?.match(/Level(\d+)/)?.[1]) || QUALITY_MAXZOOM[s.quality]
-
-      // Add new source + layer on top of old. Old layer STAYS at full
-      // opacity (never faded out) — only the new layer fades in. This
-      // guarantees no black screen even if tiles take seconds to load.
-      map.addSource(newSrcId, rasterSource([url], maxZoom))
-      map.addLayer({
-        id: newSrcId,
-        type: 'raster',
-        source: newSrcId,
-        paint: {
-          'raster-opacity': 0,
-          'raster-opacity-transition': { duration: 1500, delay: 0 }
-        }
-      })
-
-      // Start fade-in immediately. Old layer stays fully visible underneath.
-      setTimeout(() => {
-        delete transitionsRef.current[id]
-        try {
-          map.setPaintProperty(newSrcId, 'raster-opacity', targetOpacity)
-        } catch {}
-      }, 300)
-
-      // Remove old layer AFTER a long delay (3s) to give tiles plenty of time.
-      setTimeout(() => {
-        if (layerSrcMapRef.current[id] === newSrcId) {
-          try {
-            if (map.getLayer(oldSrcId)) map.removeLayer(oldSrcId)
-            if (map.getSource(oldSrcId)) map.removeSource(oldSrcId)
-          } catch {}
-        }
-      }, 3000)
-      transitionsRef.current[id] = { cleanup: () => {} }
+  const handleTabAdd = useCallback(() => {
+    const newId = `tab-${Date.now()}`
+    const sourceTab = tabs.find(t => t.id === activeTabId) || tabs[0]
+    const newTab = {
+      id: newId,
+      label: `View ${tabs.length + 1}`,
+      activeBySection: JSON.parse(JSON.stringify(sourceTab.activeBySection)),
+      layerSettings: { ...sourceTab.layerSettings },
+      hiddenLayers: new Set(sourceTab.hiddenLayers),
+      date: sourceTab.date
     }
+    setTabs(prev => [...prev, newTab])
+    setActiveTabId(newId)
+  }, [tabs, activeTabId])
+
+  const handleTabRemove = useCallback((tabId) => {
+    setTabs(prev => {
+      if (prev.length <= 1) return prev
+      const newTabs = prev.filter(t => t.id !== tabId)
+      if (activeTabId === tabId) {
+        setActiveTabId(newTabs[0].id)
+      }
+      return newTabs
+    })
+  }, [activeTabId])
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTabId(tabId)
   }, [])
 
   return (
     <div className="globe-root">
-      <div ref={containerRef} className="globe-map" />
+      <div className="globe-maps-container">
+        {tabs.map((tab, index) => (
+          <div key={tab.id} className="globe-map-pane" style={{ width: `${100 / tabs.length}%` }}>
+            <MapInstance
+              tab={tab}
+              layerById={layerById}
+              layerCatalog={layerCatalog}
+              wmtsBaseUrl={wmtsBaseUrl}
+              mapSettings={mapSettings}
+              onMapReady={(map) => { /* store map instance if needed */ }}
+            />
+            {index < tabs.length - 1 && (
+              <div className="globe-pane-divider" />
+            )}
+          </div>
+        ))}
+      </div>
       <SideToolbar activeTool={activeTool} onToolClick={handleToolClick} />
-      <Sidebar
+      <TabbedSidebar
         sections={SECTION_ORDER.map(s => ({ key: s, title: SECTION_TITLES[s], ids: activeBySection[s] || [] }))}
         layerById={layerById}
         layerSection={layerSection}
@@ -546,6 +399,13 @@ export default function Globe() {
         onAddClick={() => setAddLayerOpen(true)}
         open={activeTool === 'layers'}
         onClose={() => setActiveTool(null)}
+        tabs={tabs}
+        activeTabId={activeTabId}
+        onTabChange={handleTabChange}
+        onTabAdd={handleTabAdd}
+        onTabRemove={handleTabRemove}
+        activeTabDate={activeTab.date}
+        onTabDateChange={handleTabDateChange}
       />
       <AddLayerModal
         catalog={layerCatalog}
@@ -556,12 +416,7 @@ export default function Globe() {
         open={addLayerOpen}
         onClose={() => setAddLayerOpen(false)}
       />
-      <div className="globe-bottom-bar">
-        <DatePicker
-          selectedDate={selectedDate}
-          onDateChange={handleDateChange}
-        />
-      </div>
+
     </div>
   )
 }
