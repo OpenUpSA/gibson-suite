@@ -71,6 +71,7 @@
 /* Add Layer button */
 .sidebar-add-layer-row {
   padding: 0 0 4px;
+  margin-bottom: 4px;
 }
 
 .add-layer-btn {
@@ -108,8 +109,8 @@
 
 /* Section headers (Base layers / Imagery layers / Reference layers) */
 .sidebar-section {
-  margin-bottom: 6px;
-  margin-top: 10px;
+  margin-bottom: 14px;
+  margin-top: 14px;
   position: relative;
 }
 
@@ -117,7 +118,7 @@
   display: flex;
   align-items: center;
   padding: 10px 9px 10px 12px;
-  margin: 0 -10px 6px;
+  margin: 0 -10px 12px;
   background: rgba(79, 195, 217, 0.08);
   border-top: 1px solid rgba(79, 195, 217, 0.15);
   border-bottom: 1px solid rgba(79, 195, 217, 0.15);
@@ -211,7 +212,7 @@
 .layer-row {
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   background: rgba(255, 255, 255, 0.04);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
