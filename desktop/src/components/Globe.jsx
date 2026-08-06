@@ -2,6 +2,43 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './Globe.css'
+
+// ── Autosave utilities ────────────────────────────────────────────────
+const AUTOSAVE_KEY = 'gibson-app-state'
+
+const saveAppState = (appState) => {
+  try {
+    const serialized = {
+      ...appState,
+      tabs: appState.tabs.map(tab => ({
+        ...tab,
+        hiddenLayers: Array.from(tab.hiddenLayers) // Convert Set to Array
+      }))
+    }
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(serialized))
+  } catch (e) {
+    console.error('Failed to save app state:', e)
+  }
+}
+
+const loadAppState = () => {
+  try {
+    const saved = localStorage.getItem(AUTOSAVE_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return {
+        ...parsed,
+        tabs: parsed.tabs.map(tab => ({
+          ...tab,
+          hiddenLayers: new Set(tab.hiddenLayers) // Convert Array back to Set
+        }))
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load app state:', e)
+  }
+  return null
+}
 import SideToolbar from './SideToolbar'
 import TabbedSidebar from './TabbedSidebar'
 import AddLayerModal from './AddLayerModal'
@@ -96,7 +133,7 @@ const rasterSource = (tiles, maxzoom) => ({
 // that both setPaintProperty calls fire — no black frames.
 
 // MapInstance component - renders a single map pane for a tab
-function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady }) {
+function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerSrcMapRef = useRef({})
@@ -107,6 +144,11 @@ function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, o
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
+    // Use saved position from tab, or fall back to default position
+    const savedPosition = tab.mapPosition || { center: INITIAL_CENTER, zoom: INITIAL_ZOOM }
+    const center = savedPosition.center || mapSettings.center || [0, 30]
+    const zoom = savedPosition.zoom !== undefined ? savedPosition.zoom : (mapSettings.zoom || 4)
+
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: {
@@ -114,8 +156,8 @@ function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, o
         sources: {},
         layers: []
       },
-      center: mapSettings.center || [0, 30],
-      zoom: mapSettings.zoom || 4,
+      center: center,
+      zoom: zoom,
       minZoom: mapSettings.minZoom || 2,
       maxZoom: mapSettings.maxZoom || 12,
       attributionControl: false
@@ -125,6 +167,19 @@ function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, o
       mapRef.current = map
       setMapReady(true)
       onMapReady?.(map)
+
+      // Listen for map position changes (move and zoom)
+      const handleMapChange = () => {
+        const center = map.getCenter()
+        const zoom = map.getZoom()
+        onMapPositionChange?.({
+          center: [center.lng, center.lat],
+          zoom: zoom
+        })
+      }
+
+      map.on('move', handleMapChange)
+      map.on('zoom', handleMapChange)
     })
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
@@ -229,18 +284,27 @@ export default function Globe() {
   const [addLayerOpen, setAddLayerOpen] = useState(false)
 
   // ── Tab state management ──────────────────────────────────────────────
-  // Each tab has its own independent layer state (activeBySection, layerSettings, hiddenLayers)
-  const [tabs, setTabs] = useState([
-    {
-      id: 'tab-1',
-      label: 'View 1',
-      activeBySection: initialBySection,
-      layerSettings: initialSettings,
-      hiddenLayers: new Set(),
-      date: defaultDate
+  // Load saved state from localStorage, or use defaults
+  const savedState = useRef(loadAppState())
+  const [tabs, setTabs] = useState(() => {
+    if (savedState.current?.tabs) {
+      return savedState.current.tabs
     }
-  ])
-  const [activeTabId, setActiveTabId] = useState('tab-1')
+    return [
+      {
+        id: 'tab-1',
+        label: 'View 1',
+        activeBySection: initialBySection,
+        layerSettings: initialSettings,
+        hiddenLayers: new Set(),
+        date: defaultDate,
+        mapPosition: { center: INITIAL_CENTER, zoom: INITIAL_ZOOM }
+      }
+    ]
+  })
+  const [activeTabId, setActiveTabId] = useState(() => {
+    return savedState.current?.activeTabId || 'tab-1'
+  })
   const [isTabbedMode, setIsTabbedMode] = useState(true)
 
   // Get active tab's state
@@ -254,6 +318,10 @@ export default function Globe() {
       tab.id === activeTabId ? { ...tab, ...updates } : tab
     ))
   }, [activeTabId])
+
+  const handleMapPositionChange = useCallback((newPosition) => {
+    updateActiveTab({ mapPosition: newPosition })
+  }, [updateActiveTab])
 
   const handleTabDateChange = useCallback((newDate) => {
     updateActiveTab({ date: newDate })
@@ -334,6 +402,14 @@ export default function Globe() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  // Autosave app state to localStorage (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveAppState({ tabs, activeTabId })
+    }, 500) // Debounce 500ms
+    return () => clearTimeout(timer)
+  }, [tabs, activeTabId])
+
   const handleTabAdd = useCallback(() => {
     const newId = `tab-${Date.now()}`
     const sourceTab = tabs.find(t => t.id === activeTabId) || tabs[0]
@@ -343,7 +419,8 @@ export default function Globe() {
       activeBySection: JSON.parse(JSON.stringify(sourceTab.activeBySection)),
       layerSettings: { ...sourceTab.layerSettings },
       hiddenLayers: new Set(sourceTab.hiddenLayers),
-      date: sourceTab.date
+      date: sourceTab.date,
+      mapPosition: { ...sourceTab.mapPosition }
     }
     setTabs(prev => [...prev, newTab])
     setActiveTabId(newId)
@@ -376,6 +453,7 @@ export default function Globe() {
               wmtsBaseUrl={wmtsBaseUrl}
               mapSettings={mapSettings}
               onMapReady={(map) => { /* store map instance if needed */ }}
+              onMapPositionChange={handleMapPositionChange}
             />
             {index < tabs.length - 1 && (
               <div className="globe-pane-divider" />
