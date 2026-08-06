@@ -5,7 +5,7 @@ const TOOLS = [
   { id: 'layers', icon: 'fluent:layer-20-filled', title: 'Layers' }
 ]
 
-const SideToolbar = ({ activeTool, onToolClick }) => (
+const SideToolbar = ({ activeTool, onToolClick, onLayoutModeToggle, layoutModeActive }) => (
   <div className="side-toolbar">
     <img src="/gibson-icon.png" alt="Gibson" className="side-toolbar-logo" />
     {TOOLS.map(tool => (

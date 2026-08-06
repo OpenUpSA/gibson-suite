@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, Fragment } from 'react'
+import { Icon } from '@iconify/react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './Globe.css'
@@ -6,6 +7,61 @@ import './Globe.css'
 // ── Autosave utilities ────────────────────────────────────────────────
 const AUTOSAVE_KEY = 'gibson-app-state'
 const PANE_SIZES_KEY = 'gibson-pane-sizes'
+const GRID_CONFIG_KEY = 'gibson-grid-config'
+
+// Grid layout presets: { rows, cols, name }
+const GRID_PRESETS = {
+  '2x2': { rows: 2, cols: 2, name: '2×2 (4 views)' },
+  '1x2': { rows: 1, cols: 2, name: '1×2 (2 views)' },
+  '2x1': { rows: 2, cols: 1, name: '2×1 (2 views)' },
+  '2x3': { rows: 2, cols: 3, name: '2×3 (6 views)' },
+  '2x4': { rows: 2, cols: 4, name: '2×4 (8 views)' },
+  '3x3': { rows: 3, cols: 3, name: '3×3 (9 views)' }
+}
+
+const DEFAULT_GRID_CONFIG = { 
+  rows: 1, 
+  cols: 1, 
+  width: '100%',
+  height: '100%',
+  cells: {} // cells: { cellIndex: { tabId, rowSpan: 1, colSpan: 1 } }
+}
+
+const saveGridConfig = (config) => {
+  try {
+    localStorage.setItem(GRID_CONFIG_KEY, JSON.stringify(config))
+  } catch (e) {
+    console.error('Failed to save grid config:', e)
+  }
+}
+
+const loadGridConfig = () => {
+  try {
+    const saved = localStorage.getItem(GRID_CONFIG_KEY)
+    if (saved) {
+      let config = JSON.parse(saved)
+      // Migrate old viewAssignments format to new cells format
+      if (config.viewAssignments && !config.cells) {
+        config.cells = {}
+        for (const [cellIndex, tabId] of Object.entries(config.viewAssignments)) {
+          config.cells[cellIndex] = { tabId, rowSpan: 1, colSpan: 1 }
+        }
+        delete config.viewAssignments
+      }
+      return config
+      // Ensure width/height are set
+      if (!config.width) config.width = '100%'
+      if (!config.height) config.height = '100%'
+      // Ensure rows/cols are set
+      if (!config.rows) config.rows = 1
+      if (!config.cols) config.cols = 1
+      return config
+    }
+  } catch (e) {
+    console.error('Failed to load grid config:', e)
+  }
+  return DEFAULT_GRID_CONFIG
+}
 
 const savePaneSizes = (sizes) => {
   try {
@@ -339,6 +395,26 @@ export default function Globe() {
   const resizeIndexRef = useRef(null)
   const containerRef = useRef(null)
 
+  // ── Grid layout state ──────────────────────────────────────────────
+  const [layoutMode, setLayoutMode] = useState(false) // Toggle grid editor in sidebar
+  const [gridViewActive, setGridViewActive] = useState(false) // Toggle grid view vs single view
+  const [gridConfig, setGridConfig] = useState(() => loadGridConfig())
+  const [draggedTabId, setDraggedTabId] = useState(null) // For drag-drop in layout mode
+  const [selectedCell, setSelectedCell] = useState(null) // For grid editor cell selection
+  const [cellSpans, setCellSpans] = useState({}) // Temporary span state for editing
+  const [gridDrag, setGridDrag] = useState(null) // { fromCell, toCell } for drag-to-reassign
+  const [gridResize, setGridResize] = useState(null) // { cellIndex, edge, startMouse, startRowSpan, startColSpan }
+
+  // Auto-assign first tab to cell 0 when grid has no cells
+  useEffect(() => {
+    if (tabs.length > 0 && Object.keys(gridConfig.cells).length === 0) {
+      const newCells = { 0: { tabId: tabs[0].id, rowSpan: 1, colSpan: 1 } }
+      const newConfig = { ...gridConfig, cells: newCells }
+      setGridConfig(newConfig)
+      saveGridConfig(newConfig)
+    }
+  }, []) // Only on mount
+
   // Get active tab's state
   const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0]
   const activeBySection = activeTab.activeBySection
@@ -540,6 +616,173 @@ export default function Globe() {
     setActiveTabId(tabId)
   }, [])
 
+  const handleGridPresetApply = useCallback((presetKey) => {
+    const preset = GRID_PRESETS[presetKey]
+    if (preset) {
+      // Keep existing assignments, just update grid dimensions
+      const newConfig = {
+        rows: preset.rows,
+        cols: preset.cols,
+        width: gridConfig.width,
+        height: gridConfig.height,
+        cells: { ...gridConfig.cells }
+      }
+      setGridConfig(newConfig)
+      saveGridConfig(newConfig)
+    }
+  }, [gridConfig])
+
+  const handleGridDimensionChange = useCallback((rows, cols) => {
+    const newConfig = {
+      rows: Math.max(1, Math.min(rows, 5)),
+      cols: Math.max(1, Math.min(cols, 5)),
+      width: gridConfig.width,
+      height: gridConfig.height,
+      cells: gridConfig.cells
+    }
+    setGridConfig(newConfig)
+    saveGridConfig(newConfig)
+  }, [gridConfig])
+
+  const handleAssignViewToCell = useCallback((cellIndex, tabId) => {
+    const newCells = { ...gridConfig.cells }
+    if (newCells[cellIndex]?.tabId === tabId) {
+      delete newCells[cellIndex] // Toggle off
+    } else {
+      newCells[cellIndex] = { 
+        tabId, 
+        rowSpan: newCells[cellIndex]?.rowSpan || 1,
+        colSpan: newCells[cellIndex]?.colSpan || 1
+      }
+    }
+    const newConfig = { ...gridConfig, cells: newCells }
+    setGridConfig(newConfig)
+    saveGridConfig(newConfig)
+  }, [gridConfig])
+
+  const handleGridSizeChange = useCallback((height, width) => {
+    const newConfig = { ...gridConfig, width, height }
+    setGridConfig(newConfig)
+    saveGridConfig(newConfig)
+  }, [gridConfig])
+
+  const handleCellSpanChange = useCallback((cellIndex, rowSpan, colSpan) => {
+    const newCells = { ...gridConfig.cells }
+    if (newCells[cellIndex]) {
+      newCells[cellIndex] = { ...newCells[cellIndex], rowSpan, colSpan }
+      const newConfig = { ...gridConfig, cells: newCells }
+      setGridConfig(newConfig)
+      saveGridConfig(newConfig)
+    }
+  }, [gridConfig])
+
+  const handleClearCell = useCallback((cellIndex) => {
+    const newCells = { ...gridConfig.cells }
+    delete newCells[cellIndex]
+    const newConfig = { ...gridConfig, cells: newCells }
+    setGridConfig(newConfig)
+    saveGridConfig(newConfig)
+    setSelectedCell(null)
+  }, [gridConfig])
+
+  // ── Interactive grid drag/resize ────────────────────────────────────
+  const handleGridDragStart = useCallback((e, cellIndex) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const cell = gridConfig.cells[cellIndex]
+    if (!cell) return
+
+    setGridDrag({ fromCell: cellIndex, toCell: cellIndex })
+
+    const handleMove = (ev) => {
+      const gridEl = document.querySelector('.grid-editor-canvas-grid')
+      if (!gridEl) return
+      const rect = gridEl.getBoundingClientRect()
+      const x = ev.clientX - rect.left
+      const y = ev.clientY - rect.top
+      const cellW = rect.width / gridConfig.cols
+      const cellH = rect.height / gridConfig.rows
+      const col = Math.max(0, Math.min(Math.floor(x / cellW), gridConfig.cols - 1))
+      const row = Math.max(0, Math.min(Math.floor(y / cellH), gridConfig.rows - 1))
+      const target = row * gridConfig.cols + col
+      setGridDrag(prev => prev ? { ...prev, toCell: target } : null)
+    }
+
+    const handleUp = () => {
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('mouseup', handleUp)
+      setGridDrag(prev => {
+        if (prev && prev.fromCell !== prev.toCell) {
+          // Move view from source to target (swap or move)
+          const srcCell = gridConfig.cells[prev.fromCell]
+          const tgtCell = gridConfig.cells[prev.toCell]
+          const newCells = { ...gridConfig.cells }
+          if (tgtCell) {
+            // Swap
+            newCells[prev.fromCell] = { ...tgtCell }
+            newCells[prev.toCell] = { ...srcCell }
+          } else {
+            // Move
+            newCells[prev.toCell] = { ...srcCell }
+            delete newCells[prev.fromCell]
+          }
+          const newConfig = { ...gridConfig, cells: newCells }
+          setGridConfig(newConfig)
+          saveGridConfig(newConfig)
+        }
+        return null
+      })
+    }
+
+    document.addEventListener('mousemove', handleMove)
+    document.addEventListener('mouseup', handleUp)
+  }, [gridConfig])
+
+  const handleGridResizeStart = useCallback((e, cellIndex, edge) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const cellData = gridConfig.cells[cellIndex]
+    if (!cellData) return
+
+    const startX = e.clientX
+    const startY = e.clientY
+    const startRowSpan = cellData.rowSpan || 1
+    const startColSpan = cellData.colSpan || 1
+
+    setGridResize({ cellIndex, edge, startX, startY, startRowSpan, startColSpan })
+
+    const handleMove = (ev) => {
+      const gridEl = document.querySelector('.grid-editor-canvas-grid')
+      if (!gridEl) return
+      const rect = gridEl.getBoundingClientRect()
+      const cellW = rect.width / gridConfig.cols
+      const cellH = rect.height / gridConfig.rows
+      const dx = ev.clientX - startX
+      const dy = ev.clientY - startY
+
+      let newColSpan = startColSpan
+      let newRowSpan = startRowSpan
+
+      if (edge === 'right' || edge === 'corner') {
+        newColSpan = Math.max(1, Math.min(startColSpan + Math.round(dx / cellW), gridConfig.cols - cellIndex % gridConfig.cols))
+      }
+      if (edge === 'bottom' || edge === 'corner') {
+        newRowSpan = Math.max(1, Math.min(startRowSpan + Math.round(dy / cellH), gridConfig.rows - Math.floor(cellIndex / gridConfig.cols)))
+      }
+
+      handleCellSpanChange(cellIndex, newRowSpan, newColSpan)
+    }
+
+    const handleUp = () => {
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('mouseup', handleUp)
+      setGridResize(null)
+    }
+
+    document.addEventListener('mousemove', handleMove)
+    document.addEventListener('mouseup', handleUp)
+  }, [gridConfig, handleCellSpanChange])
+
   const handleResizeStart = useCallback((e, index) => {
     e.preventDefault()
     setIsResizing(true)
@@ -548,30 +791,71 @@ export default function Globe() {
 
   return (
     <div className="globe-root">
-      <div className="globe-maps-container" ref={containerRef}>
-        {tabs.map((tab, index) => (
-          <Fragment key={tab.id}>
-            <div className="globe-map-pane" style={{ width: `${paneSizes[index]}%` }}>
-              <MapInstance
-                tab={tab}
-                layerById={layerById}
-                layerCatalog={layerCatalog}
-                wmtsBaseUrl={wmtsBaseUrl}
-                mapSettings={mapSettings}
-                onMapReady={(map) => { /* store map instance if needed */ }}
-                onMapPositionChange={handleMapPositionChange}
-              />
-            </div>
-            {index < tabs.length - 1 && (
-              <div 
-                className={`globe-pane-divider ${isResizing && resizeIndexRef.current === index ? 'resizing' : ''}`}
-                onMouseDown={(e) => handleResizeStart(e, index)}
-              />
-            )}
-          </Fragment>
-        ))}
-      </div>
-      <SideToolbar activeTool={activeTool} onToolClick={handleToolClick} />
+      {/* Main view — grid layout or single active tab */}
+      {!layoutMode && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
+        <div className="globe-grid-view">
+          <div className="globe-grid-container" style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
+            gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
+            gap: '3px',
+            width: gridConfig.width || '100%',
+            height: gridConfig.height || '100%',
+            maxWidth: '100%',
+            maxHeight: '100%',
+            overflow: 'hidden'
+          }}>
+            {Array.from({ length: gridConfig.rows * gridConfig.cols }).map((_, cellIndex) => {
+              const cellData = gridConfig.cells[cellIndex]
+              if (!cellData) return null
+              const tab = tabs.find(t => t.id === cellData.tabId)
+              const rowSpan = cellData.rowSpan || 1
+              const colSpan = cellData.colSpan || 1
+              return (
+                <div key={cellIndex} className="globe-grid-cell" style={{
+                  gridColumn: `span ${colSpan}`,
+                  gridRow: `span ${rowSpan}`,
+                }}>
+                  {tab ? (
+                    <MapInstance
+                      tab={tab}
+                      layerById={layerById}
+                      layerCatalog={layerCatalog}
+                      wmtsBaseUrl={wmtsBaseUrl}
+                      mapSettings={mapSettings}
+                      onMapReady={() => {}}
+                      onMapPositionChange={handleMapPositionChange}
+                    />
+                  ) : (
+                    <div className="globe-grid-empty">Empty</div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {!layoutMode && !gridViewActive && activeTab && (
+        <div className="globe-single-view">
+          <MapInstance
+            tab={activeTab}
+            layerById={layerById}
+            layerCatalog={layerCatalog}
+            wmtsBaseUrl={wmtsBaseUrl}
+            mapSettings={mapSettings}
+            onMapReady={(map) => { /* store map instance if needed */ }}
+            onMapPositionChange={handleMapPositionChange}
+          />
+        </div>
+      )}
+
+      <SideToolbar 
+        activeTool={activeTool} 
+        onToolClick={handleToolClick}
+        onLayoutModeToggle={() => setLayoutMode(!layoutMode)}
+        layoutModeActive={layoutMode}
+      />
       <TabbedSidebar
         sections={SECTION_ORDER.map(s => ({ key: s, title: SECTION_TITLES[s], ids: activeBySection[s] || [] }))}
         layerById={layerById}
@@ -594,6 +878,17 @@ export default function Globe() {
         onTabRemove={handleTabRemove}
         activeTabDate={activeTab.date}
         onTabDateChange={handleTabDateChange}
+        gridConfig={gridConfig}
+        selectedCell={selectedCell}
+        onCellSelect={setSelectedCell}
+        onPresetSelect={handleGridPresetApply}
+        onDimensionChange={handleGridDimensionChange}
+        onGridSizeChange={handleGridSizeChange}
+        onCellSpanChange={handleCellSpanChange}
+        onAssignView={handleAssignViewToCell}
+        onClearCell={handleClearCell}
+        gridViewActive={gridViewActive}
+        onGridViewToggle={() => setGridViewActive(!gridViewActive)}
       />
       <AddLayerModal
         catalog={layerCatalog}

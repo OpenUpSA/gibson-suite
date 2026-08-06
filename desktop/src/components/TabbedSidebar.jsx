@@ -7,6 +7,16 @@ import DatePicker from './DatePicker'
 
 const QUALITY_ORDER = ['low', 'medium', 'high']
 
+// Grid layout presets
+const GRID_PRESETS = {
+  '2x2': { rows: 2, cols: 2, name: '2×2 (4 views)' },
+  '1x2': { rows: 1, cols: 2, name: '1×2 (2 views)' },
+  '2x1': { rows: 2, cols: 1, name: '2×1 (2 views)' },
+  '2x3': { rows: 2, cols: 3, name: '2×3 (6 views)' },
+  '2x4': { rows: 2, cols: 4, name: '2×4 (8 views)' },
+  '3x3': { rows: 3, cols: 3, name: '3×3 (9 views)' }
+}
+
 const TabbedSidebar = ({
   sections,
   layerById,
@@ -29,7 +39,19 @@ const TabbedSidebar = ({
   onTabAdd,
   onTabRemove,
   activeTabDate,
-  onTabDateChange
+  onTabDateChange,
+  // Grid editor props
+  gridConfig,
+  selectedCell,
+  onCellSelect,
+  onPresetSelect,
+  onDimensionChange,
+  onGridSizeChange,
+  onCellSpanChange,
+  onAssignView,
+  onClearCell,
+  gridViewActive,
+  onGridViewToggle
 }) => {
   const [expandedId, setExpandedId] = useState(null)
   const [infoLayerId, setInfoLayerId] = useState(null)
@@ -209,6 +231,125 @@ const TabbedSidebar = ({
       </div>
 
       <div className="sidebar-content" ref={contentRef}>
+
+        {/* Grid Layout section */}
+        <div className="sidebar-grid-section">
+          <div className="sidebar-grid-header" onClick={onGridViewToggle}>
+            <Icon icon="fluent:grid-20-filled" width="14" height="14" />
+            <span>Grid Layout</span>
+            <div className={`sidebar-grid-toggle ${gridViewActive ? 'active' : ''}`}>
+              <div className="sidebar-grid-toggle-knob" />
+            </div>
+          </div>
+
+          {gridViewActive && (
+            <div className="sidebar-grid-editor">
+              {/* Grid Preview */}
+              <div className="sidebar-grid-preview" style={{
+                gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
+                gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
+              }}>
+                {Array.from({ length: gridConfig.rows * gridConfig.cols }).map((_, cellIndex) => {
+                  const cellData = gridConfig.cells[cellIndex]
+                  const tab = cellData ? tabs.find(t => t.id === cellData.tabId) : null
+                  const isSelected = selectedCell === cellIndex
+                  const rowSpan = cellData?.rowSpan || 1
+                  const colSpan = cellData?.colSpan || 1
+                  return (
+                    <div
+                      key={cellIndex}
+                      className={`sidebar-grid-cell ${isSelected ? 'selected' : ''} ${tab ? 'has-view' : ''}`}
+                      style={{
+                        gridColumn: tab ? `span ${colSpan}` : undefined,
+                        gridRow: tab ? `span ${rowSpan}` : undefined,
+                      }}
+                      onClick={() => onCellSelect(isSelected ? null : cellIndex)}
+                    >
+                      {tab ? (
+                        <span className="sidebar-grid-cell-label">{tab.label}</span>
+                      ) : (
+                        <Icon icon="fluent:add-16-regular" width="10" height="10" />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Controls */}
+              <div className="sidebar-grid-controls">
+                <div className="sidebar-grid-row">
+                  <label>Rows</label>
+                  <input type="range" min="1" max="5" value={gridConfig.rows}
+                    onChange={e => onDimensionChange(parseInt(e.target.value), gridConfig.cols)} />
+                  <span>{gridConfig.rows}</span>
+                </div>
+                <div className="sidebar-grid-row">
+                  <label>Cols</label>
+                  <input type="range" min="1" max="5" value={gridConfig.cols}
+                    onChange={e => onDimensionChange(gridConfig.rows, parseInt(e.target.value))} />
+                  <span>{gridConfig.cols}</span>
+                </div>
+                <div className="sidebar-grid-row">
+                  <label>Preset</label>
+                  <select className="sidebar-grid-select" value=""
+                    onChange={e => { if (e.target.value) { onPresetSelect(e.target.value); e.target.value = '' } }}>
+                    <option value="" disabled>Choose…</option>
+                    {Object.entries(GRID_PRESETS).map(([key, preset]) => (
+                      <option key={key} value={key}>{preset.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Span controls for selected cell */}
+              {selectedCell !== null && gridConfig.cells[selectedCell] && (
+                <div className="sidebar-grid-span-controls">
+                  <div className="sidebar-grid-row">
+                    <label>Row span</label>
+                    <input type="range" min="1" max="5" value={gridConfig.cells[selectedCell]?.rowSpan || 1}
+                      onChange={e => onCellSpanChange(selectedCell, parseInt(e.target.value), gridConfig.cells[selectedCell]?.colSpan || 1)} />
+                    <span>{gridConfig.cells[selectedCell]?.rowSpan || 1}</span>
+                  </div>
+                  <div className="sidebar-grid-row">
+                    <label>Col span</label>
+                    <input type="range" min="1" max="5" value={gridConfig.cells[selectedCell]?.colSpan || 1}
+                      onChange={e => onCellSpanChange(selectedCell, gridConfig.cells[selectedCell]?.rowSpan || 1, parseInt(e.target.value))} />
+                    <span>{gridConfig.cells[selectedCell]?.colSpan || 1}</span>
+                  </div>
+                  <button className="sidebar-grid-clear-btn" onClick={() => onClearCell(selectedCell)}>
+                    <Icon icon="fluent:delete-16-regular" width="12" height="12" />
+                    Remove from cell
+                  </button>
+                </div>
+              )}
+
+              {/* View assignment */}
+              {selectedCell !== null && (
+                <div className="sidebar-grid-assign">
+                  <div className="sidebar-grid-assign-title">
+                    Assign to Cell {selectedCell}
+                  </div>
+                  <div className="sidebar-grid-views">
+                    {tabs.map(tab => {
+                      const isAssigned = Object.values(gridConfig.cells).some(c => c.tabId === tab.id)
+                      return (
+                        <button
+                          key={tab.id}
+                          className={`sidebar-grid-view-btn ${isAssigned ? 'is-assigned' : ''}`}
+                          onClick={() => { onAssignView(selectedCell, tab.id); onCellSelect(null) }}
+                        >
+                          <span>{tab.label}</span>
+                          {isAssigned && <Icon icon="fluent:checkmark-12-filled" width="10" height="10" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {totalActive === 0 && (
           <div className="sidebar-empty">No layers on the map yet.</div>
         )}
