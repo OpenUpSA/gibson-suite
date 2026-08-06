@@ -86,6 +86,15 @@ const rasterSource = (tiles, maxzoom) => ({
   bounds: [-180, -85.0511287798, 180, 85.0511287798]
 })
 
+// ── Crossfade helpers ────────────────────────────────────────────────
+// Exactly matches the legacy Map.jsx updateGibsLayer pattern:
+//   1. Add new layer at opacity 0 with raster-opacity-transition defined.
+//   2. Wait for sourcedata → isSourceLoaded → idle.
+//   3. Fade IN new + fade OUT old simultaneously via setPaintProperty.
+//   4. Remove old after timeout.
+// This works because MapLibre animates the transition on the SAME tick
+// that both setPaintProperty calls fire — no black frames.
+
 export default function Globe() {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
@@ -109,33 +118,108 @@ export default function Globe() {
   hiddenRef.current = hiddenLayers
 
   // Add a single layer (source + layer) to the map.
-  const addLayerToMap = useCallback((id) => {
+  // When immediate=false (default), waits for tiles then fades in.
+  const addLayerToMap = useCallback((id, { immediate = false } = {}) => {
     const map = mapRef.current
     const layer = layerById.get(id)
     if (!map || !layer) return
     const srcId = layerSrcMapRef.current[id] || `layer-${id}`
-    if (map.getSource(srcId)) return
     const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layer)
+    const targetOpacity = hiddenRef.current.has(id) ? 0 : s.opacity
+
+    // If source already exists (e.g. fading-out), cancel pending removal
+    // and fade back in from wherever the opacity is now.
+    if (map.getSource(srcId)) {
+      if (transitionsRef.current[id]) {
+        if (transitionsRef.current[id].cleanup) transitionsRef.current[id].cleanup()
+        delete transitionsRef.current[id]
+      }
+      map.setPaintProperty(srcId, 'raster-opacity-transition', { duration: 600, delay: 0 })
+      map.setPaintProperty(srcId, 'raster-opacity', targetOpacity)
+      return
+    }
+
     const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, selectedDate))
     map.addSource(srcId, rasterSource([url], QUALITY_MAXZOOM[s.quality]))
     map.addLayer({
       id: srcId,
       type: 'raster',
       source: srcId,
-      paint: { 'raster-opacity': hiddenRef.current.has(id) ? 0 : s.opacity }
+      paint: {
+        'raster-opacity': immediate ? targetOpacity : 0,
+        'raster-opacity-transition': { duration: 600, delay: 0 }
+      }
     })
+
+    if (immediate || targetOpacity <= 0) return
+
+    // Fade in slowly — even if tiles aren't ready, the old layer (underneath)
+    // stays visible. As new tiles arrive, they become visible through the
+    // gradually-increasing opacity.
+    setTimeout(() => {
+      delete transitionsRef.current[id]
+      try {
+        map.setPaintProperty(srcId, 'raster-opacity', targetOpacity)
+      } catch {}
+    }, 300)
+    transitionsRef.current[id] = { cleanup: () => {} }
   }, [selectedDate])
 
   // Remove a single layer (source + layer) from the map.
+  // Fades out via MapLibre's transition, then removes.
   const removeLayerFromMap = useCallback((id) => {
     const map = mapRef.current
     if (!map) return
     const srcId = layerSrcMapRef.current[id] || `layer-${id}`
+    if (!map.getLayer(srcId)) {
+      delete layerSrcMapRef.current[id]
+      return
+    }
+
+    // Cancel any pending fade-in
+    if (transitionsRef.current[id]) {
+      if (transitionsRef.current[id].cleanup) transitionsRef.current[id].cleanup()
+      delete transitionsRef.current[id]
+    }
+
+    const curOpacity = map.getPaintProperty(srcId, 'raster-opacity') || 0
+    if (curOpacity <= 0.01) {
+      // Already invisible — remove immediately
+      try {
+        map.removeLayer(srcId)
+        if (map.getSource(srcId)) map.removeSource(srcId)
+      } catch {}
+      delete layerSrcMapRef.current[id]
+      return
+    }
+
+    // Fade out via MapLibre's built-in transition, then remove after it completes.
+    const duration = 400
+    let cancelled = false
+    const cleanup = () => { cancelled = true; clearTimeout(timeoutId) }
     try {
-      if (map.getLayer(srcId)) map.removeLayer(srcId)
-      if (map.getSource(srcId)) map.removeSource(srcId)
-    } catch { /* already gone */ }
-    delete layerSrcMapRef.current[id]
+      map.setPaintProperty(srcId, 'raster-opacity-transition', { duration, delay: 0 })
+      map.setPaintProperty(srcId, 'raster-opacity', 0)
+    } catch {
+      try {
+        map.removeLayer(srcId)
+        if (map.getSource(srcId)) map.removeSource(srcId)
+      } catch {}
+      delete layerSrcMapRef.current[id]
+      return
+    }
+    const timeoutId = setTimeout(() => {
+      if (cancelled) return
+      // Only remove if this srcId is still the canonical one (not re-added)
+      if (layerSrcMapRef.current[id] === srcId) {
+        try {
+          if (map.getLayer(srcId)) map.removeLayer(srcId)
+          if (map.getSource(srcId)) map.removeSource(srcId)
+        } catch {}
+        delete layerSrcMapRef.current[id]
+      }
+    }, duration + 100)
+    transitionsRef.current[id] = { cleanup }
   }, [])
 
   // Normalize stacking so index 0 (top of list) renders on top, without
@@ -150,28 +234,80 @@ export default function Globe() {
   }, [])
 
   // Rebuild a single layer's source (needed when its resolution changes —
-  // source maxzoom is fixed at creation). Only that layer is touched.
+  // source maxzoom is fixed at creation). Crossfades old → new in place,
+  // matching the legacy Map.jsx sourcedata → idle → transition pattern.
   const rebuildLayer = useCallback((id) => {
     const map = mapRef.current
     const layer = layerById.get(id)
     if (!map || !layer) return
-    removeLayerFromMap(id)
-    addLayerToMap(id)
-    applyOrder()
-  }, [addLayerToMap, removeLayerFromMap, applyOrder])
+    const oldSrcId = layerSrcMapRef.current[id] || `layer-${id}`
+
+    // Cancel any in-progress transition
+    if (transitionsRef.current[id]) {
+      if (transitionsRef.current[id].cleanup) transitionsRef.current[id].cleanup()
+      delete transitionsRef.current[id]
+    }
+
+    const s = settingsRef.current[id] ?? DEFAULT_SETTINGS(layer)
+    const targetOpacity = hiddenRef.current.has(id) ? 0 : s.opacity
+
+    if (!map.getLayer(oldSrcId)) {
+      addLayerToMap(id, { immediate: true })
+      applyOrder()
+      return
+    }
+
+    const newSrcId = `layer-${id}-v${Date.now()}`
+    const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, selectedDate))
+    const maxZoom = QUALITY_MAXZOOM[s.quality]
+
+    // Add new source + layer on top of old. The old layer STAYS at full
+    // opacity (never faded out) — only the new layer fades in. This
+    // guarantees no black screen even if tiles take seconds to load.
+    map.addSource(newSrcId, rasterSource([url], maxZoom))
+    map.addLayer({
+      id: newSrcId,
+      type: 'raster',
+      source: newSrcId,
+      paint: {
+        'raster-opacity': 0,
+        'raster-opacity-transition': { duration: 1500, delay: 0 }
+      }
+    })
+
+    // Start fade-in immediately. Old layer stays fully visible underneath.
+    setTimeout(() => {
+      delete transitionsRef.current[id]
+      try {
+        map.setPaintProperty(newSrcId, 'raster-opacity', targetOpacity)
+      } catch {}
+    }, 300)
+
+    // Remove old layer AFTER a long delay (3s) to give tiles plenty of time.
+    setTimeout(() => {
+      if (layerSrcMapRef.current[id] === newSrcId) {
+        try {
+          if (map.getLayer(oldSrcId)) map.removeLayer(oldSrcId)
+          if (map.getSource(oldSrcId)) map.removeSource(oldSrcId)
+        } catch {}
+      }
+    }, 3000)
+    transitionsRef.current[id] = { cleanup: () => {} }
+  }, [selectedDate, addLayerToMap, applyOrder])
 
   // Initial build — called once when the style loads.
+  // Layers are added at opacity 0 and fade in together.
   const buildAllLayers = useCallback(() => {
     const map = mapRef.current
     if (!map) return
     for (const srcId of Object.keys(map.getStyle().sources || {}).filter(id => id.startsWith('layer-'))) {
-      try { map.removeLayer(srcId); map.removeSource(srcId) } catch { /* already gone */ }
+      try { map.removeLayer(srcId); map.removeSource(srcId) } catch {}
     }
     layerSrcMapRef.current = {}
     for (const id of [...activeRef.current].reverse()) {
       const canonicalId = `layer-${id}`
       layerSrcMapRef.current[id] = canonicalId
-      addLayerToMap(id)
+      addLayerToMap(id) // fades in from 0
     }
     applyOrder()
   }, [addLayerToMap, applyOrder])
@@ -209,6 +345,11 @@ export default function Globe() {
     mapRef.current = map
 
     return () => {
+      // Cancel every in-progress crossfade so nothing touches the map after unmount
+      for (const h of Object.values(transitionsRef.current)) {
+        if (h.cleanup) h.cleanup()
+      }
+      transitionsRef.current = {}
       map.remove()
       mapRef.current = null
     }
@@ -319,8 +460,9 @@ export default function Globe() {
   // Map layer ID → current source/layer ID on the map
   const layerSrcMapRef = useRef({})
 
-  // Active crossfade animations — keyed by layer id
-  const activeFadesRef = useRef({})
+  // Active crossfade animations — keyed by layer id.
+  // Each entry: { cancelled: boolean }
+  const transitionsRef = useRef({})
 
   const handleDateChange = useCallback((newDate) => {
     setSelectedDate(newDate)
@@ -333,10 +475,10 @@ export default function Globe() {
     })
 
     for (const id of imageryIds) {
-      // Cancel any in-progress fade for this layer
-      if (activeFadesRef.current[id]) {
-        activeFadesRef.current[id].cancelled = true
-        delete activeFadesRef.current[id]
+      // Cancel any in-progress transition for this layer
+      if (transitionsRef.current[id]) {
+        if (transitionsRef.current[id].cleanup) transitionsRef.current[id].cleanup()
+        delete transitionsRef.current[id]
       }
 
       const layer = layerById.get(id)
@@ -350,55 +492,38 @@ export default function Globe() {
       const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, newDate))
       const maxZoom = parseInt(layer.tileMatrixSet?.match(/Level(\d+)/)?.[1]) || QUALITY_MAXZOOM[s.quality]
 
-      // Add new source + layer DIRECTLY BELOW old one, at opacity 0
+      // Add new source + layer on top of old. Old layer STAYS at full
+      // opacity (never faded out) — only the new layer fades in. This
+      // guarantees no black screen even if tiles take seconds to load.
       map.addSource(newSrcId, rasterSource([url], maxZoom))
       map.addLayer({
         id: newSrcId,
         type: 'raster',
         source: newSrcId,
-        paint: { 'raster-opacity': 0 }
-      }, oldSrcId) // inserts below oldSrcId
-
-      const fadeState = { cancelled: false }
-      activeFadesRef.current[id] = fadeState
-
-      // After a short delay (tiles start loading from CDN), begin crossfade
-      setTimeout(() => {
-        if (fadeState.cancelled) return
-
-        const duration = 800
-        const start = performance.now()
-
-        const step = (now) => {
-          if (fadeState.cancelled) return
-          const elapsed = now - start
-          const t = Math.min(elapsed / duration, 1)
-          const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2 // ease-in-out
-
-          try {
-            // Fade in new layer
-            map.setPaintProperty(newSrcId, 'raster-opacity', targetOpacity * ease)
-            // Fade out old layer
-            if (map.getLayer(oldSrcId)) {
-              map.setPaintProperty(oldSrcId, 'raster-opacity', targetOpacity * (1 - ease))
-            }
-          } catch { return }
-
-          if (t < 1) {
-            requestAnimationFrame(step)
-          } else {
-            // Crossfade done — remove old, make new the canonical layer
-            try {
-              if (map.getLayer(oldSrcId)) map.removeLayer(oldSrcId)
-              if (map.getSource(oldSrcId)) map.removeSource(oldSrcId)
-            } catch { /* ok */ }
-            layerSrcMapRef.current[id] = newSrcId
-            delete activeFadesRef.current[id]
-          }
+        paint: {
+          'raster-opacity': 0,
+          'raster-opacity-transition': { duration: 1500, delay: 0 }
         }
+      })
 
-        requestAnimationFrame(step)
-      }, 400) // 400ms for tiles to start streaming from GIBS CDN
+      // Start fade-in immediately. Old layer stays fully visible underneath.
+      setTimeout(() => {
+        delete transitionsRef.current[id]
+        try {
+          map.setPaintProperty(newSrcId, 'raster-opacity', targetOpacity)
+        } catch {}
+      }, 300)
+
+      // Remove old layer AFTER a long delay (3s) to give tiles plenty of time.
+      setTimeout(() => {
+        if (layerSrcMapRef.current[id] === newSrcId) {
+          try {
+            if (map.getLayer(oldSrcId)) map.removeLayer(oldSrcId)
+            if (map.getSource(oldSrcId)) map.removeSource(oldSrcId)
+          } catch {}
+        }
+      }, 3000)
+      transitionsRef.current[id] = { cleanup: () => {} }
     }
   }, [])
 

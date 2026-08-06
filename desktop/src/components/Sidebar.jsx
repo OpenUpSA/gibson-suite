@@ -224,6 +224,14 @@ const Sidebar = ({
                   </div>
                 )}
               </div>
+              {section.key === 'imagery' && (
+                <div className="sidebar-add-layer-row">
+                  <button type="button" className="add-layer-btn" onClick={onAddClick}>
+                    <Icon icon="fluent:add-20-filled" width="16" height="16" />
+                    Add Layer
+                  </button>
+                </div>
+              )}
               {section.ids.map((id, index) => {
                 const layer = layerById.get(id)
                 if (!layer) return null
@@ -329,14 +337,6 @@ const Sidebar = ({
                 )
               })}
             </div>
-            {section.key === 'imagery' && (
-              <div className="sidebar-add-layer-row">
-                <button type="button" className="add-layer-btn" onClick={onAddClick}>
-                  <Icon icon="fluent:add-20-filled" width="16" height="16" />
-                  Add Layer
-                </button>
-              </div>
-            )}
             </>
           )
         })}
