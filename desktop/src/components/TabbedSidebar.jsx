@@ -51,8 +51,12 @@ const TabbedSidebar = ({
   onAssignView,
   onClearCell,
   gridViewActive,
-  onGridViewToggle
-}) => {
+  onGridViewToggle,
+  // Caption props
+  onCaptionChange,
+  onCaptionToggleVisible,
+  defaultCaption,
+  captionPositions,}) => {
   const [expandedId, setExpandedId] = useState(null)
   const [infoLayerId, setInfoLayerId] = useState(null)
   const [flyoutSection, setFlyoutSection] = useState(null)
@@ -320,6 +324,92 @@ const TabbedSidebar = ({
                     <Icon icon="fluent:delete-16-regular" width="12" height="12" />
                     Remove from cell
                   </button>
+                </div>
+              )}
+
+              {/* Caption controls for selected cell */}
+              {selectedCell !== null && gridConfig.cells[selectedCell] && (
+                <div className="sidebar-grid-caption-controls">
+                  <div className="sidebar-grid-caption-header">
+                    <Icon icon="fluent:text-caption-20-filled" width="14" height="14" />
+                    <span>Caption</span>
+                    <div
+                      className={`sidebar-grid-caption-toggle ${gridConfig.captions?.[selectedCell]?.visible ? 'active' : ''}`}
+                      onClick={() => onCaptionToggleVisible(selectedCell)}
+                    >
+                      <div className="sidebar-grid-caption-toggle-knob" />
+                    </div>
+                  </div>
+                  {gridConfig.captions?.[selectedCell]?.visible && (
+                    <div className="sidebar-grid-caption-fields">
+                      <div className="sidebar-grid-caption-textarea-wrap">
+                        <textarea
+                          className="sidebar-grid-caption-textarea"
+                          value={gridConfig.captions?.[selectedCell]?.text || defaultCaption?.text || ''}
+                          onChange={e => onCaptionChange(selectedCell, 'text', e.target.value)}
+                          rows={3}
+                          placeholder="%date%  %layer%"
+                        />
+                        <div className="sidebar-grid-caption-hint">
+                          Use <code>%date%</code> and <code>%layer%</code> as placeholders
+                        </div>
+                      </div>
+
+                      <div className="sidebar-grid-caption-field">
+                        <label>Position</label>
+                        <select
+                          className="sidebar-grid-select"
+                          value={gridConfig.captions?.[selectedCell]?.position || defaultCaption?.position || 'bottom-left'}
+                          onChange={e => onCaptionChange(selectedCell, 'position', e.target.value)}
+                        >
+                          {(captionPositions || []).map(pos => (
+                            <option key={pos.value} value={pos.value}>{pos.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="sidebar-grid-caption-field">
+                        <label>Colors</label>
+                        <div className="sidebar-grid-caption-color-row">
+                          <div className="sidebar-grid-caption-color-item">
+                            <span>Overlay</span>
+                            <input
+                              type="color"
+                              className="sidebar-grid-caption-color"
+                              value={gridConfig.captions?.[selectedCell]?.overlayColor || defaultCaption?.overlayColor || '#000000'}
+                              onChange={e => onCaptionChange(selectedCell, 'overlayColor', e.target.value)}
+                            />
+                          </div>
+                          <div className="sidebar-grid-caption-color-item">
+                            <span>Text</span>
+                            <input
+                              type="color"
+                              className="sidebar-grid-caption-color"
+                              value={gridConfig.captions?.[selectedCell]?.textColor || defaultCaption?.textColor || '#ffffff'}
+                              onChange={e => onCaptionChange(selectedCell, 'textColor', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="sidebar-grid-caption-field">
+                        <label>Opacity</label>
+                        <div className="sidebar-grid-caption-opacity-row">
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={gridConfig.captions?.[selectedCell]?.overlayOpacity ?? defaultCaption?.overlayOpacity ?? 0.55}
+                            onChange={e => onCaptionChange(selectedCell, 'overlayOpacity', parseFloat(e.target.value))}
+                          />
+                          <span className="sidebar-grid-caption-opacity-val">
+                            {Math.round((gridConfig.captions?.[selectedCell]?.overlayOpacity ?? defaultCaption?.overlayOpacity ?? 0.55) * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

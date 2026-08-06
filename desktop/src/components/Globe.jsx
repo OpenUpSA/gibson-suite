@@ -24,8 +24,25 @@ const DEFAULT_GRID_CONFIG = {
   cols: 1, 
   width: '100%',
   height: '100%',
-  cells: {} // cells: { cellIndex: { tabId, rowSpan: 1, colSpan: 1 } }
+  cells: {}, // cells: { cellIndex: { tabId, rowSpan: 1, colSpan: 1 } }
+  captions: {} // captions: { cellIndex: { text, position, overlayColor, overlayOpacity, textColor, visible } }
 }
+
+const DEFAULT_CAPTION = {
+  text: '%date%\n%layer%',
+  position: 'bottom-left',
+  overlayColor: '#000000',
+  overlayOpacity: 0.55,
+  textColor: '#ffffff',
+  visible: false
+}
+
+const CAPTION_POSITIONS = [
+  { value: 'bottom-left', label: 'Bottom Left' },
+  { value: 'bottom-right', label: 'Bottom Right' },
+  { value: 'top-left', label: 'Top Left' },
+  { value: 'top-right', label: 'Top Right' }
+]
 
 const saveGridConfig = (config) => {
   try {
@@ -48,7 +65,8 @@ const loadGridConfig = () => {
         }
         delete config.viewAssignments
       }
-      return config
+      // Ensure captions exists
+      if (!config.captions) config.captions = {}
       // Ensure width/height are set
       if (!config.width) config.width = '100%'
       if (!config.height) config.height = '100%'
@@ -685,6 +703,20 @@ export default function Globe() {
     setSelectedCell(null)
   }, [gridConfig])
 
+  // ── Caption handlers ──────────────────────────────────────────────────
+  const handleCaptionChange = useCallback((cellIndex, field, value) => {
+    const newCaptions = { ...gridConfig.captions }
+    newCaptions[cellIndex] = { ...(newCaptions[cellIndex] || DEFAULT_CAPTION), [field]: value }
+    const newConfig = { ...gridConfig, captions: newCaptions }
+    setGridConfig(newConfig)
+    saveGridConfig(newConfig)
+  }, [gridConfig])
+
+  const handleCaptionToggleVisible = useCallback((cellIndex) => {
+    const current = gridConfig.captions[cellIndex] || DEFAULT_CAPTION
+    handleCaptionChange(cellIndex, 'visible', !current.visible)
+  }, [gridConfig.captions, handleCaptionChange])
+
   // ── Interactive grid drag/resize ────────────────────────────────────
   const handleGridDragStart = useCallback((e, cellIndex) => {
     e.preventDefault()
@@ -811,6 +843,14 @@ export default function Globe() {
               const tab = tabs.find(t => t.id === cellData.tabId)
               const rowSpan = cellData.rowSpan || 1
               const colSpan = cellData.colSpan || 1
+              const caption = gridConfig.captions[cellIndex]
+              const resolvedText = caption?.visible && caption?.text
+                ? caption.text
+                    .replace(/%date%/g, tab?.date || '')
+                    .replace(/%layer%/g, tab?.layer?.name || tab?.label || '')
+                : null
+              const captionLines = resolvedText ? resolvedText.split('\n') : []
+              const posClass = caption?.position || 'bottom-left'
               return (
                 <div key={cellIndex} className="globe-grid-cell" style={{
                   gridColumn: `span ${colSpan}`,
@@ -828,6 +868,22 @@ export default function Globe() {
                     />
                   ) : (
                     <div className="globe-grid-empty">Empty</div>
+                  )}
+                  {caption?.visible && captionLines.length > 0 && (
+                    <div className={`globe-grid-caption globe-grid-caption--${posClass}`}>
+                      <div
+                        className="globe-grid-caption-bg"
+                        style={{
+                          backgroundColor: caption.overlayColor || '#000',
+                          opacity: caption.overlayOpacity ?? 0.55,
+                        }}
+                      />
+                      <div className="globe-grid-caption-text" style={{ color: caption.textColor || '#fff' }}>
+                        {captionLines.map((line, li) => (
+                          <div key={li}>{line}</div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               )
@@ -889,6 +945,10 @@ export default function Globe() {
         onClearCell={handleClearCell}
         gridViewActive={gridViewActive}
         onGridViewToggle={() => setGridViewActive(!gridViewActive)}
+        onCaptionChange={handleCaptionChange}
+        onCaptionToggleVisible={handleCaptionToggleVisible}
+        defaultCaption={DEFAULT_CAPTION}
+        captionPositions={CAPTION_POSITIONS}
       />
       <AddLayerModal
         catalog={layerCatalog}
