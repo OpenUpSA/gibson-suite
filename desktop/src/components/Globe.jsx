@@ -181,6 +181,7 @@ const loadAppState = () => {
 }
 import SideToolbar from './SideToolbar'
 import TabbedSidebar from './TabbedSidebar'
+import LayoutSidebar from './LayoutSidebar'
 import AddLayerModal from './AddLayerModal'
 import DatePicker from './DatePicker'
 import TimelapsePanel from './TimelapsePanel'
@@ -501,7 +502,6 @@ export default function Globe() {
   const containerRef = useRef(null)
 
   // ── Grid layout state ──────────────────────────────────────────────
-  const [layoutMode, setLayoutMode] = useState(false) // Toggle grid editor in sidebar
   const [gridViewActive, setGridViewActive] = useState(false) // Toggle grid view vs single view
   const [gridConfig, setGridConfig] = useState(() => loadGridConfig())
   const [draggedTabId, setDraggedTabId] = useState(null) // For drag-drop in layout mode
@@ -675,6 +675,11 @@ export default function Globe() {
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit3') {
         e.preventDefault()
         setActiveTool(prev => (prev === 'compare' ? null : 'compare'))
+      }
+      // Ctrl+Shift+4 — toggle layout tool
+      if (e.ctrlKey && e.shiftKey && e.code === 'Digit4') {
+        e.preventDefault()
+        setActiveTool(prev => (prev === 'layout' ? null : 'layout'))
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -1373,7 +1378,7 @@ export default function Globe() {
   return (
     <div className="globe-root">
       {/* Timelapse workbench — crop box on the map + image browser */}
-      {!layoutMode && activeTool === 'timelapse' && activeTab && (
+      {activeTool === 'timelapse' && activeTab && (
         <div className="timelapse-layout">
           <TimelapsePanel
             layerName={tlLayer?.name || ''}
@@ -1444,7 +1449,7 @@ export default function Globe() {
       )}
 
       {/* Compare workbench — two views overlaid with a draggable slider */}
-      {!layoutMode && activeTool === 'compare' && compareTabA && compareTabB && (
+      {activeTool === 'compare' && compareTabA && compareTabB && (
         <div className="compare-layout">
           <ComparePanel
             tabs={tabs}
@@ -1478,7 +1483,7 @@ export default function Globe() {
       )}
 
       {/* Main view — grid layout or single active tab */}
-      {!layoutMode && activeTool !== 'timelapse' && activeTool !== 'compare' && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
+      {activeTool !== 'timelapse' && activeTool !== 'compare' && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
         <div className="globe-grid-view">
           <div className="globe-grid-container" style={{
             display: 'grid',
@@ -1560,7 +1565,7 @@ export default function Globe() {
       )}
 
       {/* Single view */}
-      {!layoutMode && activeTool !== 'timelapse' && activeTool !== 'compare' && !gridViewActive && activeTab && (
+      {activeTool !== 'timelapse' && activeTool !== 'compare' && !gridViewActive && activeTab && (
         <div className="globe-single-view">
           <MapInstance
             tab={activeTab}
@@ -1574,13 +1579,11 @@ export default function Globe() {
         </div>
       )}
 
-      <SideToolbar 
-        activeTool={activeTool} 
+      <SideToolbar
+        activeTool={activeTool}
         onToolClick={handleToolClick}
-        onLayoutModeToggle={() => setLayoutMode(!layoutMode)}
-        layoutModeActive={layoutMode}
       />
-      {activeTool !== 'timelapse' && activeTool !== 'compare' && (
+      {activeTool !== 'timelapse' && activeTool !== 'compare' && activeTool !== 'layout' && (
       <TabbedSidebar
         sections={SECTION_ORDER.map(s => ({ key: s, title: SECTION_TITLES[s], ids: activeBySection[s] || [] }))}
         layerById={layerById}
@@ -1603,6 +1606,17 @@ export default function Globe() {
         onTabRemove={handleTabRemove}
         activeTabDate={activeTab.date}
         onTabDateChange={handleTabDateChange}
+      />
+      )}
+      {activeTool === 'layout' && (
+      <LayoutSidebar
+        open
+        onClose={() => setActiveTool(null)}
+        tabs={tabs}
+        activeTabId={activeTabId}
+        onTabChange={handleTabChange}
+        onTabAdd={handleTabAdd}
+        onTabRemove={handleTabRemove}
         gridConfig={gridConfig}
         selectedCell={selectedCell}
         onCellSelect={setSelectedCell}
@@ -1619,7 +1633,6 @@ export default function Globe() {
         onCaptionToggleVisible={handleCaptionToggleVisible}
         defaultCaption={DEFAULT_CAPTION}
         captionPositions={CAPTION_POSITIONS}
-        onExportTab={handleExportTab}
         onExportGrid={handleExportGrid}
       />
       )}

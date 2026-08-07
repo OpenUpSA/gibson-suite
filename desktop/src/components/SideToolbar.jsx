@@ -3,11 +3,12 @@ import './SideToolbar.css'
 
 const TOOLS = [
   { id: 'layers', icon: 'fluent:layer-20-filled', title: 'Layers' },
+  { id: 'layout', icon: 'fluent:grid-20-filled', title: 'Grid layout' },
   { id: 'compare', icon: 'fluent:split-hint-20-filled', title: 'Compare views' },
   { id: 'timelapse', icon: 'fluent:filmstrip-20-filled', title: 'Timelapse GIF' }
 ]
 
-const SideToolbar = ({ activeTool, onToolClick, onLayoutModeToggle, layoutModeActive }) => (
+const SideToolbar = ({ activeTool, onToolClick }) => (
   <div className="side-toolbar">
     <img src="/gibson-icon.png" alt="Gibson" className="side-toolbar-logo" />
     {TOOLS.map(tool => (
