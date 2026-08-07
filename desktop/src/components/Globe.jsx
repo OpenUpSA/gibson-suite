@@ -186,6 +186,8 @@ import DatePicker from './DatePicker'
 import TimelapsePanel from './TimelapsePanel'
 import TimelapseBrowser, { PREVIEW_PAGE } from './TimelapseBrowser'
 import TimelapseOverlay from './TimelapseOverlay'
+import ComparePanel from './ComparePanel'
+import CompareOverlay from './CompareOverlay'
 
 import layersConfig from '../config/layers.json'
 import { buildTileUrlTemplate } from '../config/tileUrl'
@@ -286,7 +288,7 @@ const rasterSource = (tiles, maxzoom) => ({
 // that both setPaintProperty calls fire — no black frames.
 
 // MapInstance component - renders a single map pane for a tab
-function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, selectionMode, selectionRect, onSelectionChange }) {
+export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, selectionMode, selectionRect, onSelectionChange }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerSrcMapRef = useRef({})
@@ -443,6 +445,12 @@ export default function Globe() {
   const [activeTool, setActiveTool] = useState('layers')
   const [addLayerOpen, setAddLayerOpen] = useState(false)
 
+  // ── Compare tool state ──────────────────────────────────────────────
+  // Selected views (tab ids) to overlay. Null until the user picks one —
+  // the effective values below fall back to the first two tabs.
+  const [compareAId, setCompareAId] = useState(null)
+  const [compareBId, setCompareBId] = useState(null)
+
   // ── Timelapse tool state ────────────────────────────────────────────
   const [tlRect, setTlRect] = useState(null)              // [[swLng,swLat],[neLng,neLat]]
   const [tlAspect, setTlAspect] = useState(16 / 9)        // null = freeform, else ratio
@@ -523,6 +531,49 @@ export default function Globe() {
   const activeBySection = activeTab.activeBySection
   const layerSettings = activeTab.layerSettings
   const hiddenLayers = activeTab.hiddenLayers
+
+  // Effective compare views — fall back to the first two tabs.
+  const compareTabA = tabs.find(t => t.id === compareAId) || tabs[0]
+  const compareTabB = tabs.find(t => t.id === compareBId) || tabs[1] || tabs[0]
+
+  // In compare mode each map writes its camera back to its own tab.
+  const handleCompareMapPositionChange = useCallback((index) => (pos) => {
+    const id = index === 0 ? compareTabA?.id : compareTabB?.id
+    if (!id) return
+    setTabs(prev => prev.map(t => (t.id === id ? { ...t, mapPosition: pos } : t)))
+  }, [compareTabA?.id, compareTabB?.id])
+
+  // ── Compare captions (per side, same editor as grid/GIF views) ──────
+  const [compareCaptions, setCompareCaptions] = useState({
+    before: { ...DEFAULT_CAPTION },
+    after: { ...DEFAULT_CAPTION }
+  })
+
+  const handleCompareCaptionChange = useCallback((side, field, value) => {
+    setCompareCaptions(prev => ({
+      ...prev,
+      [side]: { ...(prev[side] || DEFAULT_CAPTION), [field]: value }
+    }))
+  }, [])
+
+  const handleCompareCaptionToggleVisible = useCallback((side) => {
+    setCompareCaptions(prev => {
+      const current = prev[side] || DEFAULT_CAPTION
+      if (current.visible) {
+        return { ...prev, [side]: { ...current, visible: false } }
+      }
+      // Pre-fill with the side's actual date + layer names so the user can
+      // edit directly (same behaviour as the grid captions).
+      const tab = side === 'before' ? compareTabA : compareTabB
+      const date = tab?.date || ''
+      const layerNames = (tab?.activeBySection?.imagery || [])
+        .map(id => layerById.get(id)?.name)
+        .filter(Boolean)
+        .join(', ')
+      const text = `${date}\n${layerNames || tab?.label || ''}`
+      return { ...prev, [side]: { ...current, text, visible: true } }
+    })
+  }, [compareTabA, compareTabB, layerById])
 
   // The timelapse tool exports the active tab's top imagery layer.
   const tlLayerId = useMemo(() => {
@@ -619,6 +670,11 @@ export default function Globe() {
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit2') {
         e.preventDefault()
         setActiveTool(prev => (prev === 'timelapse' ? null : 'timelapse'))
+      }
+      // Ctrl+Shift+3 — toggle compare tool
+      if (e.ctrlKey && e.shiftKey && e.code === 'Digit3') {
+        e.preventDefault()
+        setActiveTool(prev => (prev === 'compare' ? null : 'compare'))
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -1387,8 +1443,42 @@ export default function Globe() {
         </div>
       )}
 
+      {/* Compare workbench — two views overlaid with a draggable slider */}
+      {!layoutMode && activeTool === 'compare' && compareTabA && compareTabB && (
+        <div className="compare-layout">
+          <ComparePanel
+            tabs={tabs}
+            compareAId={compareTabA.id}
+            compareBId={compareTabB.id}
+            onCompareAChange={setCompareAId}
+            onCompareBChange={setCompareBId}
+            onSwap={() => { setCompareAId(compareTabB.id); setCompareBId(compareTabA.id) }}
+            onClose={() => setActiveTool(null)}
+            captions={compareCaptions}
+            onCaptionChange={handleCompareCaptionChange}
+            onCaptionToggleVisible={handleCompareCaptionToggleVisible}
+            defaultCaption={DEFAULT_CAPTION}
+            captionPositions={CAPTION_POSITIONS}
+          />
+          <div className="compare-workbench">
+            <CompareOverlay
+              tabA={compareTabA}
+              tabB={compareTabB}
+              layerById={layerById}
+              layerCatalog={layerCatalog}
+              wmtsBaseUrl={wmtsBaseUrl}
+              mapSettings={mapSettings}
+              captions={compareCaptions}
+              anchorPosition={activeTab?.mapPosition}
+              onMapReady={(index, map) => trackMapInstance(index === 0 ? compareTabA.id : compareTabB.id, map)}
+              onMapPositionChange={handleCompareMapPositionChange}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Main view — grid layout or single active tab */}
-      {!layoutMode && activeTool !== 'timelapse' && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
+      {!layoutMode && activeTool !== 'timelapse' && activeTool !== 'compare' && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
         <div className="globe-grid-view">
           <div className="globe-grid-container" style={{
             display: 'grid',
@@ -1470,7 +1560,7 @@ export default function Globe() {
       )}
 
       {/* Single view */}
-      {!layoutMode && activeTool !== 'timelapse' && !gridViewActive && activeTab && (
+      {!layoutMode && activeTool !== 'timelapse' && activeTool !== 'compare' && !gridViewActive && activeTab && (
         <div className="globe-single-view">
           <MapInstance
             tab={activeTab}
@@ -1490,7 +1580,7 @@ export default function Globe() {
         onLayoutModeToggle={() => setLayoutMode(!layoutMode)}
         layoutModeActive={layoutMode}
       />
-      {activeTool !== 'timelapse' && (
+      {activeTool !== 'timelapse' && activeTool !== 'compare' && (
       <TabbedSidebar
         sections={SECTION_ORDER.map(s => ({ key: s, title: SECTION_TITLES[s], ids: activeBySection[s] || [] }))}
         layerById={layerById}

@@ -1,0 +1,153 @@
+.compare-overlay {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.compare-map {
+  position: absolute;
+  inset: 0;
+}
+
+.compare-map-top {
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* MapLibre's canvas sits inside .globe-map — make sure nothing on the top
+   map intercepts pointer events so drags reach the bottom map + divider. */
+.compare-map-top .globe-map,
+.compare-map-top .maplibregl-canvas-container,
+.compare-map-top canvas {
+  pointer-events: none;
+}
+
+/* The top map is purely visual — hide its duplicated navigation controls. */
+.compare-map-top .maplibregl-control-container {
+  display: none;
+}
+
+.compare-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 44px;
+  z-index: 10;
+  cursor: col-resize;
+  transform: translateX(-50%);
+  touch-action: none;
+  display: flex;
+  justify-content: center;
+}
+
+.compare-divider-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.compare-divider-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.compare-divider-handle::before,
+.compare-divider-handle::after {
+  content: '';
+  display: block;
+  width: 2px;
+  height: 20px;
+  background: #555;
+  border-radius: 1px;
+}
+
+.compare-labels {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  padding: 0 16px;
+}
+
+.compare-label {
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 4px;
+  max-width: 40%;
+  overflow: hidden;
+}
+
+.compare-label-title {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compare-label-date {
+  font-size: 11px;
+  color: #aaa;
+  font-family: monospace;
+  margin-bottom: 2px;
+}
+
+.compare-label-name {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compare-label-left {
+  text-align: left;
+}
+
+.compare-label-right {
+  text-align: right;
+}
+
+/* ── Per-side caption zones ───────────────────────────────── */
+/* Before captions live in the left half, after captions in the right half.
+   Inside each zone the caption is placed by the shared .globe-grid-caption
+   position classes (bottom-left, bottom-right, top-left, top-right). */
+.compare-caption-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.compare-caption-zone--before {
+  left: 0;
+}
+
+.compare-caption-zone--after {
+  right: 0;
+}

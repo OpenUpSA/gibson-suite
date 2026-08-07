@@ -77,6 +77,21 @@
   overflow: hidden;
 }
 
+/* ── Compare workbench ─────────────────────────────────── */
+.compare-layout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+}
+
+.compare-workbench {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
 .globe-grid-view {
   width: 100%;
   height: 100%;

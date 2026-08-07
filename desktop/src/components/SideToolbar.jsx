@@ -3,6 +3,7 @@ import './SideToolbar.css'
 
 const TOOLS = [
   { id: 'layers', icon: 'fluent:layer-20-filled', title: 'Layers' },
+  { id: 'compare', icon: 'fluent:split-hint-20-filled', title: 'Compare views' },
   { id: 'timelapse', icon: 'fluent:filmstrip-20-filled', title: 'Timelapse GIF' }
 ]
 
