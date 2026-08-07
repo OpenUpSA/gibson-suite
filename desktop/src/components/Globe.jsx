@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, Fragment } from 'react'
+import { useCallback, useEffect, useRef, useState, Fragment, useMemo } from 'react'
 import { Icon } from '@iconify/react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -22,8 +22,8 @@ const GRID_PRESETS = {
 const DEFAULT_GRID_CONFIG = { 
   rows: 1, 
   cols: 1, 
-  width: '100%',
-  height: '100%',
+  width: 1600,
+  height: 900,
   cells: {}, // cells: { cellIndex: { tabId, rowSpan: 1, colSpan: 1 } }
   captions: {} // captions: { cellIndex: { text, position, overlayColor, overlayOpacity, textColor, visible } }
 }
@@ -43,6 +43,43 @@ const CAPTION_POSITIONS = [
   { value: 'top-left', label: 'Top Left' },
   { value: 'top-right', label: 'Top Right' }
 ]
+
+// Replicates CSS grid auto-placement for cells with row/col spans.
+// Cells are placed in index order at the first free spot, skipping
+// positions covered by an earlier cell's span. Returns a map of
+// cellIndex -> { row, col } (0-based). Cells that don't fit inside the
+// grid (would land in an implicit row) get null and are not rendered.
+const computeGridPlacement = (cells, rows, cols) => {
+  const occupied = {} // "r,c" -> true
+  const placement = {}
+  for (let idx = 0; idx < rows * cols; idx++) {
+    const cell = cells[idx]
+    const rowSpan = cell?.rowSpan || 1
+    const colSpan = cell?.colSpan || 1
+    let found = null
+    for (let r = 0; r < rows && !found; r++) {
+      for (let c = 0; c < cols && !found; c++) {
+        if (occupied[`${r},${c}`]) continue
+        let fits = true
+        for (let rr = r; rr < r + rowSpan && fits; rr++) {
+          for (let cc = c; cc < c + colSpan && fits; cc++) {
+            if (rr >= rows || cc >= cols || occupied[`${rr},${cc}`]) {
+              fits = false
+            }
+          }
+        }
+        if (fits) {
+          for (let rr = r; rr < r + rowSpan; rr++) {
+            for (let cc = c; cc < c + colSpan; cc++) occupied[`${rr},${cc}`] = true
+          }
+          found = { row: r, col: c }
+        }
+      }
+    }
+    placement[idx] = found
+  }
+  return placement
+}
 
 const saveGridConfig = (config) => {
   try {
@@ -68,8 +105,10 @@ const loadGridConfig = () => {
       // Ensure captions exists
       if (!config.captions) config.captions = {}
       // Ensure width/height are set
-      if (!config.width) config.width = '100%'
-      if (!config.height) config.height = '100%'
+      if (!Number.isFinite(Number(config.width))) config.width = 1600
+      if (!Number.isFinite(Number(config.height))) config.height = 900
+      config.width = Math.max(320, Math.round(Number(config.width)))
+      config.height = Math.max(240, Math.round(Number(config.height)))
       // Ensure rows/cols are set
       if (!config.rows) config.rows = 1
       if (!config.cols) config.cols = 1
@@ -424,6 +463,12 @@ export default function Globe() {
   const [gridDrag, setGridDrag] = useState(null) // { fromCell, toCell } for drag-to-reassign
   const [gridResize, setGridResize] = useState(null) // { cellIndex, edge, startMouse, startRowSpan, startColSpan }
 
+  // Placement map replicating CSS grid auto-placement (shared with export)
+  const gridPlacement = useMemo(
+    () => computeGridPlacement(gridConfig.cells, gridConfig.rows, gridConfig.cols),
+    [gridConfig.cells, gridConfig.rows, gridConfig.cols]
+  )
+
   // Auto-assign first tab to cell 0 when grid has no cells
   useEffect(() => {
     if (tabs.length > 0 && Object.keys(gridConfig.cells).length === 0) {
@@ -665,6 +710,15 @@ export default function Globe() {
     saveGridConfig(newConfig)
   }, [gridConfig])
 
+  const handleGridSizeChange = useCallback((field, value) => {
+    const next = {
+      ...gridConfig,
+      [field]: Math.max(field === 'width' ? 320 : 240, Math.round(Number(value) || 0))
+    }
+    setGridConfig(next)
+    saveGridConfig(next)
+  }, [gridConfig])
+
   const handleAssignViewToCell = useCallback((cellIndex, tabId) => {
     const newCells = { ...gridConfig.cells }
     if (newCells[cellIndex]?.tabId === tabId) {
@@ -677,12 +731,6 @@ export default function Globe() {
       }
     }
     const newConfig = { ...gridConfig, cells: newCells }
-    setGridConfig(newConfig)
-    saveGridConfig(newConfig)
-  }, [gridConfig])
-
-  const handleGridSizeChange = useCallback((height, width) => {
-    const newConfig = { ...gridConfig, width, height }
     setGridConfig(newConfig)
     saveGridConfig(newConfig)
   }, [gridConfig])
@@ -759,8 +807,32 @@ export default function Globe() {
   }
 
   const drawMapToCanvas = (map, targetCtx, x, y, w, h) => {
-    // With preserveDrawingBuffer: true we can drawImage directly from the WebGL canvas
-    targetCtx.drawImage(map.getCanvas(), x, y, w, h)
+    const source = map.getCanvas()
+    const gl = source.getContext('webgl2') || source.getContext('webgl')
+    if (!gl) return Promise.resolve()
+
+    map.triggerRepaint()
+    return new Promise(resolve => {
+      requestAnimationFrame(() => {
+        const width = source.width
+        const height = source.height
+        const pixels = new Uint8Array(width * height * 4)
+        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+
+        const image = targetCtx.createImageData(width, height)
+        for (let row = 0; row < height; row++) {
+          const sourceOffset = (height - row - 1) * width * 4
+          image.data.set(pixels.subarray(sourceOffset, sourceOffset + width * 4), row * width * 4)
+        }
+
+        const snapshot = document.createElement('canvas')
+        snapshot.width = width
+        snapshot.height = height
+        snapshot.getContext('2d').putImageData(image, 0, 0)
+        targetCtx.drawImage(snapshot, x, y, w, h)
+        resolve()
+      })
+    })
   }
 
   const handleExportTab = useCallback((tabId) => {
@@ -773,7 +845,7 @@ export default function Globe() {
     exportCanvas.height = srcCanvas.height
     const ctx = exportCanvas.getContext('2d')
 
-    drawMapToCanvas(map, ctx, 0, 0, exportCanvas.width, exportCanvas.height)
+    drawMapToCanvas(map, ctx, 0, 0, exportCanvas.width, exportCanvas.height).then(() => {
 
     // Draw caption if present
     const cellIndex = Object.keys(gridConfig.cells).find(
@@ -786,15 +858,16 @@ export default function Globe() {
       drawCaption(ctx, caption, { date: tab?.date || '', layerName: layerNames || tab?.label || '' }, 0, 0, exportCanvas.width, exportCanvas.height)
     }
 
-    const dateStr = (tab?.date || '').replace(/-/g, '')
-    exportCanvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `gibson-${tabId}-${dateStr}.jpg`
-      link.click()
-      URL.revokeObjectURL(url)
-    }, 'image/jpeg', 0.95)
+      const dateStr = (tab?.date || '').replace(/-/g, '')
+      exportCanvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `gibson-${tabId}-${dateStr}.jpg`
+        link.click()
+        URL.revokeObjectURL(url)
+      }, 'image/jpeg', 0.95)
+    })
   }, [tabs, gridConfig, layerById])
 
   const handleExportGrid = useCallback(() => {
@@ -805,54 +878,61 @@ export default function Globe() {
     const totalCols = gridConfig.cols
     const cellSize = 800
     const exportCanvas = document.createElement('canvas')
-    exportCanvas.width = totalCols * cellSize
-    exportCanvas.height = totalRows * cellSize
+    exportCanvas.width = gridConfig.width
+    exportCanvas.height = gridConfig.height
     const ctx = exportCanvas.getContext('2d')
 
     ctx.fillStyle = '#000000'
     ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height)
 
+    const drawOps = []
     Object.entries(cells).forEach(([cellIndex, cellData]) => {
       const idx = parseInt(cellIndex)
-      const row = Math.floor(idx / totalCols)
-      const col = idx % totalCols
+      const pos = gridPlacement[idx]
+      if (!pos) return // skip cells outside the grid
       const colSpan = cellData.colSpan || 1
       const rowSpan = cellData.rowSpan || 1
 
       const map = mapInstancesRef.current[cellData.tabId]
       if (!map) return
 
-      const x = col * cellSize
-      const y = row * cellSize
-      const w = colSpan * cellSize
-      const h = rowSpan * cellSize
+      const x = pos.col * (gridConfig.width / totalCols)
+      const y = pos.row * (gridConfig.height / totalRows)
+      const w = colSpan * (gridConfig.width / totalCols)
+      const h = rowSpan * (gridConfig.height / totalRows)
 
-      drawMapToCanvas(map, ctx, x, y, w, h)
-
-      // Draw divider
-      ctx.strokeStyle = '#333'
-      ctx.lineWidth = 2
-      ctx.strokeRect(x, y, w, h)
-
-      // Draw caption
-      const tab = tabs.find(t => t.id === cellData.tabId)
-      const caption = gridConfig.captions?.[cellIndex]
-      if (caption?.visible) {
-        const layerNames = (tab?.activeBySection?.imagery || [])
-          .map(id => layerById.get(id)?.name).filter(Boolean).join(', ')
-        drawCaption(ctx, caption, { date: tab?.date || '', layerName: layerNames || tab?.label || '' }, x, y, w, h)
-      }
+      drawOps.push({ map, x, y, w, h, cellIndex, cellData })
     })
 
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-    exportCanvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `gibson-grid-${dateStr}.jpg`
-      link.click()
-      URL.revokeObjectURL(url)
-    }, 'image/jpeg', 0.95)
+    const drawNext = (index) => {
+      if (index >= drawOps.length) {
+        drawOps.forEach(({ x, y, w, h, cellIndex, cellData }) => {
+          ctx.strokeStyle = '#333'
+          ctx.lineWidth = 2
+          ctx.strokeRect(x, y, w, h)
+          const tab = tabs.find(t => t.id === cellData.tabId)
+          const caption = gridConfig.captions?.[cellIndex]
+          if (caption?.visible) {
+            const layerNames = (tab?.activeBySection?.imagery || [])
+              .map(id => layerById.get(id)?.name).filter(Boolean).join(', ')
+            drawCaption(ctx, caption, { date: tab?.date || '', layerName: layerNames || tab?.label || '' }, x, y, w, h)
+          }
+        })
+        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+        exportCanvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `gibson-grid-${dateStr}.jpg`
+          link.click()
+          URL.revokeObjectURL(url)
+        }, 'image/jpeg', 0.95)
+        return
+      }
+      const { map, x, y, w, h } = drawOps[index]
+      drawMapToCanvas(map, ctx, x, y, w, h).then(() => drawNext(index + 1))
+    }
+    drawNext(0)
   }, [gridConfig, tabs, layerById])
 
   // ── Interactive grid drag/resize ────────────────────────────────────
@@ -969,24 +1049,31 @@ export default function Globe() {
             gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
             gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
             gap: '3px',
-            width: gridConfig.width || '100%',
-            height: gridConfig.height || '100%',
+            width: `${gridConfig.width}px`,
+            height: `${gridConfig.height}px`,
             maxWidth: '100%',
             maxHeight: '100%',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            background: '#000'
           }}>
             {Array.from({ length: gridConfig.rows * gridConfig.cols }).map((_, cellIndex) => {
               const cellData = gridConfig.cells[cellIndex]
+              const pos = gridPlacement[cellIndex]
+              // Skip cells that would land in an implicit row/col outside the grid
+              if (!pos) return null
+              const rowSpan = cellData?.rowSpan || 1
+              const colSpan = cellData?.colSpan || 1
               if (!cellData) {
                 return (
-                  <div key={cellIndex} className="globe-grid-cell globe-grid-cell--empty">
+                  <div key={cellIndex} className="globe-grid-cell globe-grid-cell--empty" style={{
+                    gridRow: `${pos.row + 1} / span ${rowSpan}`,
+                    gridColumn: `${pos.col + 1} / span ${colSpan}`,
+                  }}>
                     <div className="globe-grid-empty">Empty</div>
                   </div>
                 )
               }
               const tab = tabs.find(t => t.id === cellData.tabId)
-              const rowSpan = cellData.rowSpan || 1
-              const colSpan = cellData.colSpan || 1
               const caption = gridConfig.captions[cellIndex]
               const resolvedText = caption?.visible && caption?.text
                 ? caption.text
@@ -997,8 +1084,8 @@ export default function Globe() {
               const posClass = caption?.position || 'bottom-left'
               return (
                 <div key={cellIndex} className="globe-grid-cell" style={{
-                  gridColumn: `span ${colSpan}`,
-                  gridRow: `span ${rowSpan}`,
+                  gridRow: `${pos.row + 1} / span ${rowSpan}`,
+                  gridColumn: `${pos.col + 1} / span ${colSpan}`,
                 }}>
                   {tab ? (
                     <MapInstance
@@ -1088,6 +1175,7 @@ export default function Globe() {
         onAssignView={handleAssignViewToCell}
         onClearCell={handleClearCell}
         gridViewActive={gridViewActive}
+        gridPlacement={gridPlacement}
         onGridViewToggle={() => setGridViewActive(!gridViewActive)}
         onCaptionChange={handleCaptionChange}
         onCaptionToggleVisible={handleCaptionToggleVisible}

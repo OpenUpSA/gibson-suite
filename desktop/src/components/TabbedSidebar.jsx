@@ -52,6 +52,7 @@ const TabbedSidebar = ({
   onClearCell,
   gridViewActive,
   onGridViewToggle,
+  gridPlacement,
   // Caption props
   onCaptionChange,
   onCaptionToggleVisible,
@@ -509,6 +510,9 @@ const TabbedSidebar = ({
             }}>
               {Array.from({ length: gridConfig.rows * gridConfig.cols }).map((_, cellIndex) => {
                 const cellData = gridConfig.cells[cellIndex]
+                const pos = gridPlacement ? gridPlacement[cellIndex] : null
+                // Skip cells that would land outside the grid (no implicit extra rows)
+                if (!pos) return null
                 const tab = cellData ? tabs.find(t => t.id === cellData.tabId) : null
                 const isSelected = selectedCell === cellIndex
                 const rowSpan = cellData?.rowSpan || 1
@@ -518,8 +522,8 @@ const TabbedSidebar = ({
                     key={cellIndex}
                     className={`sidebar-grid-cell ${isSelected ? 'selected' : ''} ${tab ? 'has-view' : ''}`}
                     style={{
-                      gridColumn: tab ? `span ${colSpan}` : undefined,
-                      gridRow: tab ? `span ${rowSpan}` : undefined,
+                      gridRow: `${pos.row + 1} / span ${rowSpan}`,
+                      gridColumn: `${pos.col + 1} / span ${colSpan}`,
                     }}
                     onClick={() => {
                       if (tab) {
@@ -553,17 +557,61 @@ const TabbedSidebar = ({
 
             {/* Controls */}
             <div className="sidebar-grid-controls">
-              <div className="sidebar-grid-row">
-                <label>Rows</label>
-                <input type="range" min="1" max="5" value={gridConfig.rows}
-                  onChange={e => onDimensionChange(parseInt(e.target.value), gridConfig.cols)} />
-                <span>{gridConfig.rows}</span>
+              <div className="sidebar-grid-control-pair">
+                <div className="sidebar-grid-size-field">
+                  <label>Width</label>
+                  <div className="sidebar-grid-input-with-unit">
+                    <input
+                      type="number"
+                      className="sidebar-grid-size-input"
+                      min="320"
+                      step="10"
+                      value={gridConfig.width}
+                      onChange={e => onGridSizeChange('width', e.target.value)}
+                    />
+                    <span>px</span>
+                  </div>
+                </div>
+                <div className="sidebar-grid-size-field">
+                  <label>Height</label>
+                  <div className="sidebar-grid-input-with-unit">
+                    <input
+                      type="number"
+                      className="sidebar-grid-size-input"
+                      min="240"
+                      step="10"
+                      value={gridConfig.height}
+                      onChange={e => onGridSizeChange('height', e.target.value)}
+                    />
+                    <span>px</span>
+                  </div>
+                </div>
               </div>
-              <div className="sidebar-grid-row">
-                <label>Cols</label>
-                <input type="range" min="1" max="5" value={gridConfig.cols}
-                  onChange={e => onDimensionChange(gridConfig.rows, parseInt(e.target.value))} />
-                <span>{gridConfig.cols}</span>
+              <div className="sidebar-grid-control-pair">
+                <div className="sidebar-grid-size-field">
+                  <label>Rows</label>
+                  <input
+                    type="number"
+                    className="sidebar-grid-size-input"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={gridConfig.rows}
+                    onChange={e => onDimensionChange(parseInt(e.target.value) || 1, gridConfig.cols)}
+                  />
+                </div>
+                <div className="sidebar-grid-size-field">
+                  <label>Cols</label>
+                  <input
+                    type="number"
+                    className="sidebar-grid-size-input"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={gridConfig.cols}
+                    onChange={e => onDimensionChange(gridConfig.rows, parseInt(e.target.value) || 1)}
+                  />
+                </div>
               </div>
               <div className="sidebar-grid-row">
                 <label>Preset</label>
@@ -580,17 +628,31 @@ const TabbedSidebar = ({
             {/* Span controls for selected cell */}
             {selectedCell !== null && gridConfig.cells[selectedCell] && (
               <div className="sidebar-grid-span-controls">
-                <div className="sidebar-grid-row">
-                  <label>Row span</label>
-                  <input type="range" min="1" max="5" value={gridConfig.cells[selectedCell]?.rowSpan || 1}
-                    onChange={e => onCellSpanChange(selectedCell, parseInt(e.target.value), gridConfig.cells[selectedCell]?.colSpan || 1)} />
-                  <span>{gridConfig.cells[selectedCell]?.rowSpan || 1}</span>
-                </div>
-                <div className="sidebar-grid-row">
-                  <label>Col span</label>
-                  <input type="range" min="1" max="5" value={gridConfig.cells[selectedCell]?.colSpan || 1}
-                    onChange={e => onCellSpanChange(selectedCell, gridConfig.cells[selectedCell]?.rowSpan || 1, parseInt(e.target.value))} />
-                  <span>{gridConfig.cells[selectedCell]?.colSpan || 1}</span>
+                <div className="sidebar-grid-control-pair">
+                  <div className="sidebar-grid-size-field">
+                    <label>Row span</label>
+                    <input
+                      type="number"
+                      className="sidebar-grid-size-input"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={gridConfig.cells[selectedCell]?.rowSpan || 1}
+                      onChange={e => onCellSpanChange(selectedCell, Math.max(1, Math.min(5, parseInt(e.target.value) || 1)), gridConfig.cells[selectedCell]?.colSpan || 1)}
+                    />
+                  </div>
+                  <div className="sidebar-grid-size-field">
+                    <label>Col span</label>
+                    <input
+                      type="number"
+                      className="sidebar-grid-size-input"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={gridConfig.cells[selectedCell]?.colSpan || 1}
+                      onChange={e => onCellSpanChange(selectedCell, gridConfig.cells[selectedCell]?.rowSpan || 1, Math.max(1, Math.min(5, parseInt(e.target.value) || 1)))}
+                    />
+                  </div>
                 </div>
                 <button className="sidebar-grid-clear-btn" onClick={() => onClearCell(selectedCell)}>
                   <Icon icon="fluent:delete-16-regular" width="12" height="12" />
