@@ -183,9 +183,15 @@ import SideToolbar from './SideToolbar'
 import TabbedSidebar from './TabbedSidebar'
 import AddLayerModal from './AddLayerModal'
 import DatePicker from './DatePicker'
+import TimelapsePanel from './TimelapsePanel'
+import TimelapseBrowser, { PREVIEW_PAGE } from './TimelapseBrowser'
+import TimelapseOverlay from './TimelapseOverlay'
 
 import layersConfig from '../config/layers.json'
 import { buildTileUrlTemplate } from '../config/tileUrl'
+import { availableDates } from '../utils/gibsCaps'
+import { rectToBbox3857 } from '../utils/webMercator'
+import { renderTimelapseGif, GIF_MAX_WIDTH } from '../utils/timelapseGif'
 
 // Layer catalogue — everything the user can add to the map, grouped by section
 // in layers.json: sections.base / sections.imagery / sections.reference.
@@ -194,7 +200,7 @@ const BASE_LAYERS = SECTIONS_CFG.imagery || [] // imagery section holds the dail
 const OVERLAY_LAYERS = SECTIONS_CFG.reference || [] // reference section holds the static overlays
 const layerCatalog = Object.values(SECTIONS_CFG).flat()
 const layerById = new Map(layerCatalog.map(l => [l.id, l]))
-const { mapSettings, wmtsBaseUrl } = layersConfig
+const { mapSettings, wmtsBaseUrl, wmsBaseUrl } = layersConfig
 
 // Section config — drives both the sidebar sections and the map stacking.
 // Stacking order: base at the bottom, imagery above it, reference on top.
@@ -216,6 +222,13 @@ const defaultDate = (() => {
   const yesterday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1))
   return yesterday.toISOString().split('T')[0]
 })()
+
+// Shift an ISO date by whole days (UTC).
+const addDaysIso = (iso, days) => {
+  const d = new Date(`${iso}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().split('T')[0]
+}
 
 // Base imagery is dated (yesterday). Static reference overlays use GIBS's
 // literal 'default' time keyword, so they are date-independent.
@@ -273,7 +286,7 @@ const rasterSource = (tiles, maxzoom) => ({
 // that both setPaintProperty calls fire — no black frames.
 
 // MapInstance component - renders a single map pane for a tab
-function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange }) {
+function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, selectionMode, selectionRect, onSelectionChange }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerSrcMapRef = useRef({})
@@ -417,12 +430,37 @@ function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, o
     }
   }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, mapReady, layerById, wmtsBaseUrl])
 
-  return <div ref={containerRef} className="globe-map" />
+  return (
+    <div ref={containerRef} className="globe-map">
+      {selectionMode && mapReady && (
+        <TimelapseOverlay map={mapRef.current} rectangle={selectionRect} onChange={onSelectionChange} />
+      )}
+    </div>
+  )
 }
 
 export default function Globe() {
   const [activeTool, setActiveTool] = useState('layers')
   const [addLayerOpen, setAddLayerOpen] = useState(false)
+
+  // ── Timelapse tool state ────────────────────────────────────────────
+  const [tlRect, setTlRect] = useState(null)              // [[swLng,swLat],[neLng,neLat]]
+  const [tlAspect, setTlAspect] = useState(16 / 9)        // null = freeform, else ratio
+  const [tlStartDate, setTlStartDate] = useState(() => addDaysIso(defaultDate, -30))
+  const [tlEndDate, setTlEndDate] = useState(defaultDate)
+  const [tlInterval, setTlInterval] = useState(1)         // days: 1 | 3 | 7 | 30
+  const [tlAvailableDates, setTlAvailableDates] = useState([])
+  const [tlPreviewLimit, setTlPreviewLimit] = useState(PREVIEW_PAGE)
+  const [tlFrames, setTlFrames] = useState([])            // [{ time, label, delay, caption? }] — delay is seconds (default 2)
+  const [tlEditFrameTime, setTlEditFrameTime] = useState(null) // frame.time being edited (caption/delay)
+  const [tlStampDates, setTlStampDates] = useState(true)
+  const [tlExporting, setTlExporting] = useState(false)
+  const [tlFetching, setTlFetching] = useState(false)
+  const [tlProgress, setTlProgress] = useState(null)      // { done, total } while exporting
+  const [tlSelected, setTlSelected] = useState(() => new Set())
+
+  // Default per-frame delay (seconds) applied to newly added frames.
+  const DEFAULT_FRAME_DELAY = 2
 
   // ── Tab state management ──────────────────────────────────────────────
   // Load saved state from localStorage, or use defaults
@@ -485,6 +523,13 @@ export default function Globe() {
   const activeBySection = activeTab.activeBySection
   const layerSettings = activeTab.layerSettings
   const hiddenLayers = activeTab.hiddenLayers
+
+  // The timelapse tool exports the active tab's top imagery layer.
+  const tlLayerId = useMemo(() => {
+    const ids = flattenActive(activeTab.activeBySection)
+    return ids.find(id => layerSection(layerById.get(id) || {}) === 'imagery') || null
+  }, [activeTab])
+  const tlLayer = tlLayerId ? layerById.get(tlLayerId) : null
 
   const updateActiveTab = useCallback((updates) => {
     setTabs(prev => prev.map(tab =>
@@ -570,10 +615,52 @@ export default function Globe() {
         e.preventDefault()
         setActiveTool(prev => (prev === 'layers' ? null : 'layers'))
       }
+      // Ctrl+Shift+2 — toggle timelapse tool
+      if (e.ctrlKey && e.shiftKey && e.code === 'Digit2') {
+        e.preventDefault()
+        setActiveTool(prev => (prev === 'timelapse' ? null : 'timelapse'))
+      }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
+
+  // Seed a default crop box the first time the timelapse tool opens.
+  const seededTlRectRef = useRef(false)
+  const seedTlRectIfNeeded = useCallback((map) => {
+    if (seededTlRectRef.current || !map) return
+    seededTlRectRef.current = true
+    const canvas = map.getCanvas()
+    const w = canvas.clientWidth
+    const h = canvas.clientHeight
+    const cw = w * 0.7
+    const ch = cw * (9 / 16)
+    const sw = map.unproject([w / 2 - cw / 2, h / 2 + ch / 2])
+    const ne = map.unproject([w / 2 + cw / 2, h / 2 - ch / 2])
+    setTlRect([[sw.lng, sw.lat], [ne.lng, ne.lat]])
+  }, [])
+
+  // Fetch the available dates for the timelapse layer + range (debounced).
+  useEffect(() => {
+    if (activeTool !== 'timelapse' || !tlLayer) return
+    let cancelled = false
+    setTlFetching(true)
+    const timer = setTimeout(async () => {
+      try {
+        const dates = await availableDates(tlLayer.id, tlStartDate, tlEndDate, tlInterval)
+        if (cancelled) return
+        setTlAvailableDates(dates)
+        setTlPreviewLimit(PREVIEW_PAGE)
+        setTlSelected(new Set())
+      } catch (err) {
+        console.warn('[Timelapse] Failed to load available dates:', err)
+        if (!cancelled) setTlAvailableDates([])
+      } finally {
+        if (!cancelled) setTlFetching(false)
+      }
+    }, 250)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [activeTool, tlLayer?.id, tlStartDate, tlEndDate, tlInterval])
 
   // Autosave app state to localStorage (debounced)
   useEffect(() => {
@@ -798,6 +885,170 @@ export default function Globe() {
   const trackMapInstance = useCallback((tabId, map) => {
     if (map) mapInstancesRef.current[tabId] = map
   }, [])
+
+  // ── Timelapse tool handlers ─────────────────────────────────────────
+  const handleTlApplyPreset = useCallback((ratio) => {
+    const map = mapInstancesRef.current[activeTabId]
+    if (!map) return
+    const canvas = map.getCanvas()
+    const w = canvas.clientWidth
+    const h = canvas.clientHeight
+    const base = Math.min(w, h) * 0.75
+    let rw, rh
+    if (ratio === 16 / 9) {
+      rw = base
+      rh = rw * (9 / 16)
+      if (rh > h * 0.85) { rh = h * 0.85; rw = rh * (16 / 9) }
+    } else if (ratio === 1) {
+      rw = rh = base
+    } else {
+      rw = w * 0.7
+      rh = h * 0.7
+    }
+    const sw = map.unproject([w / 2 - rw / 2, h / 2 + rh / 2])
+    const ne = map.unproject([w / 2 + rw / 2, h / 2 - rh / 2])
+    setTlRect([[sw.lng, sw.lat], [ne.lng, ne.lat]])
+    setTlAspect(typeof ratio === 'number' ? ratio : null)
+  }, [activeTabId])
+
+  const handleTlResetRect = useCallback(() => {
+    const map = mapInstancesRef.current[activeTabId]
+    if (!map) return
+    const canvas = map.getCanvas()
+    const w = canvas.clientWidth
+    const h = canvas.clientHeight
+    const ar = tlAspect || 16 / 9
+    let cw = w * 0.7
+    let ch = cw / ar
+    if (ch > h * 0.7) { ch = h * 0.7; cw = ch * ar }
+    const sw = map.unproject([w / 2 - cw / 2, h / 2 + ch / 2])
+    const ne = map.unproject([w / 2 + cw / 2, h / 2 - ch / 2])
+    setTlRect([[sw.lng, sw.lat], [ne.lng, ne.lat]])
+  }, [activeTabId, tlAspect])
+
+  const handleTlToggleSelect = useCallback((date) => {
+    setTlSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(date)) next.delete(date)
+      else next.add(date)
+      return next
+    })
+  }, [])
+
+  const handleTlSelectVisible = useCallback(() => {
+    const visible = tlAvailableDates.slice(0, tlPreviewLimit)
+    if (!visible.length) return
+    setTlSelected(prev => {
+      const next = new Set(prev)
+      const allSelected = visible.every(d => next.has(d))
+      visible.forEach(d => (allSelected ? next.delete(d) : next.add(d)))
+      return next
+    })
+  }, [tlAvailableDates, tlPreviewLimit])
+
+  const handleTlAddSelected = useCallback(() => {
+    if (!tlSelected.size) return
+    setTlFrames(prev => {
+      const existing = new Set(prev.map(f => f.time))
+      const additions = [...tlSelected]
+        .sort()
+        .filter(t => !existing.has(t))
+        .map(t => ({ time: t, label: t, delay: DEFAULT_FRAME_DELAY }))
+      return additions.length ? [...prev, ...additions] : prev
+    })
+    setTlSelected(new Set())
+  }, [tlSelected])
+
+  const handleTlLoadMore = useCallback(() => {
+    setTlPreviewLimit(prev => prev + PREVIEW_PAGE)
+  }, [])
+
+  const handleTlRemoveFrame = useCallback((index) => {
+    const removed = tlFrames[index]
+    if (removed && removed.time === tlEditFrameTime) setTlEditFrameTime(null)
+    setTlFrames(prev => prev.filter((_, i) => i !== index))
+  }, [tlFrames, tlEditFrameTime])
+
+  const handleTlClearFrames = useCallback(() => {
+    setTlFrames([])
+    setTlEditFrameTime(null)
+  }, [])
+
+  const handleTlReorderFrames = useCallback((next) => {
+    setTlFrames(next)
+  }, [])
+
+  // Selecting a frame in the sidebar opens its caption/delay editor.
+  const handleTlSelectFrame = useCallback((time) => {
+    setTlEditFrameTime(prev => (prev === time ? null : time))
+  }, [])
+
+  // Patch a frame's caption (creates one with grid-defaults on first edit).
+  const handleTlCaptionChange = useCallback((time, patch) => {
+    setTlFrames(prev => prev.map(f => {
+      if (f.time !== time) return f
+      const base = f.caption || {
+        text: '',
+        position: 'bottom-left',
+        overlayColor: '#000000',
+        overlayOpacity: 0.55,
+        textColor: '#ffffff',
+        fontSize: 11,
+        visible: true,
+      }
+      return { ...f, caption: { ...base, ...patch } }
+    }))
+  }, [])
+
+  // Per-frame delay override (seconds); empty/invalid falls back to the default.
+  const handleTlFrameDelayChange = useCallback((time, delay) => {
+    const value = delay == null || !Number.isFinite(delay) || delay <= 0 ? DEFAULT_FRAME_DELAY : delay
+    setTlFrames(prev => prev.map(f => (f.time === time ? { ...f, delay: value } : f)))
+  }, [])
+
+  const handleTimelapseExport = useCallback(async () => {
+    if (!tlRect || tlFrames.length < 2 || !tlLayer || tlExporting) return
+    setTlExporting(true)
+    setTlProgress(null)
+    try {
+      const bbox3857 = rectToBbox3857(tlRect)
+      const [minX, minY, maxX, maxY] = bbox3857
+      const aspect = (maxX - minX) / Math.max(1e-6, maxY - minY)
+      let width = 800
+      let height = Math.max(1, Math.round(width / aspect))
+      if (width > GIF_MAX_WIDTH) {
+        width = GIF_MAX_WIDTH
+        height = Math.max(1, Math.round(width / aspect))
+      }
+      const blob = await renderTimelapseGif({
+        frames: tlFrames.map(f => ({
+          time: f.time,
+          label: f.label,
+          caption: f.caption,
+          delayMs: (f.delay ?? DEFAULT_FRAME_DELAY) * 1000,
+        })),
+        layer: tlLayer,
+        bbox3857,
+        width,
+        height,
+        stampDates: tlStampDates,
+        wmsBaseUrl,
+        onProgress: (done, total) => setTlProgress({ done, total }),
+      })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `gibson-timelapse-${tlStartDate}-to-${tlEndDate}.gif`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('[Timelapse] Export failed:', err)
+      window.alert(`Timelapse export failed: ${err.message || err}`)
+    } finally {
+      setTlExporting(false)
+      setTlProgress(null)
+    }
+  }, [tlRect, tlFrames, tlLayer, tlExporting, tlStampDates, wmsBaseUrl, tlStartDate, tlEndDate])
 
   const resolveTemplate = (text, date, layerName) =>
     text.replace(/%date%/g, date).replace(/%layer%/g, layerName)
@@ -1065,8 +1316,79 @@ export default function Globe() {
 
   return (
     <div className="globe-root">
+      {/* Timelapse workbench — crop box on the map + image browser */}
+      {!layoutMode && activeTool === 'timelapse' && activeTab && (
+        <div className="timelapse-layout">
+          <TimelapsePanel
+            layerName={tlLayer?.name || ''}
+            hasLayer={!!tlLayer}
+            startDate={tlStartDate}
+            endDate={tlEndDate}
+            onStartDateChange={setTlStartDate}
+            onEndDateChange={setTlEndDate}
+            interval={tlInterval}
+            onIntervalChange={setTlInterval}
+            aspect={tlAspect}
+            onApplyPreset={handleTlApplyPreset}
+            onResetRect={handleTlResetRect}
+            hasRect={!!tlRect}
+            rect={tlRect}
+            availableCount={tlAvailableDates.length}
+            frames={tlFrames}
+            onRemoveFrame={handleTlRemoveFrame}
+            onRemoveAllFrames={handleTlClearFrames}
+            onReorderFrames={handleTlReorderFrames}
+            selectedFrameTime={tlEditFrameTime}
+            onSelectFrame={handleTlSelectFrame}
+            onCaptionChange={handleTlCaptionChange}
+            onFrameDelayChange={handleTlFrameDelayChange}
+            defaultDelay={DEFAULT_FRAME_DELAY}
+            stampDates={tlStampDates}
+            onStampDatesChange={setTlStampDates}
+            exporting={tlExporting}
+            progress={tlProgress}
+            onExport={handleTimelapseExport}
+            onClose={() => setActiveTool(null)}
+          />
+          <div className="timelapse-workbench">
+            <div className="timelapse-map-pane">
+              <MapInstance
+                tab={activeTab}
+                layerById={layerById}
+                layerCatalog={layerCatalog}
+                wmtsBaseUrl={wmtsBaseUrl}
+                mapSettings={mapSettings}
+                onMapReady={(map) => {
+                  trackMapInstance(activeTab.id, map)
+                  seedTlRectIfNeeded(map)
+                }}
+                onMapPositionChange={handleMapPositionChange}
+                selectionMode
+                selectionRect={tlRect}
+                onSelectionChange={setTlRect}
+              />
+            </div>
+            <TimelapseBrowser
+              layerName={tlLayer?.name || ''}
+              hasRect={!!tlRect}
+              bbox3857={tlRect ? rectToBbox3857(tlRect) : null}
+              wmsBaseUrl={wmsBaseUrl}
+              layer={tlLayer}
+              dates={tlAvailableDates}
+              limit={tlPreviewLimit}
+              selected={tlSelected}
+              onToggleSelect={handleTlToggleSelect}
+              onSelectVisible={handleTlSelectVisible}
+              onAddSelected={handleTlAddSelected}
+              onLoadMore={handleTlLoadMore}
+              fetching={tlFetching}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Main view — grid layout or single active tab */}
-      {!layoutMode && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
+      {!layoutMode && activeTool !== 'timelapse' && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
         <div className="globe-grid-view">
           <div className="globe-grid-container" style={{
             display: 'grid',
@@ -1147,7 +1469,8 @@ export default function Globe() {
         </div>
       )}
 
-      {!layoutMode && !gridViewActive && activeTab && (
+      {/* Single view */}
+      {!layoutMode && activeTool !== 'timelapse' && !gridViewActive && activeTab && (
         <div className="globe-single-view">
           <MapInstance
             tab={activeTab}
@@ -1167,6 +1490,7 @@ export default function Globe() {
         onLayoutModeToggle={() => setLayoutMode(!layoutMode)}
         layoutModeActive={layoutMode}
       />
+      {activeTool !== 'timelapse' && (
       <TabbedSidebar
         sections={SECTION_ORDER.map(s => ({ key: s, title: SECTION_TITLES[s], ids: activeBySection[s] || [] }))}
         layerById={layerById}
@@ -1208,6 +1532,7 @@ export default function Globe() {
         onExportTab={handleExportTab}
         onExportGrid={handleExportGrid}
       />
+      )}
       <AddLayerModal
         catalog={layerCatalog}
         categories={layersConfig.categories || {}}

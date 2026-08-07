@@ -2,7 +2,8 @@ import { Icon } from '@iconify/react'
 import './SideToolbar.css'
 
 const TOOLS = [
-  { id: 'layers', icon: 'fluent:layer-20-filled', title: 'Layers' }
+  { id: 'layers', icon: 'fluent:layer-20-filled', title: 'Layers' },
+  { id: 'timelapse', icon: 'fluent:filmstrip-20-filled', title: 'Timelapse GIF' }
 ]
 
 const SideToolbar = ({ activeTool, onToolClick, onLayoutModeToggle, layoutModeActive }) => (
