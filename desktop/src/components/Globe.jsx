@@ -269,13 +269,13 @@ const initialSettings = Object.fromEntries(
   layerCatalog.map(l => [l.id, DEFAULT_SETTINGS(l)])
 )
 
-const rasterSource = (tiles, maxzoom) => ({
+const rasterSource = (tiles, maxzoom, layer) => ({
   type: 'raster',
   tiles,
   tileSize: 256,
   minzoom: 0,
   maxzoom,
-  attribution: 'NASA GIBS',
+  attribution: layer?.attribution || 'NASA GIBS',
   bounds: [-180, -85.0511287798, 180, 85.0511287798]
 })
 
@@ -382,8 +382,10 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       if (!map.getSource(srcId)) {
         try {
           const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, tab.date))
-          const maxzoom = QUALITY_MAXZOOM[settings.quality]
-          map.addSource(srcId, rasterSource([url], maxzoom))
+          // Custom tile templates (e.g. OpenStreetMap) are served at full
+          // zoom — the GIBS quality preset doesn't apply to them.
+          const maxzoom = layer.tiles ? 19 : QUALITY_MAXZOOM[settings.quality]
+          map.addSource(srcId, rasterSource([url], maxzoom, layer))
           map.addLayer({
             id: srcId,
             type: 'raster',
@@ -829,6 +831,12 @@ export default function Globe() {
     setActiveTabId(tabId)
   }, [])
 
+  // Rename a view — the label is stored on the tab itself, so it shows up
+  // everywhere the view name appears (tab bars, captions, exports...).
+  const handleTabRename = useCallback((tabId, newLabel) => {
+    setTabs(prev => prev.map(t => (t.id === tabId ? { ...t, label: newLabel } : t)))
+  }, [])
+
   const handleGridPresetApply = useCallback((presetKey) => {
     const preset = GRID_PRESETS[presetKey]
     if (preset) {
@@ -946,6 +954,12 @@ export default function Globe() {
   const trackMapInstance = useCallback((tabId, map) => {
     if (map) mapInstancesRef.current[tabId] = map
   }, [])
+
+  // Fly the active view's map to a searched place (Nominatim result).
+  const handleSearchSelect = useCallback((lat, lon) => {
+    const map = mapInstancesRef.current[activeTabId]
+    if (map) map.flyTo({ center: [lon, lat], zoom: 12 })
+  }, [activeTabId])
 
   // ── Timelapse tool handlers ─────────────────────────────────────────
   const handleTlApplyPreset = useCallback((ratio) => {
@@ -1604,8 +1618,10 @@ export default function Globe() {
         onTabChange={handleTabChange}
         onTabAdd={handleTabAdd}
         onTabRemove={handleTabRemove}
+        onTabRename={handleTabRename}
         activeTabDate={activeTab.date}
         onTabDateChange={handleTabDateChange}
+        onSearchSelect={handleSearchSelect}
       />
       )}
       {activeTool === 'layout' && (
@@ -1617,6 +1633,7 @@ export default function Globe() {
         onTabChange={handleTabChange}
         onTabAdd={handleTabAdd}
         onTabRemove={handleTabRemove}
+        onTabRename={handleTabRename}
         gridConfig={gridConfig}
         selectedCell={selectedCell}
         onCellSelect={setSelectedCell}

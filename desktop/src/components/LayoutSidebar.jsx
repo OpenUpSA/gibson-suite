@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 import './Sidebar.css'
 import './TabbedSidebar.css'
 import './LayoutSidebar.css'
+import EditableTabLabel from './EditableTabLabel'
 
 // Grid layout presets
 const GRID_PRESETS = {
@@ -24,6 +25,7 @@ const LayoutSidebar = ({
   onTabChange,
   onTabAdd,
   onTabRemove,
+  onTabRename,
   // Grid editor props
   gridConfig,
   selectedCell,
@@ -66,9 +68,11 @@ const LayoutSidebar = ({
             className={`tabbed-sidebar-tab${tab.id === activeTabId ? ' active' : ''}`}
             onClick={() => onTabChange(tab.id)}
           >
-            <span className="tabbed-sidebar-tab-label">
-              {tab.label || `View ${idx + 1}`}
-            </span>
+            <EditableTabLabel
+              label={tab.label}
+              fallback={`View ${idx + 1}`}
+              onRename={(name) => onTabRename(tab.id, name)}
+            />
             {tabs.length > 1 && (
               <button
                 type="button"

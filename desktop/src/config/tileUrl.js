@@ -5,6 +5,8 @@
 // the WMS endpoint, which rasterises them server-side. MapLibre substitutes
 // the {bbox-epsg-3857} token per tile.
 export const buildTileUrlTemplate = (config, layer, time) => {
+  // Custom raster tile template (e.g. OpenStreetMap) — returned verbatim.
+  if (layer.tiles) return layer.tiles
   if (layer.wms) {
     return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}&TIME=${time}`
   }

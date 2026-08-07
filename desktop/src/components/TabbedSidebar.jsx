@@ -4,6 +4,8 @@ import { Icon } from '@iconify/react'
 import './Sidebar.css'
 import './TabbedSidebar.css'
 import DatePicker from './DatePicker'
+import EditableTabLabel from './EditableTabLabel'
+import PlaceSearch from './PlaceSearch'
 
 const QUALITY_ORDER = ['low', 'medium', 'high']
 
@@ -28,8 +30,10 @@ const TabbedSidebar = ({
   onTabChange,
   onTabAdd,
   onTabRemove,
+  onTabRename,
   activeTabDate,
   onTabDateChange,
+  onSearchSelect,
 }) => {
   const [expandedId, setExpandedId] = useState(null)
   const [infoLayerId, setInfoLayerId] = useState(null)
@@ -167,9 +171,11 @@ const TabbedSidebar = ({
             className={`tabbed-sidebar-tab${tab.id === activeTabId ? ' active' : ''}`}
             onClick={() => onTabChange(tab.id)}
           >
-            <span className="tabbed-sidebar-tab-label">
-              {tab.label || `View ${idx + 1}`}
-            </span>
+            <EditableTabLabel
+              label={tab.label}
+              fallback={`View ${idx + 1}`}
+              onRename={(name) => onTabRename(tab.id, name)}
+            />
             {tabs.length > 1 && (
               <button
                 type="button"
@@ -200,6 +206,9 @@ const TabbedSidebar = ({
           <Icon icon="fluent:dismiss-20-filled" width="18" height="18" />
         </button>
       </div>
+
+      {/* Place search — flies the active view's map to the result */}
+      <PlaceSearch onSelect={onSearchSelect} />
 
       {/* Date picker for current tab */}
       <div className="sidebar-date-picker">

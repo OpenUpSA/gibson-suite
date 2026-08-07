@@ -345,6 +345,35 @@
         "endDate": null,
         "category": "Blue Marble",
         "subtitle": "MODIS Terra"
+      },
+      {
+        "id": "OpenStreetMap",
+        "name": "OpenStreetMap",
+        "subtitle": "OSM Standard",
+        "description": "OpenStreetMap standard street tiles (© OpenStreetMap contributors). A familiar street-map base for context when satellite imagery isn't needed.",
+        "role": "base",
+        "section": "base",
+        "storyDefault": false,
+        "tiles": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "format": "image/png",
+        "attribution": "© OpenStreetMap contributors",
+        "legendId": null,
+        "gibsDescription": "<p>OpenStreetMap standard map tiles, © <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap contributors</a>. Provided as a familiar street-map base for context when the NASA imagery isn't needed.</p>",
+        "metadata": {
+          "mission": "Community",
+          "satellite": "N/A",
+          "sensors": "Vector & raster",
+          "orbit": "N/A",
+          "energySource": "N/A",
+          "spectralRange": "N/A",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global",
+          "spatialResolution": "N/A",
+          "temporalResolution": "Continuous"
+        },
+        "startDate": null,
+        "endDate": null,
+        "category": "OpenStreetMap"
       }
     ],
     "imagery": [
