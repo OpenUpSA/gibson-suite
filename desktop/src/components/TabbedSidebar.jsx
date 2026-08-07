@@ -691,7 +691,7 @@ const TabbedSidebar = ({
                       </div>
                     </div>
 
-                    <div className="sidebar-grid-caption-field">
+                    <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
                       <label>Position</label>
                       <select
                         className="sidebar-grid-select"
@@ -704,7 +704,7 @@ const TabbedSidebar = ({
                       </select>
                     </div>
 
-                    <div className="sidebar-grid-caption-field">
+                    <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
                       <label>Colors</label>
                       <div className="sidebar-grid-caption-color-row">
                         <div className="sidebar-grid-caption-color-item">
@@ -728,20 +728,22 @@ const TabbedSidebar = ({
                       </div>
                     </div>
 
-                    <div className="sidebar-grid-caption-field">
+                    <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
                       <label>Opacity</label>
                       <div className="sidebar-grid-caption-opacity-row">
                         <input
-                          type="range"
+                          type="number"
+                          className="sidebar-grid-size-input sidebar-grid-caption-opacity-input"
                           min="0"
-                          max="1"
-                          step="0.05"
-                          value={gridConfig.captions?.[selectedCell]?.overlayOpacity ?? defaultCaption?.overlayOpacity ?? 0.55}
-                          onChange={e => onCaptionChange(selectedCell, 'overlayOpacity', parseFloat(e.target.value))}
+                          max="100"
+                          step="5"
+                          value={Math.round((gridConfig.captions?.[selectedCell]?.overlayOpacity ?? defaultCaption?.overlayOpacity ?? 0.55) * 100)}
+                          onChange={e => {
+                            const v = Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
+                            onCaptionChange(selectedCell, 'overlayOpacity', v / 100)
+                          }}
                         />
-                        <span className="sidebar-grid-caption-opacity-val">
-                          {Math.round((gridConfig.captions?.[selectedCell]?.overlayOpacity ?? defaultCaption?.overlayOpacity ?? 0.55) * 100)}%
-                        </span>
+                        <span>%</span>
                       </div>
                     </div>
                   </div>

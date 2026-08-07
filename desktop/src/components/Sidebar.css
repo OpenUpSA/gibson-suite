@@ -13,6 +13,7 @@
   transition: transform 0.25s ease;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
   /* Disable text selection everywhere inside the sidebar */
   user-select: none;
   -webkit-user-select: none;
