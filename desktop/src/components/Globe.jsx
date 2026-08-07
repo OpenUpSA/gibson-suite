@@ -260,7 +260,8 @@ function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, o
       zoom: zoom,
       minZoom: mapSettings.minZoom || 2,
       maxZoom: mapSettings.maxZoom || 12,
-      attributionControl: false
+      attributionControl: false,
+      preserveDrawingBuffer: true
     })
 
     map.on('load', () => {
@@ -643,7 +644,8 @@ export default function Globe() {
         cols: preset.cols,
         width: gridConfig.width,
         height: gridConfig.height,
-        cells: { ...gridConfig.cells }
+        cells: { ...gridConfig.cells },
+        captions: { ...gridConfig.captions }
       }
       setGridConfig(newConfig)
       saveGridConfig(newConfig)
@@ -656,7 +658,8 @@ export default function Globe() {
       cols: Math.max(1, Math.min(cols, 5)),
       width: gridConfig.width,
       height: gridConfig.height,
-      cells: gridConfig.cells
+      cells: gridConfig.cells,
+      captions: gridConfig.captions
     }
     setGridConfig(newConfig)
     saveGridConfig(newConfig)
@@ -716,6 +719,141 @@ export default function Globe() {
     const current = gridConfig.captions[cellIndex] || DEFAULT_CAPTION
     handleCaptionChange(cellIndex, 'visible', !current.visible)
   }, [gridConfig.captions, handleCaptionChange])
+
+  // ── Map instance tracking for export ──────────────────────────────────
+  const mapInstancesRef = useRef({}) // { tabId: mapInstance }
+
+  const trackMapInstance = useCallback((tabId, map) => {
+    if (map) mapInstancesRef.current[tabId] = map
+  }, [])
+
+  const resolveTemplate = (text, date, layerName) =>
+    text.replace(/%date%/g, date).replace(/%layer%/g, layerName)
+
+  const drawCaption = (ctx, caption, text, x, y, width, height) => {
+    if (!caption?.visible || !caption?.text) return
+    const lines = resolveTemplate(caption.text, text.date, text.layerName).split('\n')
+    const pad = 8
+    const fontSize = 12
+    const lineHeight = 16
+    ctx.font = `${fontSize}px monospace`
+    const blockW = Math.max(...lines.map(l => ctx.measureText(l).width)) + pad * 2
+    const blockH = lines.length * lineHeight + pad * 2
+
+    let bx, by
+    switch (caption.position) {
+      case 'top-right': bx = x + width - blockW - pad; by = y + pad; break
+      case 'top-left': bx = x + pad; by = y + pad; break
+      case 'bottom-right': bx = x + width - blockW - pad; by = y + height - blockH - pad; break
+      default: bx = x + pad; by = y + height - blockH - pad; break
+    }
+
+    ctx.fillStyle = caption.overlayColor || '#000000'
+    ctx.globalAlpha = caption.overlayOpacity ?? 0.55
+    ctx.fillRect(bx, by, blockW, blockH)
+    ctx.globalAlpha = 1
+    ctx.fillStyle = caption.textColor || '#ffffff'
+    lines.forEach((line, i) => {
+      ctx.fillText(line, bx + pad, by + pad + (i + 1) * lineHeight)
+    })
+  }
+
+  const drawMapToCanvas = (map, targetCtx, x, y, w, h) => {
+    // With preserveDrawingBuffer: true we can drawImage directly from the WebGL canvas
+    targetCtx.drawImage(map.getCanvas(), x, y, w, h)
+  }
+
+  const handleExportTab = useCallback((tabId) => {
+    const map = mapInstancesRef.current[tabId]
+    if (!map) return
+    const tab = tabs.find(t => t.id === tabId)
+    const srcCanvas = map.getCanvas()
+    const exportCanvas = document.createElement('canvas')
+    exportCanvas.width = srcCanvas.width
+    exportCanvas.height = srcCanvas.height
+    const ctx = exportCanvas.getContext('2d')
+
+    drawMapToCanvas(map, ctx, 0, 0, exportCanvas.width, exportCanvas.height)
+
+    // Draw caption if present
+    const cellIndex = Object.keys(gridConfig.cells).find(
+      k => gridConfig.cells[k]?.tabId === tabId
+    )
+    if (cellIndex !== undefined) {
+      const caption = gridConfig.captions?.[cellIndex]
+      const layerNames = (tab?.activeBySection?.imagery || [])
+        .map(id => layerById.get(id)?.name).filter(Boolean).join(', ')
+      drawCaption(ctx, caption, { date: tab?.date || '', layerName: layerNames || tab?.label || '' }, 0, 0, exportCanvas.width, exportCanvas.height)
+    }
+
+    const dateStr = (tab?.date || '').replace(/-/g, '')
+    exportCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `gibson-${tabId}-${dateStr}.jpg`
+      link.click()
+      URL.revokeObjectURL(url)
+    }, 'image/jpeg', 0.95)
+  }, [tabs, gridConfig, layerById])
+
+  const handleExportGrid = useCallback(() => {
+    const cells = gridConfig.cells
+    if (!cells || Object.keys(cells).length === 0) return
+
+    const totalRows = gridConfig.rows
+    const totalCols = gridConfig.cols
+    const cellSize = 800
+    const exportCanvas = document.createElement('canvas')
+    exportCanvas.width = totalCols * cellSize
+    exportCanvas.height = totalRows * cellSize
+    const ctx = exportCanvas.getContext('2d')
+
+    ctx.fillStyle = '#000000'
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height)
+
+    Object.entries(cells).forEach(([cellIndex, cellData]) => {
+      const idx = parseInt(cellIndex)
+      const row = Math.floor(idx / totalCols)
+      const col = idx % totalCols
+      const colSpan = cellData.colSpan || 1
+      const rowSpan = cellData.rowSpan || 1
+
+      const map = mapInstancesRef.current[cellData.tabId]
+      if (!map) return
+
+      const x = col * cellSize
+      const y = row * cellSize
+      const w = colSpan * cellSize
+      const h = rowSpan * cellSize
+
+      drawMapToCanvas(map, ctx, x, y, w, h)
+
+      // Draw divider
+      ctx.strokeStyle = '#333'
+      ctx.lineWidth = 2
+      ctx.strokeRect(x, y, w, h)
+
+      // Draw caption
+      const tab = tabs.find(t => t.id === cellData.tabId)
+      const caption = gridConfig.captions?.[cellIndex]
+      if (caption?.visible) {
+        const layerNames = (tab?.activeBySection?.imagery || [])
+          .map(id => layerById.get(id)?.name).filter(Boolean).join(', ')
+        drawCaption(ctx, caption, { date: tab?.date || '', layerName: layerNames || tab?.label || '' }, x, y, w, h)
+      }
+    })
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    exportCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `gibson-grid-${dateStr}.jpg`
+      link.click()
+      URL.revokeObjectURL(url)
+    }, 'image/jpeg', 0.95)
+  }, [gridConfig, tabs, layerById])
 
   // ── Interactive grid drag/resize ────────────────────────────────────
   const handleGridDragStart = useCallback((e, cellIndex) => {
@@ -839,7 +977,13 @@ export default function Globe() {
           }}>
             {Array.from({ length: gridConfig.rows * gridConfig.cols }).map((_, cellIndex) => {
               const cellData = gridConfig.cells[cellIndex]
-              if (!cellData) return null
+              if (!cellData) {
+                return (
+                  <div key={cellIndex} className="globe-grid-cell globe-grid-cell--empty">
+                    <div className="globe-grid-empty">Empty</div>
+                  </div>
+                )
+              }
               const tab = tabs.find(t => t.id === cellData.tabId)
               const rowSpan = cellData.rowSpan || 1
               const colSpan = cellData.colSpan || 1
@@ -863,7 +1007,7 @@ export default function Globe() {
                       layerCatalog={layerCatalog}
                       wmtsBaseUrl={wmtsBaseUrl}
                       mapSettings={mapSettings}
-                      onMapReady={() => {}}
+                      onMapReady={(map) => trackMapInstance(tab.id, map)}
                       onMapPositionChange={handleMapPositionChange}
                     />
                   ) : (
@@ -900,7 +1044,7 @@ export default function Globe() {
             layerCatalog={layerCatalog}
             wmtsBaseUrl={wmtsBaseUrl}
             mapSettings={mapSettings}
-            onMapReady={(map) => { /* store map instance if needed */ }}
+            onMapReady={(map) => trackMapInstance(activeTab.id, map)}
             onMapPositionChange={handleMapPositionChange}
           />
         </div>
@@ -949,6 +1093,8 @@ export default function Globe() {
         onCaptionToggleVisible={handleCaptionToggleVisible}
         defaultCaption={DEFAULT_CAPTION}
         captionPositions={CAPTION_POSITIONS}
+        onExportTab={handleExportTab}
+        onExportGrid={handleExportGrid}
       />
       <AddLayerModal
         catalog={layerCatalog}

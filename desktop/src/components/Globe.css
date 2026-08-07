@@ -91,6 +91,12 @@
   position: relative;
 }
 
+.globe-grid-cell--empty {
+  background: rgba(255, 255, 255, 0.02);
+  border-style: dashed;
+  opacity: 0.6;
+}
+
 /* ── Grid cell caption overlay ────────────────────────────── */
 .globe-grid-caption {
   position: absolute;
