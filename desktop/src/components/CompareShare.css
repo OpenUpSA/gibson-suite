@@ -1,0 +1,55 @@
+/* Minimalist share/embed page for the Compare view — no chrome, just the
+   compare overlay full-bleed with a small GIBSON logo at the top. */
+
+.compare-share {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+.compare-share-logo-link {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+  display: block;
+  line-height: 0;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.compare-share-logo-link:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(1.05);
+}
+
+.compare-share-logo {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+}
+
+/* Invalid / expired link fallback */
+.compare-share--error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: inherit;
+}
+
+.compare-share--error .compare-share-logo-link {
+  position: static;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.compare-share-error-text {
+  font-size: 14px;
+}

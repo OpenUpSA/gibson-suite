@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '@iconify/react'
+import { encodeCompareShare, shareUrlFor } from '../utils/shareCompare'
 import './ComparePanel.css'
 
 /**
@@ -24,10 +25,29 @@ const ComparePanel = ({
 }) => {
   const [cellFlyout, setCellFlyout] = useState(null) // 'before' | 'after' | null
   const [flyoutPos, setFlyoutPos] = useState(null) // { x, y } for portal flyout
+  const [copied, setCopied] = useState(false)
 
   const sideTab = (side) => {
     const id = side === 'before' ? compareAId : compareBId
     return tabs.find(t => t.id === id)
+  }
+
+  // Build a minimalist share link for the current before/after views and
+  // copy it to the clipboard. Falls back to the first two tabs the same way
+  // the compare workbench does when no explicit pair is picked yet.
+  const handleShare = async () => {
+    const tabA = sideTab('before') || tabs[0]
+    const tabB = sideTab('after') || tabs[1] || tabs[0]
+    if (!tabA || !tabB) return
+    const payload = encodeCompareShare({ tabA, tabB, captions })
+    const url = shareUrlFor(payload)
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (e) {
+      console.error('Failed to copy share link:', e)
+    }
   }
 
   // Open the assign-view flyout (click on a cell or the + / edit buttons,
@@ -237,6 +257,25 @@ const ComparePanel = ({
             <Icon icon="fluent:arrow-swap-20-regular" width="14" height="14" />
             Swap sides
           </button>
+        </div>
+
+        <div className="compare-panel-share-row">
+          <button
+            type="button"
+            className={`compare-panel-share${copied ? ' copied' : ''}`}
+            onClick={handleShare}
+            title="Copy a minimalist share link for this compare view"
+          >
+            <Icon
+              icon={copied ? 'fluent:checkmark-20-filled' : 'fluent:share-20-regular'}
+              width="14"
+              height="14"
+            />
+            {copied ? 'Link copied!' : 'Share compare'}
+          </button>
+          <p className="compare-panel-share-hint">
+            Opens a clean, embeddable view of just this comparison — no toolbars.
+          </p>
         </div>
 
         {renderCaptionEditor('before', 'Before caption')}

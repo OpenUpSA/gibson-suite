@@ -269,6 +269,10 @@ const initialSettings = Object.fromEntries(
   layerCatalog.map(l => [l.id, DEFAULT_SETTINGS(l)])
 )
 
+// Shared exports for the minimalist share page (CompareShare) so it can
+// rebuild maps from an encoded URL payload without duplicating config.
+export { layerById, layerCatalog, wmtsBaseUrl, mapSettings, DEFAULT_SETTINGS }
+
 const rasterSource = (tiles, maxzoom, layer) => ({
   type: 'raster',
   tiles,
@@ -527,6 +531,12 @@ export default function Globe() {
       saveGridConfig(newConfig)
     }
   }, []) // Only on mount
+
+  // Entering layout mode always shows the grid view; leaving it (e.g. back
+  // to the layer view) cancels it.
+  useEffect(() => {
+    setGridViewActive(activeTool === 'layout')
+  }, [activeTool])
 
   // Get active tab's state
   const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0]
@@ -1629,11 +1639,6 @@ export default function Globe() {
         open
         onClose={() => setActiveTool(null)}
         tabs={tabs}
-        activeTabId={activeTabId}
-        onTabChange={handleTabChange}
-        onTabAdd={handleTabAdd}
-        onTabRemove={handleTabRemove}
-        onTabRename={handleTabRename}
         gridConfig={gridConfig}
         selectedCell={selectedCell}
         onCellSelect={setSelectedCell}
@@ -1643,9 +1648,7 @@ export default function Globe() {
         onCellSpanChange={handleCellSpanChange}
         onAssignView={handleAssignViewToCell}
         onClearCell={handleClearCell}
-        gridViewActive={gridViewActive}
         gridPlacement={gridPlacement}
-        onGridViewToggle={() => setGridViewActive(!gridViewActive)}
         onCaptionChange={handleCaptionChange}
         onCaptionToggleVisible={handleCaptionToggleVisible}
         defaultCaption={DEFAULT_CAPTION}

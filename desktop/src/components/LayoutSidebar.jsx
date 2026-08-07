@@ -4,7 +4,6 @@ import { Icon } from '@iconify/react'
 import './Sidebar.css'
 import './TabbedSidebar.css'
 import './LayoutSidebar.css'
-import EditableTabLabel from './EditableTabLabel'
 
 // Grid layout presets
 const GRID_PRESETS = {
@@ -19,13 +18,8 @@ const GRID_PRESETS = {
 const LayoutSidebar = ({
   open,
   onClose,
-  // Tab props
+  // Tab props (only the tab list itself — the tab bar is not shown in layout mode)
   tabs,
-  activeTabId,
-  onTabChange,
-  onTabAdd,
-  onTabRemove,
-  onTabRename,
   // Grid editor props
   gridConfig,
   selectedCell,
@@ -36,8 +30,6 @@ const LayoutSidebar = ({
   onCellSpanChange,
   onAssignView,
   onClearCell,
-  gridViewActive,
-  onGridViewToggle,
   gridPlacement,
   // Caption props
   onCaptionChange,
@@ -60,61 +52,11 @@ const LayoutSidebar = ({
 
   return (
     <aside className={`sidebar layout-sidebar${open ? ' sidebar-open' : ''}`}>
-      {/* Tab bar */}
-      <div className="tabbed-sidebar-tabs">
-        {tabs.map((tab, idx) => (
-          <div
-            key={tab.id}
-            className={`tabbed-sidebar-tab${tab.id === activeTabId ? ' active' : ''}`}
-            onClick={() => onTabChange(tab.id)}
-          >
-            <EditableTabLabel
-              label={tab.label}
-              fallback={`View ${idx + 1}`}
-              onRename={(name) => onTabRename(tab.id, name)}
-            />
-            {tabs.length > 1 && (
-              <button
-                type="button"
-                className="tabbed-sidebar-tab-close"
-                onClick={(e) => { e.stopPropagation(); onTabRemove(tab.id) }}
-                title="Remove view"
-              >
-                <Icon icon="fluent:dismiss-12-regular" width="12" height="12" />
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          className="tabbed-sidebar-tab-add"
-          onClick={onTabAdd}
-          title="Add new view"
-        >
-          <Icon icon="fluent:add-16-filled" width="14" height="14" />
-        </button>
-      </div>
-
       <div className="sidebar-header">
         <span className="sidebar-title">Layout</span>
         <button type="button" className="sidebar-close" onClick={onClose} title="Close">
           <Icon icon="fluent:dismiss-20-filled" width="18" height="18" />
         </button>
-      </div>
-
-      {/* Grid view toggle — single view vs grid view */}
-      <div className="layout-grid-toggle-row">
-        <span className="layout-grid-toggle-label">
-          <Icon icon="fluent:grid-20-filled" width="14" height="14" />
-          Grid view
-        </span>
-        <div
-          className={`sidebar-grid-toggle${gridViewActive ? ' active' : ''}`}
-          onClick={onGridViewToggle}
-          title="Show the grid layout on the map"
-        >
-          <div className="sidebar-grid-toggle-knob" />
-        </div>
       </div>
 
       <div className="layout-sidebar-body">

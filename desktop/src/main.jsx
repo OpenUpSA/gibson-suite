@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Globe from './components/Globe'
+import CompareShare from './components/CompareShare'
 import './index.css'
 
 // Lazy-loaded so the legacy app's CSS (App.css) only loads when visiting
@@ -17,6 +18,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Routes>
           {/* New minimal rebuild — just the globe and a base layer */}
           <Route path="/" element={<Globe />} />
+          {/* Shared minimalist compare view (no toolbars) */}
+          <Route path="/share/compare/:payload" element={<CompareShare />} />
           {/* Old app kept for reference while we rebuild */}
           <Route path="/legacy" element={<App />} />
           <Route path="/gibs" element={<GibsCapabilities />} />

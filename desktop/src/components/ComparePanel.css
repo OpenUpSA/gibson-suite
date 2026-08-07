@@ -211,6 +211,50 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
+/* ── Share button ─────────────────────────────────────────── */
+.compare-panel-share-row {
+  margin-bottom: 14px;
+}
+
+.compare-panel-share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #E3A520;
+  border: none;
+  border-radius: 4px;
+  color: #1a1a1a;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.compare-panel-share:hover {
+  background: #f0b93a;
+}
+
+.compare-panel-share:active {
+  transform: translateY(1px);
+}
+
+.compare-panel-share.copied {
+  background: #34a853;
+  color: #fff;
+}
+
+.compare-panel-share-hint {
+  margin: 6px 2px 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+}
+
 /* ── Per-side caption editor ─────────────────────────────── */
 .compare-caption-editor {
   margin-bottom: 14px;
