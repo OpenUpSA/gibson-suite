@@ -34,6 +34,7 @@ const DEFAULT_CAPTION = {
   overlayColor: '#000000',
   overlayOpacity: 0.55,
   textColor: '#ffffff',
+  fontSize: 11,
   visible: false
 }
 
@@ -765,8 +766,31 @@ export default function Globe() {
 
   const handleCaptionToggleVisible = useCallback((cellIndex) => {
     const current = gridConfig.captions[cellIndex] || DEFAULT_CAPTION
+    const turningOn = !current.visible
+
+    if (turningOn) {
+      // Pre-fill the text with the actual date + layer names (instead of
+      // %date%/%layer% placeholders) so the user can edit it directly.
+      const hasCustomText = gridConfig.captions[cellIndex] &&
+        gridConfig.captions[cellIndex].text !== DEFAULT_CAPTION.text
+      if (!hasCustomText) {
+        const tabId = gridConfig.cells[cellIndex]?.tabId
+        const tab = tabs.find(t => t.id === tabId)
+        const date = tab?.date || ''
+        const layerNames = (tab?.activeBySection?.imagery || [])
+          .map(id => layerById.get(id)?.name).filter(Boolean).join(', ')
+        const text = `${date}\n${layerNames || tab?.label || ''}`
+        const newCaptions = { ...gridConfig.captions }
+        newCaptions[cellIndex] = { ...(newCaptions[cellIndex] || DEFAULT_CAPTION), text, visible: true }
+        const newConfig = { ...gridConfig, captions: newCaptions }
+        setGridConfig(newConfig)
+        saveGridConfig(newConfig)
+        return
+      }
+    }
+
     handleCaptionChange(cellIndex, 'visible', !current.visible)
-  }, [gridConfig.captions, handleCaptionChange])
+  }, [gridConfig, tabs, layerById, handleCaptionChange])
 
   // ── Map instance tracking for export ──────────────────────────────────
   const mapInstancesRef = useRef({}) // { tabId: mapInstance }
@@ -781,9 +805,9 @@ export default function Globe() {
   const drawCaption = (ctx, caption, text, x, y, width, height) => {
     if (!caption?.visible || !caption?.text) return
     const lines = resolveTemplate(caption.text, text.date, text.layerName).split('\n')
-    const pad = 8
-    const fontSize = 12
-    const lineHeight = 16
+    const pad = Math.round((caption.fontSize || 12) * 0.66)
+    const fontSize = caption.fontSize || 12
+    const lineHeight = Math.round(fontSize * 1.3)
     ctx.font = `${fontSize}px monospace`
     const blockW = Math.max(...lines.map(l => ctx.measureText(l).width)) + pad * 2
     const blockH = lines.length * lineHeight + pad * 2
@@ -1109,7 +1133,7 @@ export default function Globe() {
                           opacity: caption.overlayOpacity ?? 0.55,
                         }}
                       />
-                      <div className="globe-grid-caption-text" style={{ color: caption.textColor || '#fff' }}>
+                      <div className="globe-grid-caption-text" style={{ color: caption.textColor || '#fff', fontSize: `${caption.fontSize || 12}px`, lineHeight: 1.3 }}>
                         {captionLines.map((line, li) => (
                           <div key={li}>{line}</div>
                         ))}

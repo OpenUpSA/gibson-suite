@@ -471,23 +471,13 @@ const TabbedSidebar = ({
             })}
       </div>
 
-      {/* Export single view button */}
-      {onExportTab && (
-        <div className="sidebar-export-bar">
-          <button type="button" className="sidebar-export-btn" onClick={() => onExportTab(activeTabId)}>
-            <Icon icon="fluent:image-arrow-download-20-regular" width="14" height="14" />
-            Export View
-          </button>
-        </div>
-      )}
-
       {/* Resize handle */}
       <div
         className="sidebar-resize-handle"
         onMouseDown={handleResizeStart}
       />
 
-      {/* Bottom panel: Grid Layout — collapsed unless active */}
+      {/* Bottom panel: Layout — collapsed unless active */}
       <div
         className={`sidebar-bottom-panel${gridViewActive ? ' expanded' : ''}`}
         ref={bottomPanelRef}
@@ -495,7 +485,7 @@ const TabbedSidebar = ({
       >
         <div className="sidebar-bottom-panel-header" onClick={onGridViewToggle}>
           <Icon icon="fluent:grid-20-filled" width="14" height="14" />
-          <span>Grid Layout</span>
+          <span>Layout</span>
           <div className={`sidebar-grid-toggle${gridViewActive ? ' active' : ''}`}>
             <div className="sidebar-grid-toggle-knob" />
           </div>
@@ -687,7 +677,7 @@ const TabbedSidebar = ({
                         placeholder="%date%  %layer%"
                       />
                       <div className="sidebar-grid-caption-hint">
-                        Use <code>%date%</code> and <code>%layer%</code> as placeholders
+                        Shown as-is — each line renders on its own row. <code>%date%</code> / <code>%layer%</code> still work if you want them.
                       </div>
                     </div>
 
@@ -702,6 +692,25 @@ const TabbedSidebar = ({
                           <option key={pos.value} value={pos.value}>{pos.label}</option>
                         ))}
                       </select>
+                    </div>
+
+                    <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
+                      <label>Font size</label>
+                      <div className="sidebar-grid-input-with-unit">
+                        <input
+                          type="number"
+                          className="sidebar-grid-size-input"
+                          min="8"
+                          max="72"
+                          step="1"
+                          value={gridConfig.captions?.[selectedCell]?.fontSize ?? defaultCaption?.fontSize ?? 11}
+                          onChange={e => {
+                            const v = Math.max(8, Math.min(72, parseInt(e.target.value) || 11))
+                            onCaptionChange(selectedCell, 'fontSize', v)
+                          }}
+                        />
+                        <span>px</span>
+                      </div>
                     </div>
 
                     <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
@@ -755,7 +764,7 @@ const TabbedSidebar = ({
             {onExportGrid && Object.keys(gridConfig.cells).length > 0 && (
               <button type="button" className="sidebar-export-btn sidebar-export-btn--grid" onClick={onExportGrid}>
                 <Icon icon="fluent:image-arrow-download-20-regular" width="14" height="14" />
-                Export Grid
+                Export Image
               </button>
             )}
           </div>
