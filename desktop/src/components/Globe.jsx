@@ -213,6 +213,8 @@ import TimelapseBrowser, { PREVIEW_PAGE } from './TimelapseBrowser'
 import TimelapseOverlay from './TimelapseOverlay'
 import ComparePanel from './ComparePanel'
 import CompareOverlay from './CompareOverlay'
+import WelcomeModal from './WelcomeModal'
+import TutorialTour from './TutorialTour'
 
 import layersConfig from '../config/layers.json'
 import { buildTileUrlTemplate } from '../config/tileUrl'
@@ -466,7 +468,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
   }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, mapReady, layerById, wmtsBaseUrl])
 
   return (
-    <div ref={containerRef} className="globe-map">
+    <div ref={containerRef} className="globe-map" data-tour="map">
       {selectionMode && mapReady && (
         <TimelapseOverlay map={mapRef.current} rectangle={selectionRect} onChange={onSelectionChange} />
       )}
@@ -477,6 +479,34 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
 export default function Globe() {
   const [activeTool, setActiveTool] = useState('layers')
   const [addLayerOpen, setAddLayerOpen] = useState(false)
+
+  // ── Welcome modal + guided tour ────────────────────────────────────
+  // The welcome / about screen shows on first load (unless the user has
+  // already dismissed it before). The tour runs on demand — from the
+  // welcome modal, or by clicking the logo.
+  const WELCOME_SEEN_KEY = 'gibson-welcome-seen'
+  const [welcomeOpen, setWelcomeOpen] = useState(() => {
+    try {
+      return !localStorage.getItem(WELCOME_SEEN_KEY)
+    } catch {
+      return true
+    }
+  })
+  const [tourRunning, setTourRunning] = useState(false)
+
+  const closeWelcome = () => {
+    setWelcomeOpen(false)
+    try {
+      localStorage.setItem(WELCOME_SEEN_KEY, '1')
+    } catch {
+      // ignore storage failures — the modal just shows again next time
+    }
+  }
+
+  const startTour = () => {
+    setWelcomeOpen(false)
+    setTourRunning(true)
+  }
 
   // ── Compare tool state ──────────────────────────────────────────────
   // Selected views (tab ids) to overlay. Null until the user picks one —
@@ -1696,7 +1726,7 @@ export default function Globe() {
 
       {/* Single view */}
       {activeTool !== 'timelapse' && activeTool !== 'compare' && !gridViewActive && activeTab && (
-        <div className="globe-single-view">
+        <div className="globe-single-view" data-tour="map-single">
           <MapInstance
             tab={activeTab}
             layerById={layerById}
@@ -1713,6 +1743,7 @@ export default function Globe() {
         activeTool={activeTool}
         onToolClick={handleToolClick}
         onResetAll={handleResetAll}
+        onLogoClick={() => setWelcomeOpen(true)}
       />
       {activeTool !== 'timelapse' && activeTool !== 'compare' && activeTool !== 'layout' && (
       <TabbedSidebar
@@ -1775,6 +1806,19 @@ export default function Globe() {
         onRemove={removeLayer}
         open={addLayerOpen}
         onClose={() => setAddLayerOpen(false)}
+      />
+
+      {/* Welcome / about — first load, or when the logo is clicked */}
+      <WelcomeModal
+        isOpen={welcomeOpen}
+        onClose={closeWelcome}
+        onStartTour={startTour}
+      />
+
+      {/* Guided tour — highlights toolbar buttons and the map */}
+      <TutorialTour
+        run={tourRunning}
+        onFinish={() => setTourRunning(false)}
       />
 
     </div>

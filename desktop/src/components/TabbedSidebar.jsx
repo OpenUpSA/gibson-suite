@@ -162,7 +162,7 @@ const TabbedSidebar = ({
   const activeTab = tabs.find(t => t.id === activeTabId)
 
   return (
-    <aside className={`sidebar${open ? ' sidebar-open' : ''}`}>
+    <aside className={`sidebar${open ? ' sidebar-open' : ''}`} data-tour="sidebar">
       {/* Tab bar */}
       <div className="tabbed-sidebar-tabs">
         {tabs.map((tab, idx) => (

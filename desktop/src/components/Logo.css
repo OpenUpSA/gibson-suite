@@ -1,0 +1,35 @@
+/* Logo block for the welcome / about modal */
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.logo-container .logo-image {
+  max-height: 64px;
+  max-width: 240px;
+  object-fit: contain;
+}
+
+.logo-container .logo-subtitle {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.logo-container.secondary .logo-image {
+  max-height: 32px;
+  opacity: 0.6;
+}
+
+.logo-container.secondary a {
+  display: flex;
+}
+
+.logo-container.secondary a:hover .logo-image {
+  opacity: 0.9;
+}
