@@ -26,6 +26,7 @@ const ComparePanel = ({
   const [cellFlyout, setCellFlyout] = useState(null) // 'before' | 'after' | null
   const [flyoutPos, setFlyoutPos] = useState(null) // { x, y } for portal flyout
   const [copied, setCopied] = useState(false)
+  const [selectedSide, setSelectedSide] = useState(null) // 'before' | 'after' | null — cell whose caption editor is shown
 
   const sideTab = (side) => {
     const id = side === 'before' ? compareAId : compareBId
@@ -60,6 +61,13 @@ const ComparePanel = ({
     setCellFlyout(prev => (prev === side ? null : side))
   }
 
+  // Clicking a cell toggles its caption editor (same pattern as the layout
+  // sidebar — captions are hidden until a view is selected).
+  const toggleSelect = (side) => {
+    setSelectedSide(prev => (prev === side ? null : side))
+    setCellFlyout(null)
+  }
+
   const assignView = (side, tabId) => {
     if (side === 'before') onCompareAChange(tabId)
     else onCompareBChange(tabId)
@@ -83,8 +91,8 @@ const ComparePanel = ({
       <div className="compare-cell-wrap">
         <div className="compare-cell-title">{title}</div>
         <div
-          className={`compare-cell${tab ? ' has-view' : ''}${cellFlyout === side ? ' selected' : ''}`}
-          onClick={(e) => { if (tab) openFlyout(side, e) }}
+          className={`compare-cell${tab ? ' has-view' : ''}${selectedSide === side ? ' selected' : ''}${cellFlyout === side ? ' flyout-open' : ''}`}
+          onClick={(e) => { if (tab) toggleSelect(side) }}
           onContextMenu={(e) => openFlyout(side, e)}
         >
           {tab ? (
@@ -244,7 +252,7 @@ const ComparePanel = ({
       </div>
       <div className="compare-panel-scroll">
         <p className="compare-panel-hint">
-          Two views overlaid on the map — drag the slider to reveal one side or the other. Click a box (or right-click) to assign a view.
+          Two views overlaid on the map — drag the slider to reveal one side or the other. Click a box to edit its caption, or right-click to assign a view.
         </p>
 
         <div className="compare-cells">
@@ -258,6 +266,8 @@ const ComparePanel = ({
             Swap sides
           </button>
         </div>
+
+        {selectedSide && renderCaptionEditor(selectedSide, selectedSide === 'before' ? 'Before caption' : 'After caption')}
 
         <div className="compare-panel-share-row">
           <button
@@ -277,9 +287,6 @@ const ComparePanel = ({
             Opens a clean, embeddable view of just this comparison — no toolbars.
           </p>
         </div>
-
-        {renderCaptionEditor('before', 'Before caption')}
-        {renderCaptionEditor('after', 'After caption')}
       </div>
 
       {/* Cell flyout portal — rendered outside overflow containers */}

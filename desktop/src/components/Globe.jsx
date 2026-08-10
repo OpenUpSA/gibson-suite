@@ -93,33 +93,57 @@ const saveGridConfig = (config) => {
 const loadGridConfig = () => {
   try {
     const saved = localStorage.getItem(GRID_CONFIG_KEY)
-    if (saved) {
-      let config = JSON.parse(saved)
-      // Migrate old viewAssignments format to new cells format
-      if (config.viewAssignments && !config.cells) {
-        config.cells = {}
-        for (const [cellIndex, tabId] of Object.entries(config.viewAssignments)) {
-          config.cells[cellIndex] = { tabId, rowSpan: 1, colSpan: 1 }
-        }
-        delete config.viewAssignments
-      }
-      // Ensure captions exists
-      if (!config.captions) config.captions = {}
-      // Ensure width/height are set
-      if (!Number.isFinite(Number(config.width))) config.width = 1600
-      if (!Number.isFinite(Number(config.height))) config.height = 900
-      config.width = Math.max(320, Math.round(Number(config.width)))
-      config.height = Math.max(240, Math.round(Number(config.height)))
-      // Ensure rows/cols are set
-      if (!config.rows) config.rows = 1
-      if (!config.cols) config.cols = 1
-      return config
-    }
+    if (saved) return normalizeGridConfig(JSON.parse(saved))
   } catch (e) {
     console.error('Failed to load grid config:', e)
   }
-  return DEFAULT_GRID_CONFIG
+  return { ...DEFAULT_GRID_CONFIG }
 }
+
+// Normalize any raw grid config (localStorage, share link, project file)
+// into a shape the rest of the app can rely on.
+const normalizeGridConfig = (raw) => {
+  const config = raw || {}
+  // Migrate old viewAssignments format to new cells format
+  if (config.viewAssignments && !config.cells) {
+    config.cells = {}
+    for (const [cellIndex, tabId] of Object.entries(config.viewAssignments)) {
+      config.cells[cellIndex] = { tabId, rowSpan: 1, colSpan: 1 }
+    }
+    delete config.viewAssignments
+  }
+  // Ensure cells exists
+  if (!config.cells) config.cells = {}
+  // Ensure captions exists
+  if (!config.captions) config.captions = {}
+  // Ensure width/height are set
+  if (!Number.isFinite(Number(config.width))) config.width = 1600
+  if (!Number.isFinite(Number(config.height))) config.height = 900
+  config.width = Math.max(320, Math.round(Number(config.width)))
+  config.height = Math.max(240, Math.round(Number(config.height)))
+  // Ensure rows/cols are set
+  if (!config.rows) config.rows = 1
+  if (!config.cols) config.cols = 1
+  return config
+}
+
+// If the app was opened from a share link (?p=<payload>), that composition
+// wins over localStorage — same priority the compare share page uses.
+// Read lazily once and cached so the several state initializers agree.
+const readUrlProject = (() => {
+  let cached
+  return () => {
+    if (cached !== undefined) return cached
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const payload = params.get('p') || params.get('project')
+      cached = payload ? decodeProjectUrl(payload) : null
+    } catch {
+      cached = null
+    }
+    return cached
+  }
+})()
 
 const savePaneSizes = (sizes) => {
   try {
@@ -195,6 +219,8 @@ import { buildTileUrlTemplate } from '../config/tileUrl'
 import { availableDates } from '../utils/gibsCaps'
 import { rectToBbox3857 } from '../utils/webMercator'
 import { renderTimelapseGif, GIF_MAX_WIDTH } from '../utils/timelapseGif'
+import { encodeProjectUrl, decodeProjectUrl, projectUrlFor, SHARE_LINK_LIMIT } from '../utils/shareProject'
+import { serializeProject, deserializeProject, downloadProjectFile } from '../utils/projectFile'
 
 // Layer catalogue — everything the user can add to the map, grouped by section
 // in layers.json: sections.base / sections.imagery / sections.reference.
@@ -478,9 +504,23 @@ export default function Globe() {
   const DEFAULT_FRAME_DELAY = 2
 
   // ── Tab state management ──────────────────────────────────────────────
-  // Load saved state from localStorage, or use defaults
+  // Load saved state from localStorage (or a share link, which wins)
   const savedState = useRef(loadAppState())
   const [tabs, setTabs] = useState(() => {
+    const fromUrl = readUrlProject()
+    if (fromUrl?.tabs?.length) {
+      return fromUrl.tabs.map(t => ({
+        ...t,
+        // Links carry no per-layer settings or hidden layers — use defaults
+        layerSettings: initialSettings,
+        hiddenLayers: new Set(),
+        activeBySection: {
+          imagery: (t.activeBySection?.imagery || []).filter(id => layerById.has(id)),
+          base: (t.activeBySection?.base || []).filter(id => layerById.has(id)),
+          reference: (t.activeBySection?.reference || []).filter(id => layerById.has(id))
+        }
+      }))
+    }
     if (savedState.current?.tabs) {
       return savedState.current.tabs
     }
@@ -497,7 +537,7 @@ export default function Globe() {
     ]
   })
   const [activeTabId, setActiveTabId] = useState(() => {
-    return savedState.current?.activeTabId || 'tab-1'
+    return readUrlProject()?.activeTabId || savedState.current?.activeTabId || 'tab-1'
   })
   const [isTabbedMode, setIsTabbedMode] = useState(true)
 
@@ -509,7 +549,11 @@ export default function Globe() {
 
   // ── Grid layout state ──────────────────────────────────────────────
   const [gridViewActive, setGridViewActive] = useState(false) // Toggle grid view vs single view
-  const [gridConfig, setGridConfig] = useState(() => loadGridConfig())
+  const [gridConfig, setGridConfig] = useState(() => {
+    const fromUrl = readUrlProject()
+    if (fromUrl?.gridConfig) return normalizeGridConfig(fromUrl.gridConfig)
+    return loadGridConfig()
+  })
   const [draggedTabId, setDraggedTabId] = useState(null) // For drag-drop in layout mode
   const [selectedCell, setSelectedCell] = useState(null) // For grid editor cell selection
   const [cellSpans, setCellSpans] = useState({}) // Temporary span state for editing
@@ -1295,6 +1339,43 @@ export default function Globe() {
     drawNext(0)
   }, [gridConfig, tabs, layerById])
 
+  // ── Share link + project file ────────────────────────────────────────
+  // Compact link for the current composition — null when the grid is empty
+  // (nothing meaningful to share). Computed on every change so the sidebar
+  // can warn when the setup outgrows a URL and needs a project file.
+  const shareLink = useMemo(() => {
+    if (Object.keys(gridConfig.cells || {}).length === 0) return null
+    try {
+      return projectUrlFor(encodeProjectUrl({ tabs, gridConfig, activeTabId }))
+    } catch {
+      return null
+    }
+  }, [tabs, gridConfig, activeTabId])
+
+  const shareLinkTooLong = useMemo(
+    () => Boolean(shareLink && shareLink.length > SHARE_LINK_LIMIT),
+    [shareLink]
+  )
+
+  const handleSaveProject = useCallback(() => {
+    const project = serializeProject({ tabs, gridConfig, compareCaptions, activeTabId })
+    downloadProjectFile(project)
+  }, [tabs, gridConfig, compareCaptions, activeTabId])
+
+  // Load a project file into the app. Returns true on success so the
+  // sidebar can surface a "couldn't read that file" message.
+  const handleLoadProject = useCallback((jsonText) => {
+    const state = deserializeProject(jsonText)
+    if (!state) return false
+    setTabs(state.tabs)
+    setActiveTabId(state.activeTabId)
+    setGridConfig(state.gridConfig)
+    saveGridConfig(state.gridConfig)
+    if (state.compareCaptions) setCompareCaptions(state.compareCaptions)
+    setSelectedCell(null)
+    return true
+  }, [])
+
   // ── Interactive grid drag/resize ────────────────────────────────────
   const handleGridDragStart = useCallback((e, cellIndex) => {
     e.preventDefault()
@@ -1654,6 +1735,10 @@ export default function Globe() {
         defaultCaption={DEFAULT_CAPTION}
         captionPositions={CAPTION_POSITIONS}
         onExportGrid={handleExportGrid}
+        shareLink={shareLink}
+        shareLinkTooLong={shareLinkTooLong}
+        onSaveProject={handleSaveProject}
+        onLoadProject={handleLoadProject}
       />
       )}
       <AddLayerModal

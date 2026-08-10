@@ -31,3 +31,59 @@
 .layout-sidebar-body::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* ── Share link + project file controls ─────────────────────── */
+.layout-share-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.layout-share-copy {
+  background: rgba(227, 165, 32, 0.12);
+  border-color: rgba(227, 165, 32, 0.4);
+  color: #E3A520;
+}
+
+.layout-share-copy:hover:not(:disabled) {
+  background: rgba(227, 165, 32, 0.22);
+  border-color: rgba(227, 165, 32, 0.6);
+  color: #f0b93a;
+}
+
+.layout-share-copy:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.layout-share-copy.copied {
+  background: rgba(52, 168, 83, 0.18);
+  border-color: rgba(52, 168, 83, 0.5);
+  color: #4ade80;
+}
+
+.layout-share-hint {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.layout-share-hint--error {
+  color: #f87171;
+}
+
+.layout-project-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.layout-project-btn {
+  padding: 7px 8px;
+  font-size: 11px;
+}

@@ -122,6 +122,10 @@
   background: rgba(227, 165, 32, 0.15);
 }
 
+.compare-cell.flyout-open {
+  border-color: rgba(227, 165, 32, 0.6);
+}
+
 .compare-cell.has-view {
   background: rgba(227, 165, 32, 0.08);
 }
@@ -211,9 +215,11 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
-/* ── Share button ─────────────────────────────────────────── */
+/* ── Share button (pinned at the bottom of the panel) ─────── */
 .compare-panel-share-row {
-  margin-bottom: 14px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .compare-panel-share {
