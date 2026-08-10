@@ -8,7 +8,7 @@ const TOOLS = [
   { id: 'timelapse', icon: 'fluent:filmstrip-20-filled', title: 'Timelapse GIF' }
 ]
 
-const SideToolbar = ({ activeTool, onToolClick }) => (
+const SideToolbar = ({ activeTool, onToolClick, onResetAll }) => (
   <div className="side-toolbar">
     <img src="/gibson-icon.png" alt="Gibson" className="side-toolbar-logo" />
     {TOOLS.map(tool => (
@@ -22,6 +22,16 @@ const SideToolbar = ({ activeTool, onToolClick }) => (
         <Icon icon={tool.icon} width="24" height="24" />
       </button>
     ))}
+    {onResetAll && (
+      <button
+        type="button"
+        className="side-tool-btn side-tool-reset"
+        onClick={onResetAll}
+        title="Reset everything — clear all saved views, layouts and compare settings"
+      >
+        <Icon icon="fluent:arrow-reset-20-regular" width="20" height="20" />
+      </button>
+    )}
   </div>
 )
 

@@ -1376,6 +1376,31 @@ export default function Globe() {
     return true
   }, [])
 
+  // ── Reset everything ──────────────────────────────────────────────────
+  // Flush every saved key (views, grid layout, pane sizes, compare state),
+  // strip any share-link query from the URL, then reload — the app boots
+  // back to fresh defaults with no stale map/timelapse state left behind.
+  const handleResetAll = useCallback(() => {
+    if (!window.confirm(
+      'Reset everything?\n\n' +
+      'This clears all saved views, layers, grid layouts, compare settings and timelapse state. ' +
+      'This cannot be undone.'
+    )) return
+    try {
+      localStorage.removeItem(AUTOSAVE_KEY)      // gibson-app-state
+      localStorage.removeItem(GRID_CONFIG_KEY)   // gibson-grid-config
+      localStorage.removeItem(PANE_SIZES_KEY)    // gibson-pane-sizes
+      localStorage.removeItem('gibson-pane-layout') // legacy layout storage
+      localStorage.removeItem('gibson-project-url') // (reserved)
+    } catch (e) {
+      console.error('Failed to clear saved state:', e)
+    }
+    // Drop ?p=… (and any other query) so a share link doesn't re-apply on reload
+    const cleanUrl = window.location.href.split('?')[0]
+    window.history.replaceState({}, '', cleanUrl)
+    window.location.reload()
+  }, [])
+
   // ── Interactive grid drag/resize ────────────────────────────────────
   const handleGridDragStart = useCallback((e, cellIndex) => {
     e.preventDefault()
@@ -1687,6 +1712,7 @@ export default function Globe() {
       <SideToolbar
         activeTool={activeTool}
         onToolClick={handleToolClick}
+        onResetAll={handleResetAll}
       />
       {activeTool !== 'timelapse' && activeTool !== 'compare' && activeTool !== 'layout' && (
       <TabbedSidebar
