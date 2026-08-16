@@ -27,10 +27,11 @@ jest.mock("@canva/asset");
 jest.mock("@canva/design", () => {
   const appElementHandlers: ((el: unknown) => void)[] = [];
   const mockAddElement = jest.fn().mockResolvedValue(undefined);
+  const mockAddOrUpdateElement = jest.fn().mockResolvedValue(undefined);
   return {
     initAppElement: jest.fn(() => ({
       addElement: mockAddElement,
-      addOrUpdateElement: jest.fn().mockResolvedValue(undefined),
+      addOrUpdateElement: mockAddOrUpdateElement,
       registerOnElementChange: jest.fn((handler: (el: unknown) => void) => {
         // Replace (don't append) so jest.clearAllMocks + new mock stays synced.
         appElementHandlers.length = 0;
@@ -42,6 +43,7 @@ jest.mock("@canva/design", () => {
       for (const h of appElementHandlers) h(el);
     },
     __mockAddElement: mockAddElement,
+    __mockAddOrUpdateElement: mockAddOrUpdateElement,
   };
 });
 jest.mock("@canva/intents");

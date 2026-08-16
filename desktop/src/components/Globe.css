@@ -1,0 +1,681 @@
+.globe-root {
+  position: fixed;
+  /* Map sits beside the 44px static toolbar on the left */
+  inset: 0 0 0 44px;
+  background: #2a2a2a;
+  display: flex;
+  flex-direction: column;
+}
+
+.globe-maps-container {
+  display: flex;
+  width: 100%;
+  flex: 1;
+}
+
+.globe-map-pane {
+  display: flex;
+  flex: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.globe-map {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.globe-pane-divider {
+  width: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: col-resize;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.globe-pane-divider:hover,
+.globe-pane-divider.resizing {
+  background: rgba(227, 165, 32, 0.5);
+}
+
+.globe-bottom-bar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+/* Grid Layout */
+.globe-single-view {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Timelapse workbench ─────────────────────────────────── */
+.timelapse-layout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+}
+
+.timelapse-workbench {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+}
+
+.timelapse-map-pane {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Compare workbench ─────────────────────────────────── */
+.compare-layout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+}
+
+.compare-workbench {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.globe-grid-view {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.globe-grid-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+}
+
+.globe-grid-container {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  gap: 4px;
+  padding: 4px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+}
+
+.globe-grid-cell {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+}
+
+.globe-grid-cell--empty {
+  background: rgba(255, 255, 255, 0.02);
+  border-style: dashed;
+  opacity: 0.6;
+}
+
+/* ── Grid cell caption overlay ────────────────────────────── */
+.globe-grid-caption {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  font-family: monospace;
+  line-height: 1.3;
+  padding: 6px 10px;
+}
+
+.globe-grid-caption--bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.globe-grid-caption--bottom-right {
+  bottom: 0;
+  right: 0;
+}
+
+.globe-grid-caption--top-left {
+  top: 0;
+  left: 0;
+}
+
+.globe-grid-caption--top-right {
+  top: 0;
+  right: 0;
+}
+
+.globe-grid-caption-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 2px;
+}
+
+.globe-grid-caption-text {
+  position: relative;
+  white-space: pre;
+}
+
+/* ── Grid Layout Editor — two-panel modal ──────────────────── */
+
+/* Overlay */
+.ge-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal shell — same dimensions as AddLayerModal */
+.ge-modal {
+  width: 1260px;
+  max-width: calc(100vw - 48px);
+  height: 78vh;
+  max-height: 780px;
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Header */
+.ge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.ge-header-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.ge-close {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+}
+
+.ge-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Body — sidebar + canvas */
+.ge-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────── */
+.ge-sidebar {
+  flex: 0 0 280px;
+  min-width: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Sidebar sections — scrollable area */
+.ge-sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ge-sidebar-scroll::-webkit-scrollbar { width: 6px; }
+.ge-sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.ge-sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+.ge-sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+
+.ge-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ge-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #E3A520;
+  margin-bottom: 10px;
+}
+
+.ge-hint {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Size inputs */
+.ge-size-row {
+  display: flex;
+  gap: 10px;
+}
+
+.ge-input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ge-input-group label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ge-text-input {
+  width: 100%;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.ge-text-input:focus {
+  border-color: #E3A520;
+}
+
+.ge-text-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Dimension sliders */
+.ge-dim-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ge-dim-row:last-child { margin-bottom: 0; }
+
+.ge-dim-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.ge-dim-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  outline: none;
+}
+
+.ge-dim-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #E3A520;
+  cursor: pointer;
+  border: 2px solid #1a1a1a;
+}
+
+.ge-dim-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #E3A520;
+  min-width: 16px;
+  text-align: right;
+}
+
+/* Span section highlight */
+.ge-span-section {
+  background: rgba(227, 165, 32, 0.06);
+}
+
+/* Presets dropdown */
+.ge-preset-select {
+  width: 100%;
+  padding: 7px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  transition: border-color 0.15s ease;
+}
+
+.ge-preset-select:focus { border-color: #E3A520; }
+.ge-preset-select option { background: #1a1a1a; color: #fff; }
+
+/* Clear cell button */
+.ge-clear-cell-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: rgba(220, 60, 60, 0.12);
+  border: 1px solid rgba(220, 60, 60, 0.3);
+  border-radius: 4px;
+  color: #e05555;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ge-clear-cell-btn:hover {
+  background: rgba(220, 60, 60, 0.2);
+  border-color: rgba(220, 60, 60, 0.5);
+  color: #ff6b6b;
+}
+
+/* Views list */
+.ge-views-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ge-views-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ge-views-list::-webkit-scrollbar { width: 5px; }
+.ge-views-list::-webkit-scrollbar-track { background: transparent; }
+.ge-views-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+
+.ge-view-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: default;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.ge-view-btn:disabled {
+  opacity: 0.4;
+}
+
+.ge-view-btn.assignable:not(:disabled) {
+  cursor: pointer;
+}
+
+.ge-view-btn.assignable:not(:disabled):hover {
+  background: rgba(227, 165, 32, 0.1);
+  border-color: rgba(227, 165, 32, 0.3);
+  color: #fff;
+}
+
+.ge-view-btn.is-assigned {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.ge-view-check {
+  margin-left: auto;
+  color: #E3A520;
+}
+
+/* Sidebar footer */
+.ge-sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  background: #1a1a1a;
+}
+
+.ge-done-btn {
+  width: 100%;
+  padding: 10px 0;
+  background: #E3A520;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ge-done-btn:hover { background: #f5b844; }
+
+/* ── Canvas — interactive grid ────────────────────────────── */
+.ge-canvas {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #111;
+  position: relative;
+}
+
+.ge-canvas-grid {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* Individual grid cell in the canvas */
+.ge-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.ge-cell:hover {
+  border-color: rgba(227, 165, 32, 0.35);
+  background: rgba(227, 165, 32, 0.05);
+}
+
+.ge-cell--selected {
+  border-color: #E3A520;
+  background: rgba(227, 165, 32, 0.1);
+  z-index: 2;
+}
+
+.ge-cell--assigned {
+  border-color: rgba(227, 165, 32, 0.25);
+  background: rgba(227, 165, 32, 0.06);
+}
+
+.ge-cell--selected.ge-cell--assigned {
+  border-color: #E3A520;
+  background: rgba(227, 165, 32, 0.12);
+}
+
+.ge-cell--drag-over {
+  border-color: rgba(79, 195, 217, 0.7);
+  background: rgba(79, 195, 217, 0.1);
+}
+
+/* Cell content */
+.ge-cell-drag {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  color: rgba(255, 255, 255, 0.25);
+  cursor: grab;
+  padding: 2px;
+  border-radius: 3px;
+  transition: color 0.15s ease, background 0.15s ease;
+  z-index: 1;
+}
+
+.ge-cell:hover .ge-cell-drag { color: rgba(255, 255, 255, 0.5); }
+.ge-cell-drag:hover { color: #E3A520; background: rgba(227, 165, 32, 0.15); }
+
+/* Cell delete button (X in top-right when selected) */
+.ge-cell-delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(220, 60, 60, 0.7);
+  color: #fff;
+  cursor: pointer;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.ge-cell--selected .ge-cell-delete { opacity: 1; }
+.ge-cell-delete:hover { background: rgba(255, 60, 60, 0.9); }
+
+.ge-cell-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #E3A520;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ge-cell-span {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 2px;
+  pointer-events: none;
+}
+
+.ge-cell-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.18);
+  font-size: 10px;
+  pointer-events: none;
+}
+
+/* Resize handles */
+.ge-resize {
+  position: absolute;
+  z-index: 3;
+}
+
+.ge-resize--right {
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.ge-resize--bottom {
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.ge-resize--corner {
+  bottom: -3px;
+  right: -3px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}
+
+.ge-resize:hover {
+  background: rgba(227, 165, 32, 0.4);
+}

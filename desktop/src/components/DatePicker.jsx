@@ -1,11 +1,11 @@
 import React from 'react'
 import './DatePicker.css'
 
-const DatePicker = ({ selectedDate, onDateChange, label }) => {
+const DatePicker = ({ selectedDate, onDateChange, label, startYear = 2010 }) => {
   const today = new Date()
   const endDate = new Date(today)
   endDate.setDate(endDate.getDate() - 1)
-  const startDate = new Date(2010, 0, 1)
+  const startDate = new Date(startYear, 0, 1)
 
   const selectedDateObj = new Date(selectedDate)
 

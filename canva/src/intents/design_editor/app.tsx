@@ -3,7 +3,6 @@ import { upload } from "@canva/asset";
 import {
   Alert,
   Button,
-  Checkbox,
   HorizontalCard,
   Rows,
   SegmentedControl,
@@ -49,11 +48,6 @@ const PREVIEW_HEIGHT = 256;
 // preserving the aspect ratio of the selected region).
 const MAX_CANVAS_DIM = 600;
 
-// Spacing between the image element and its optional text label.
-const LABEL_GAP = 4;
-// Font size for the text label added beneath satellite images.
-const LABEL_FONT_SIZE = 11;
-
 /**
  * Metadata stored inside each app element on the canvas. This lets us
  * re-render the element (new date, new layer, new resolution, new crop) and
@@ -66,7 +60,6 @@ type GibsElementData = {
   time: string;
   resolution: string;
   mimeType: string;
-  includeInfo: boolean;
   ref: string;
   imgWidth: number;
   imgHeight: number;
@@ -81,44 +74,45 @@ type GibsElementData = {
 /**
  * App element client — manages elements that carry our metadata and can be
  * updated in-place. The render function outputs a static image element using
- * the `ref` stored in the data, and optionally a text label with the layer
- * name and date beneath the image.
+ * the `ref` stored in the data.
  */
 const appElement = initAppElement<GibsElementData>({
   render: (data) => {
-    const imageEl = {
-      type: "image" as const,
-      ref: data.ref as ImageRef,
-      altText: { text: data.altText, decorative: false },
-      top: 0,
-      left: 0,
-      width: data.imgWidth,
-      height: data.imgHeight,
-    };
-
-    if (data.includeInfo) {
-      return [
-        imageEl,
-        {
-          type: "text" as const,
-          children: [`${data.layerName} — ${data.time}`],
-          top: data.imgHeight + LABEL_GAP,
-          left: 0,
-          width: data.imgWidth,
-          fontSize: LABEL_FONT_SIZE,
-          textAlign: "center" as const,
-          fontWeight: "normal" as const,
-        },
-      ];
-    }
-
-    return [imageEl];
+    return [
+      {
+        type: "image" as const,
+        ref: data.ref as ImageRef,
+        altText: { text: data.altText, decorative: false },
+        top: 0,
+        left: 0,
+        width: data.imgWidth,
+        height: data.imgHeight,
+      },
+    ];
   },
 });
 
 /** Generate a unique-ish id for each element added to the canvas. */
 let elementCounter = 0;
 const generateElementId = () => `gibs-${Date.now()}-${++elementCounter}`;
+
+/**
+ * Insert `data` into `list`, replacing any existing entry with the same
+ * `id`. Used everywhere we touch the sidebar list so that two code paths
+ * racing on the same element (the SDK's `onElementChange` callback fires
+ * while `addElement` is still in flight, and both append to the list) can
+ * never produce a duplicate row.
+ */
+const upsertElement = (
+  list: GibsElementData[],
+  data: GibsElementData,
+): GibsElementData[] => {
+  const existing = list.find((e) => e.id === data.id);
+  if (existing) {
+    return list.map((e) => (e.id === data.id ? data : e));
+  }
+  return [...list, data];
+};
 
 export const App = () => {
   const intl = useIntl();
@@ -138,10 +132,6 @@ export const App = () => {
   // The output resolution preset. Controls the size/quality of the image
   // uploaded to Canva (high = 8192×4096, medium = 4096×2048, low = 2048×1024).
   const [resolution, setResolution] = useState<Resolution>("high");
-
-  // Whether to include a text label with the layer name and date beneath
-  // the satellite image on the canvas.
-  const [includeInfo, setIncludeInfo] = useState(false);
 
   const handleSelectLayer = async (layerId: string) => {
     const layer = ALL_LAYERS.find((l) => l.id === layerId);
@@ -184,6 +174,15 @@ export const App = () => {
   const staticLayer = selectedLayer ? isStaticLayer(selectedLayer.id) : false;
 
   const [isAdding, setIsAdding] = useState(false);
+  // Mirror of `isAdding` in a ref so the once-registered
+  // `registerOnElementChange` callback can read the *latest* value
+  // when handling the `undefined` case (best-effort deletion
+  // detection skips a refresh attempt while a fresh upload is in
+  // flight).
+  const isAddingRef = useRef(false);
+  useEffect(() => {
+    isAddingRef.current = isAdding;
+  }, [isAdding]);
   const [hasError, setHasError] = useState(false);
 
   // ── App element tracking ──────────────────────────────────────────────
@@ -191,8 +190,28 @@ export const App = () => {
   // `registerOnElementChange` fires with that element's data. We restore the
   // panel state (layer, date, region, resolution) from the stored metadata so
   // the user can tweak and update it in-place.
-  const elementUpdateRef = useRef<
-    | ((opts: {
+  // The currently selected element on the canvas. Source of truth
+  // for "which row is highlighted in the sidebar". We keep both a
+  // state value (for rendering) and a ref (for use inside the
+  // `registerOnElementChange` callback, which is registered once
+  // on mount and closes over the initial render).
+  const [selectedElementData, setSelectedElementData] = useState<
+    GibsElementData | undefined
+  >(undefined);
+  const selectedElementDataRef = useRef<GibsElementData | undefined>(undefined);
+  useEffect(() => {
+    selectedElementDataRef.current = selectedElementData;
+  }, [selectedElementData]);
+
+  // Per-element `update` function from the SDK. The SDK gives us one
+  // of these every time the user selects an element on the canvas
+  // (via the `element.update` handle). We keep one for every element
+  // we’ve ever seen so that clicking a sidebar row can re-anchor the
+  // selection on the canvas without creating a duplicate.
+  const updateFnsRef = useRef<
+    Map<
+      string,
+      (opts: {
         data: GibsElementData;
         placement?: {
           top: number;
@@ -200,28 +219,47 @@ export const App = () => {
           width: number;
           height: number;
         };
-      }) => Promise<void>)
-    | null
-  >(null);
-  const [selectedElementData, setSelectedElementData] = useState<
-    GibsElementData | undefined
-  >(undefined);
-  // Whether we have the `update` function for the selected element (i.e. it
-  // was selected on the canvas, not just from the sidebar list). Without it
-  // we can only add a new element, not update in-place.
+      }) => Promise<void>
+    >
+  >(new Map());
+
+  // Whether we have an `update` function for the currently-selected
+  // element. Drives the “Update layer” vs “Add to canvas” button
+  // label.
   const [canUpdateElement, setCanUpdateElement] = useState(false);
 
-  // A lightweight list of all satellite images the app has added to the
-  // canvas during this session. Each entry mirrors the data stored in the
-  // app element, so the list stays in sync with what's on the canvas.
+  // A lightweight list of all satellite images we know about. Each
+  // entry mirrors the data stored in the app element. The list grows
+  // both when we add a new element AND when the user selects a
+  // pre-existing element on the canvas (so old images from previous
+  // sessions show up after the user clicks them once).
   const [elementList, setElementList] = useState<GibsElementData[]>([]);
+
+  // Ref to the RegionMap's imperative handle. The App can call
+  // `regionMapRef.current?.requestRegion(bbox)` to ask the map to
+  // jump to a saved region without firing `onRegionChange` (which
+  // would clobber the panel's in-flight state).
+  const regionMapRef = useRef<{
+    requestRegion: (bbox: BoundingBox | undefined) => void;
+  } | null>(null);
 
   useEffect(() => {
     appElement.registerOnElementChange((element) => {
       if (element) {
+        // Our element is selected on the canvas. We:
+        //  - remember the per-element `update` handle (so a future
+        //    sidebar-row click can re-anchor the selection without
+        //    creating a duplicate);
+        //  - ensure the element is in the sidebar list (adding it if
+        //    this is a pre-existing element from a previous session
+        //    that we have not seen before);
+        //  - refresh the in-list data in case it was updated in
+        //    place on the canvas;
+        //  - update the panel state from the stored metadata.
+        updateFnsRef.current.set(element.data.id, element.update);
         setSelectedElementData(element.data);
-        elementUpdateRef.current = element.update;
         setCanUpdateElement(true);
+        setElementList((prev) => upsertElement(prev, element.data));
 
         // Restore panel state from the element's stored metadata.
         const layer = ALL_LAYERS.find((l) => l.id === element.data.layerId);
@@ -230,7 +268,6 @@ export const App = () => {
         }
         setSelectedDate(stringToDateObj(element.data.time));
         setResolution(element.data.resolution as Resolution);
-        setIncludeInfo(element.data.includeInfo);
         setRegion(
           element.data.fullGlobe
             ? undefined
@@ -242,31 +279,37 @@ export const App = () => {
               },
         );
       } else {
-        // The callback fires with `undefined` when the element is deselected
-        // OR deleted. We can't distinguish the two, but we can check whether
-        // the previously selected element's id still exists in our list. If
-        // it does, it was just deselected (keep it). If the SDK has already
-        // removed it from the canvas, it won't fire again with data for that
-        // element — so we leave the list as-is and just clear the selection.
+        // The element was deselected (or deleted). The SDK does not
+        // distinguish the two cases. We do NOT try to re-anchor
+        // anything here: the previous implementation called
+        // `appElement.addOrUpdateElement(lastSelected)` which, per
+        // the SDK docs, "creates a new app element" when no element
+        // is selected. That meant every click in empty space
+        // duplicated the previously-selected element. We now simply
+        // clear the selection state and let the user re-select by
+        // clicking the element on the canvas (or the sidebar row).
         setSelectedElementData(undefined);
-        elementUpdateRef.current = null;
         setCanUpdateElement(false);
       }
     });
+    // We intentionally only register once on mount.
   }, []);
 
-  /** Remove an element from the sidebar list (e.g. after canvas deletion). */
-  const handleRemoveFromList = useCallback((id: string) => {
-    setElementList((prev) => prev.filter((e) => e.id !== id));
-    setSelectedElementData((prev) => {
-      if (prev?.id === id) {
+  /** Remove an element from the sidebar list. Best-effort: also clears
+   * the canvas selection so the user can press Delete to actually
+   * remove the element from the design (the SDK has no public
+   * element-delete API in v2.10.1). */
+  const handleRemoveFromList = useCallback(
+    (id: string) => {
+      setElementList((prev) => prev.filter((e) => e.id !== id));
+      updateFnsRef.current.delete(id);
+      if (selectedElementData?.id === id) {
+        setSelectedElementData(undefined);
         setCanUpdateElement(false);
-        elementUpdateRef.current = null;
-        return undefined;
       }
-      return prev;
-    });
-  }, []);
+    },
+    [selectedElementData],
+  );
 
   /** Build the full data object from current panel state. */
   const buildElementData = useCallback(
@@ -292,7 +335,6 @@ export const App = () => {
         time: dateStr,
         resolution,
         mimeType: layer.format,
-        includeInfo,
         ref,
         imgWidth: width,
         imgHeight: height,
@@ -304,34 +346,70 @@ export const App = () => {
         maxLon: bbox.maxLon,
       };
     },
-    [region, resolution, includeInfo],
+    [region, resolution],
   );
 
-  /** Select an element from the list — restores its settings to the panel. */
-  const handleSelectFromList = (data: GibsElementData) => {
+  /**
+   * Select an element from the sidebar list. Restores its settings
+   * to the panel, jumps the map to its saved region, and re-anchors
+   * the selection on the canvas by calling the per-element `update`
+   * function we stored when the user previously selected that
+   * element on the canvas.
+   *
+   * If we don't have an `update` function for the element yet (e.g.
+   * the user has never clicked the element on the canvas), we fall
+   * back to `addOrUpdateElement`. Per the SDK docs, this updates the
+   * element if it's currently selected, otherwise it creates a new
+   * one — which is what we want for elements we have never seen.
+   */
+  const handleSelectFromList = async (data: GibsElementData) => {
     const layer = ALL_LAYERS.find((l) => l.id === data.layerId);
     if (layer) {
       setSelectedLayer(layer);
     }
     setSelectedDate(stringToDateObj(data.time));
     setResolution(data.resolution as Resolution);
-    setIncludeInfo(data.includeInfo);
-    setRegion(
-      data.fullGlobe
-        ? undefined
-        : {
-            minLat: data.minLat,
-            minLon: data.minLon,
-            maxLat: data.maxLat,
-            maxLon: data.maxLon,
-          },
-    );
+    const savedRegion: BoundingBox | undefined = data.fullGlobe
+      ? undefined
+      : {
+          minLat: data.minLat,
+          minLon: data.minLon,
+          maxLat: data.maxLat,
+          maxLon: data.maxLon,
+        };
+    setRegion(savedRegion);
+
+    // Jump the map to the saved region (without firing
+    // `onRegionChange`, so the panel's in-flight state isn't
+    // overwritten).
+    regionMapRef.current?.requestRegion(savedRegion);
+
     setSelectedElementData(data);
-    // Selecting from the sidebar restores settings but does NOT give us the
-    // canvas `update` function — that only comes from a canvas selection. So
-    // the user can adjust settings and add a new image, but not update in-place.
-    setCanUpdateElement(false);
-    elementUpdateRef.current = null;
+    const updateFn = updateFnsRef.current.get(data.id);
+    if (updateFn) {
+      // The element is known to exist on the canvas. Calling
+      // `update` with the same data re-anchors it as the active
+      // selection without creating a duplicate. The SDK will fire
+      // `onElementChange(element)` again to confirm.
+      try {
+        await updateFn({ data });
+      } catch {
+        // The element is gone. Drop it from the list.
+        handleRemoveFromList(data.id);
+      }
+    } else {
+      // We've never selected this element on the canvas (e.g. it
+      // was added by another panel instance in a previous session).
+      // Use `addOrUpdateElement` as a best-effort: per the SDK docs
+      // it updates the currently-selected element, otherwise it
+      // creates a new one with this data. We accept the "create
+      // new" case as the user explicitly asked for this layer.
+      try {
+        await appElement.addOrUpdateElement(data);
+      } catch {
+        // Nothing to do — the user can retry.
+      }
+    }
   };
 
   const time = dateObjToString(selectedDate);
@@ -369,7 +447,11 @@ export const App = () => {
    */
   const replaceSelectedImage = useCallback(
     async (layer: GibsLayer, dateStr: string) => {
-      if (!elementUpdateRef.current || !selectedElementData) {
+      if (!selectedElementData) {
+        return false;
+      }
+      const updateFn = updateFnsRef.current.get(selectedElementData.id);
+      if (!updateFn) {
         return false;
       }
       const ref = await uploadSnapshot(layer, dateStr, region);
@@ -391,11 +473,9 @@ export const App = () => {
         height,
         altTextStr,
       );
-      await elementUpdateRef.current({ data: newData });
+      await updateFn({ data: newData });
       // Keep the sidebar list in sync.
-      setElementList((prev) =>
-        prev.map((e) => (e.id === newData.id ? newData : e)),
-      );
+      setElementList((prev) => upsertElement(prev, newData));
       setSelectedElementData(newData);
       return true;
     },
@@ -428,24 +508,29 @@ export const App = () => {
         { name: selectedLayer.name, date: time },
       );
 
-      if (canUpdateElement && elementUpdateRef.current) {
+      if (canUpdateElement && selectedElementData) {
         // Update the currently selected element in-place.
-        // Update the currently selected element in-place.
-        const newData = buildElementData(
-          selectedElementData?.id ?? "",
-          selectedLayer,
-          time,
-          ref,
-          width,
-          height,
-          altTextStr,
-        );
-        await elementUpdateRef.current({ data: newData });
-        setElementList((prev) =>
-          prev.map((e) => (e.id === newData.id ? newData : e)),
-        );
-        setSelectedElementData(newData);
-      } else {
+        const updateFn = updateFnsRef.current.get(selectedElementData.id);
+        if (updateFn) {
+          const newData = buildElementData(
+            selectedElementData.id,
+            selectedLayer,
+            time,
+            ref,
+            width,
+            height,
+            altTextStr,
+          );
+          await updateFn({ data: newData });
+          setElementList((prev) => upsertElement(prev, newData));
+          setSelectedElementData(newData);
+          return;
+        }
+        // Fall through to "add a new element" if we don't have an
+        // update handle for the selected element.
+      }
+      {
+        // Add a new element to the canvas.
         // Add a new element to the canvas.
         const id = generateElementId();
         const data = buildElementData(
@@ -473,7 +558,11 @@ export const App = () => {
             height: elH,
           },
         });
-        setElementList((prev) => [...prev, data]);
+        // The SDK fires `onElementChange(element)` when the element is
+        // created (while `addElement` is still in flight), and both that
+        // callback and this path append to the list. `upsertElement`
+        // dedupes by id so we never show the row twice.
+        setElementList((prev) => upsertElement(prev, data));
       }
     } catch {
       setHasError(true);
@@ -531,7 +620,7 @@ export const App = () => {
           />
         </Text>
 
-        <RegionMap onRegionChange={setRegion} />
+        <RegionMap ref={regionMapRef} onRegionChange={setRegion} />
 
         <LayerBrowser
           categories={LAYER_CATEGORIES}
@@ -611,16 +700,6 @@ export const App = () => {
               />
             </div>
 
-            <Checkbox
-              checked={includeInfo}
-              onChange={(_, checked) => setIncludeInfo(checked)}
-              label={intl.formatMessage({
-                defaultMessage: "Include satellite info & date",
-                description:
-                  "Checkbox to add a text label with the layer name and date beneath the image on the canvas.",
-              })}
-            />
-
             {hasError && (
               <Alert tone="critical">
                 <FormattedMessage
@@ -693,8 +772,9 @@ export const App = () => {
                         },
                         { name: el.layerName, date: el.time },
                       )}
-                      disabled={isSelected}
-                      onClick={() => handleSelectFromList(el)}
+                      onClick={() => {
+                        void handleSelectFromList(el);
+                      }}
                     />
                     <Button
                       variant="tertiary"

@@ -1,0 +1,306 @@
+{
+  "categories": {
+    "Base Imagery": [
+      {
+        "id": "VIIRS_NOAA21_CorrectedReflectance_TrueColor",
+        "name": "True Color",
+        "subtitle": "Current (VIIRS NOAA-21)",
+        "description": "Default base map. Most current-generation daily true color, 375m. Use for 'what does it look like today/recently'.",
+        "role": "base",
+        "section": "imagery",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "legendId": null
+      },
+      {
+        "id": "MODIS_Terra_CorrectedReflectance_TrueColor",
+        "name": "True Color — Long Record (MODIS Terra)",
+        "description": "Only true-color option with a record back to 2000. Use for multi-year/decade before-after comparisons, not day-to-day snapshots.",
+        "role": "base",
+        "section": "imagery",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "legendId": null
+      },
+      {
+        "id": "BlueMarble_NextGeneration",
+        "name": "Blue Marble — Static Reference",
+        "description": "Static NASA Blue Marble reference imagery. Good fallback base when daily imagery is patchy; loads at Level8.",
+        "role": "base",
+        "section": "base",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/jpeg",
+        "legendId": null
+      }
+    ],
+    "Precipitation": [
+      {
+        "id": "IMERG_Precipitation_Rate_30min",
+        "name": "Rainfall — Right Now (IMERG NRT)",
+        "description": "Near-real-time global precipitation, 10km, updated every 30 min. The 'is it raining there today' layer. Use dates within the last few days.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": "GPM_Precipitation_Rate"
+      },
+      {
+        "id": "IMERG_Precipitation_Rate",
+        "name": "Rainfall — Historical Event (IMERG Archive)",
+        "description": "IMERG archive for reconstructing a specific past storm. Needs a full ISO datetime. Example default set to Cyclone Freddy's Mozambique landfall.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": "GPM_Precipitation_Rate"
+      }
+    ],
+    "Vegetation": [
+      {
+        "id": "MODIS_Terra_L3_NDVI_Monthly",
+        "name": "Vegetation Health — Trend (NDVI Monthly)",
+        "description": "Monthly NDVI composite, least cloud noise. Use for season-to-season or year-to-year comparison stories (crop stress, greening/browning trends).",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "legendId": "MODIS_NDVI"
+      },
+      {
+        "id": "VIIRS_NOAA20_NDVI_8Day",
+        "name": "Vegetation Health — Current (NDVI 8-Day)",
+        "description": "Current-generation 8-day NDVI composite. Use when the monthly layer is too stale for a fast-moving story.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "legendId": "MODIS_NDVI"
+      }
+    ],
+    "Air Quality": [
+      {
+        "id": "TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column",
+        "name": "Air Pollution — NO2 (TROPOMI)",
+        "description": "Best-available NO2 column, ~7km, near-daily. Urban pollution, industrial emissions, biomass burning. Use for city air-quality stories.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": null
+      },
+      {
+        "id": "MODIS_Combined_Value_Added_AOD",
+        "name": "Dust & Smoke — Aerosols (MODIS AOD)",
+        "description": "Combined aerosol optical depth, 10km. The Saharan dust / biomass-burning-smoke layer. Central for the Southern Africa burning-season and Sahara dust stories.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": "MODIS_Combined_Value_Added_AOD"
+      },
+      {
+        "id": "TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column",
+        "name": "Volcanic/Industrial — SO2 (TROPOMI)",
+        "description": "SO2 vertical column, ~7km, near-daily. Detects volcanic eruptions and industrial/power-plant emissions. Kept specifically for East African Rift volcano stories (e.g. Nyiragongo).",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": null
+      }
+    ],
+    "Wildfire": [
+      {
+        "id": "VIIRS_NOAA20_Thermal_Anomalies_375m_All",
+        "name": "Active Fires — Now (VIIRS NOAA-20)",
+        "description": "Flagship active-fire point layer, 375m, day+night. This is the headline wildfire layer.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true,
+        "group": "active_fires_viirs"
+      },
+      {
+        "id": "VIIRS_NOAA21_Thermal_Anomalies_375m_All",
+        "name": "Active Fires — Now (VIIRS NOAA-21, extra pass)",
+        "description": "Same product family as NOAA-20, adds an extra daily overpass. Surface as a togglable variant under 'Active Fires', not a separate menu item.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true,
+        "group": "active_fires_viirs"
+      },
+      {
+        "id": "VIIRS_SNPP_Thermal_Anomalies_375m_All",
+        "name": "Active Fires — Now (VIIRS SNPP, extra pass)",
+        "description": "Same product family, oldest VIIRS platform. Togglable variant under 'Active Fires' for maximum daily coverage.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true,
+        "group": "active_fires_viirs"
+      },
+      {
+        "id": "MODIS_Combined_Thermal_Anomalies_All",
+        "name": "Active Fires — Historical Record (MODIS)",
+        "description": "Coarser (1km) but the only fire-detection layer with a record back to the early 2000s. Use for 'is this worse than previous years' comparison stories.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true
+      },
+      {
+        "id": "VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1",
+        "name": "Burn Scars — False Color (VIIRS)",
+        "description": "375m false color; burn scars appear orange-red. Use alongside the active-fire points to show cumulative damage, not just today's detections.",
+        "role": "context",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "legendId": null
+      }
+    ],
+    "Floods": [
+      {
+        "id": "VIIRS_Combined_Flood_1-Day",
+        "name": "Flood Extent — Now (VIIRS, 375m)",
+        "description": "Best-resolution near-real-time flood extent. A frequent, distinct African story from precipitation — this is the 'impact' layer, IMERG is the 'cause' layer.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "legendId": null
+      }
+    ],
+    "Drought": [
+      {
+        "id": "SMAP_L3_Passive_Day_Soil_Moisture",
+        "name": "Soil Moisture — Surface (SMAP L3)",
+        "description": "Surface (0-5cm) soil moisture, ~36km, daily. Responds fast to rainfall deficit — use this over the L4 root-zone product for single-season drought stories.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": null
+      },
+      {
+        "id": "MODIS_Terra_L3_Land_Surface_Temp_Daily_Day",
+        "name": "Land Surface Temperature — Day (MODIS)",
+        "description": "1km daily daytime land surface temp. The heat-stress companion to soil moisture.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "legendId": "MODIS_Land_Surface_Temp"
+      },
+      {
+        "id": "GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI",
+        "name": "Groundwater Anomaly (GRACE-FO)",
+        "description": "~300km, monthly. Coarse, but the only satellite product that sees deep aquifer depletion. Kept specifically for basin-scale stories: Lake Chad, Nile/GERD.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": null
+      }
+    ],
+    "Context": [
+      {
+        "id": "GPW_Population_Density_2020",
+        "name": "Population Density (GPW v4)",
+        "description": "~5km. Not a story on its own — an overlay to turn any hazard layer into 'who is affected'. Offer as a toggle across all story modes, not its own category.",
+        "role": "context",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "legendId": null
+      }
+    ],
+    "Overlays": [
+      {
+        "id": "Coastlines",
+        "name": "Coastlines",
+        "description": "Static vector coastline reference overlay. Uses the GIBS 'default' time keyword, so it is date-independent and always available.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "legendId": null
+      },
+      {
+        "id": "Reference_Labels",
+        "name": "Place Labels",
+        "description": "Place and country labels (GIBS Reference_Labels, Level9). Static reference overlay.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "legendId": null
+      },
+      {
+        "id": "Reference_Features",
+        "name": "Reference Features",
+        "description": "Political border and feature lines (GIBS Reference_Features, Level9). Static reference overlay.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "legendId": null
+      },
+      {
+        "id": "Graticule_15m",
+        "name": "Graticule Grid",
+        "description": "Latitude/longitude graticule (GIBS Graticule_15m, Level13). Static reference overlay.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level13",
+        "format": "image/png",
+        "legendId": null
+      },
+      {
+        "id": "OSM_Land_Mask",
+        "name": "Land Mask",
+        "description": "OpenStreetMap-derived land/ocean mask (GIBS OSM_Land_Mask, Level9). Darkens oceans as an underlay.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "legendId": null
+      }
+    ]
+  },
+  "mapSettings": {
+    "center": [0, 30],
+    "zoom": 4,
+    "minZoom": 2,
+    "maxZoom": 12
+  },
+  "wmtsBaseUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best",
+  "wmsBaseUrl": "https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi",
+  "format": "image/png",
+  "_notes": {
+    "provenance": "Trimmed from the original ~150-layer catalogue (validated HTTP 200 against GIBS June 2026) down to 19 layers across 6 story categories + base imagery + one context overlay. Layer metadata (tileMatrixSet, format, legendId) copied as-is from that validated file — re-verify endpoints before shipping, since this pass only selected and re-tagged entries, it didn't re-hit the GIBS endpoint.",
+    "storyFirstUI": "Each category has one or more 'role: primary, storyDefault: true' layers meant to load automatically when a user picks that story mode. 'secondary' and 'context' layers are opt-in toggles, not separate top-level menu items.",
+    "fireGrouping": "The three VIIRS active-fire layers share group: 'active_fires_viirs' — render as one feature with a satellite-pass toggle, not three menu entries.",
+    "compositeDates": "NDVI monthly/8-day products use period-boundary dates — changing arbitrarily will 404.",
+    "timeFormat": "Per-layer dates are intentionally NOT stored here — resolved at runtime (default for daily layers is yesterday). Most layers use YYYY-MM-DD. IMERG archive uses full ISO datetime.",
+    "graceLag": "GRACE-FO has a historically multi-month to multi-year processing/release lag — when loading it, pick a date at least several months old.",
+    "geoSatellites": "GIBS has no useful geostationary coverage over Africa (its GEO layers are GOES/US-centric; Meteosat, which covers Africa, is EUMETSAT-only and not in GIBS). IMERG already fuses GEO-IR data internally, so this gap doesn't block the precipitation story."
+  }
+}

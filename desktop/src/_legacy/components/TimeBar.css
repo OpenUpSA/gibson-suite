@@ -1,0 +1,306 @@
+.timebar {
+  height: 70px;
+  background: rgba(34,34,34,0.9);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
+  z-index: 1600;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+  user-select: none;
+}
+
+/* Desktop order: [◀][▶] [date pickers] [timeline] [⏭] */
+.timebar-prev-btn       { order: 1; }
+.timebar-next-btn       { order: 2; }
+.timebar-date-pickers   { order: 3; }
+.timebar-timeline-container { order: 4; }
+.timebar-end-btn        { order: 5; }
+
+/* Buttons */
+.timebar-nav-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.timebar-nav-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.timebar-nav-btn:active {
+  background: rgba(255,255,255,0.04);
+}
+
+/* Date Pickers */
+.timebar-date-pickers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timebar-select {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #ffffff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.timebar-select:hover {
+  background: rgba(0,0,0,0.6);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.timebar-select:focus {
+  border-color: #5aa3d9;
+  box-shadow: 0 0 0 2px rgba(90, 163, 217, 0.2);
+}
+
+.timebar-year-select  { min-width: 70px; }
+.timebar-month-select { min-width: 60px; }
+.timebar-day-select   { min-width: 50px; }
+
+/* Timeline Container (scrollable) */
+.timebar-timeline-container {
+  flex: 1;
+  height: 50px;
+  position: relative;
+  background: rgba(0,0,0,0.4);
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.timebar-timeline-container::-webkit-scrollbar { height: 6px; }
+.timebar-timeline-container::-webkit-scrollbar-track { background: transparent; }
+.timebar-timeline-container::-webkit-scrollbar-thumb { background: #5aa3d9; border-radius: 3px; }
+.timebar-timeline-container::-webkit-scrollbar-thumb:hover { background: #6bb3e9; }
+
+/* Timeline (wide canvas) */
+.timebar-timeline {
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+  min-width: 100%;
+}
+
+/* Imagery availability (from GIBS capabilities) */
+.timebar-availability {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.timebar-availability-band {
+  position: absolute;
+  bottom: 2px;
+  height: 2px;
+  background: #4caf7d;
+  opacity: 0.6;
+  border-radius: 1px;
+}
+
+.timebar-availability-snap {
+  position: absolute;
+  bottom: 1px;
+  width: 1px;
+  height: 5px;
+  background: #7de0a8;
+  opacity: 0.8;
+}
+
+/* Tick marks */
+.timebar-ticks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.timebar-tick {
+  position: absolute;
+  width: 1px;
+  height: 6px;
+  background: #3a8fc7;
+  opacity: 0.2;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.timebar-tick.week  { height: 10px; opacity: 0.4; background: #4a9fd7; }
+.timebar-tick.month { height: 14px; opacity: 0.6; background: #5aa3d9; }
+
+/* Month markers */
+.timebar-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.timebar-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: 4px;
+}
+
+.timebar-marker::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 18px;
+  background: #5aa3d9;
+  opacity: 0.6;
+}
+
+.timebar-marker.year-start::before {
+  height: 24px;
+  opacity: 0.9;
+  background: #E3A520;
+}
+
+.timebar-marker-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 5px;
+  border-radius: 2px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.timebar-marker.year-start .timebar-marker-label {
+  color: #E3A520;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+/* Scrubber */
+.timebar-scrubber {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  cursor: grab;
+  z-index: 10;
+  transform: translateX(-6px);
+  pointer-events: auto;
+  width: 20px;
+  margin-left: -10px;
+}
+
+.timebar-scrubber:active { cursor: grabbing; }
+
+.timebar-scrubber-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 24px;
+  background: #e6a800;
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease;
+  pointer-events: none;
+}
+
+.timebar-scrubber:hover .timebar-scrubber-handle {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.timebar-scrubber-line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom,
+    rgba(255, 201, 60, 0) 0%,
+    rgba(255, 201, 60, 0.8) 20%,
+    rgba(255, 201, 60, 0.8) 80%,
+    rgba(255, 201, 60, 0) 100%
+  );
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .timebar {
+    height: 60px;
+    gap: 15px;
+    padding: 0 15px;
+  }
+
+  .timebar-select {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  .timebar-marker-label { font-size: 9px; }
+}
+
+@media (max-width: 768px) {
+  .timebar {
+    height: 52px;
+    gap: 10px;
+    padding: 0 12px;
+    padding-bottom: env(safe-area-inset-bottom);
+    justify-content: space-between;
+  }
+
+  /* Mobile order: [◀] [date pickers] [▶] [⏭] */
+  .timebar-prev-btn           { order: 1; }
+  .timebar-date-pickers       { order: 2; flex: 1; justify-content: center; gap: 6px; }
+  .timebar-next-btn           { order: 3; }
+  .timebar-end-btn            { order: 4; }
+  .timebar-timeline-container { display: none; }
+
+  .timebar-nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .timebar-select {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+}

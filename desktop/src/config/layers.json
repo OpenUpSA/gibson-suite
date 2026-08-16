@@ -1,1265 +1,796 @@
 {
   "categories": {
-    "Corrected Reflectance": [
-      {
-        "id": "VIIRS_NOAA20_CorrectedReflectance_TrueColor",
-        "name": "VIIRS NOAA-20 True Color",
-        "description": "True-color imagery from VIIRS on NOAA-20. 375m resolution, daily. Current-generation JPSS sensor with excellent calibration.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/jpeg",
-        "time": "2024-11-20",
-        "legendId": null
-      },
+    "True Color": {
+      "icon": "fluent:image-20-filled",
+      "description": "Natural-color imagery from NASA satellites, showing Earth as the human eye would see it. Ideal for visual storytelling and general context.",
+      "layers": [
       {
         "id": "VIIRS_NOAA21_CorrectedReflectance_TrueColor",
-        "name": "VIIRS NOAA-21 True Color",
-        "description": "True-color imagery from the newest JPSS satellite (launched 2022). 375m resolution, daily. Use for the most current daily imagery.",
+        "name": "True Color — Current",
+        "subtitle": "VIIRS NOAA-21",
+        "description": "Default base map. Most current-generation daily true color, 375m. Use for 'what does it look like today/recently'.",
+        "role": "base",
+        "section": "imagery",
+        "storyDefault": true,
         "tileMatrixSet": "GoogleMapsCompatible_Level9",
         "format": "image/jpeg",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_SNPP_CorrectedReflectance_TrueColor",
-        "name": "VIIRS SNPP True Color",
-        "description": "True-color from VIIRS on Suomi NPP. 375m resolution. Near-real-time, available within ~3 hours of acquisition. Record dates back to 2012.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/jpeg",
-        "time": "2024-11-20",
-        "legendId": null
+        "legendId": null,
+        "gibsDescription": "<p>True Color: Red = Band I1, Green = Band M4, Blue = Band M3</p>\n<p>These images are called true-color or natural color because this combination of wavelengths is similar to what the human eye would see. The images are natural-looking images of land surface, oceanic and atmospheric features.</p>\n<p>The Visible Infrared Imaging Radiometer Suite (VIIRS) Corrected Reflectance imagery is available only as near real-time imagery. The VIIRS instrument is aboard the joint NASA/NOAA NOAA-21 (JPSS-2) satellite. The imagery can be visualized in Worldview and the Global Imagery Browse Services (GIBS). The sensor resolution is 750 m and 375 m (M Bands are 750 m, I Bands are 375 m), imagery resolution is 250 m, and the temporal resolution is daily.</p>\n<p>Note: The Corrected Reflectance and the Thermal Band I5 imagery from NOAA-21/VIIRS will occasionally show a checkered pattern, especially over the respective polar areas. This is due to overlapping and superimposition of observations from multiple orbits with widely different cloud/snow coverages. The checkered pattern may also arise from the mixture of partial day and night observations. Though all necessary steps have been taken to mitigate this effect, users may still notice this to some extent over the polar areas, depending on the season.</p>\n<p>References<br></p>\n<p>VJ203MOD_NRT <a href=\"https://doi.org/10.5067/VIIRS/VJ203IMG_NRT.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ103MOD_NRT.021</a><br></p>\n<p>VJ203MOD <a href=\"https://doi.org/10.5067/VIIRS/VJ203MOD.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ203MOD.021</a><br></p>\n<p>VJ203IMG_NRT <a href=\"https://doi.org/10.5067/VIIRS/VJ203MOD_NRT.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ103IMG_NRT.021</a><br></p>\n<p>VJ203IMG <a href=\"https://doi.org/10.5067/VIIRS/VJ203IMG.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ203IMG.021</a><br></p>\n<p>VJ202MOD_NRT <a href=\"https://doi.org/10.5067/VIIRS/VJ202MOD_NRT.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ102MOD_NRT.021</a><br></p>\n<p>VJ202MOD <a href=\"https://doi.org/10.5067/VIIRS/VJ202MOD.002\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ202MOD.002</a><br></p>\n<p>VJ202IMG_NRT <a href=\"https://doi.org/10.5067/VIIRS/VJ202IMG_NRT.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ102IMG_NRT.021</a><br></p>\n<p>VJ202IMG <a href=\"https://doi.org/10.5067/VIIRS/VJ202IMG.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ202IMG.021</a></p>",
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-21 (JPSS-2)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375–750 m",
+          "temporalResolution": "Daily"
+        },
+        "startDate": "2023-02-10",
+        "endDate": "2026-08-04",
+        "latestDate": "2026-08-04",
+        "category": "True Color"
       },
       {
         "id": "MODIS_Terra_CorrectedReflectance_TrueColor",
-        "name": "MODIS Terra True Color",
-        "description": "True-color corrected reflectance from MODIS Terra. 250m resolution, morning overpass (~10:30 am local). Longest daily record from 2000.",
+        "name": "True Color — Long Record",
+        "description": "Only true-color option with a record back to 2000. Use for multi-year/decade before-after comparisons, not day-to-day snapshots.",
+        "role": "base",
+        "section": "imagery",
+        "storyDefault": false,
         "tileMatrixSet": "GoogleMapsCompatible_Level9",
         "format": "image/jpeg",
-        "time": "2024-11-20",
-        "legendId": null
-      },
-      {
-        "id": "MODIS_Aqua_CorrectedReflectance_TrueColor",
-        "name": "MODIS Aqua True Color",
-        "description": "True-color from MODIS Aqua. 250m resolution, afternoon overpass (~1:30 pm local). Pairs with Terra for fuller daily coverage.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/jpeg",
-        "time": "2024-11-20",
-        "legendId": null
-      },
-      {
-        "id": "MODIS_Terra_CorrectedReflectance_Bands721",
-        "name": "MODIS Terra False Color (7-2-1)",
-        "description": "False-color mapping SWIR, NIR, and Red from MODIS Terra. Burn scars appear vivid red-brown, healthy vegetation bright green, bare soil tan. Essential for fire and flood analysis at 250m.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/jpeg",
-        "time": "2024-11-20",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1",
-        "name": "VIIRS NOAA-20 False Color (fire/burn, M11-I2-I1)",
-        "description": "False-color from VIIRS NOAA-20 mapping SWIR, NIR, and Red at 375m. Burn scars appear orange-red, healthy vegetation bright green, flooded areas dark. Higher resolution than MODIS false colour.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/jpeg",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_NOAA20_CorrectedReflectance_BandsM3-I3-M11",
-        "name": "VIIRS NOAA-20 False Color (vegetation, M3-I3-M11)",
-        "description": "False-color from VIIRS NOAA-20 using Blue, SWIR, and SWIR-2. Highlights vegetation health and moisture — healthy canopy appears cyan, stressed vegetation turns yellow-orange. 375m resolution.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/jpeg",
-        "time": "2026-06-09",
-        "legendId": null
+        "legendId": null,
+        "gibsDescription": "<h4>MODIS Corrected Reflectance vs. MODIS Surface Reflectance</h4>\n<p>The MODIS Corrected Reflectance algorithm utilizes MODIS Level 1B data (the calibrated, geolocated radiances). It is not a standard, science quality product. The purpose of this algorithm is to provide natural-looking images by removing gross atmospheric effects, such as Rayleigh scattering, from MODIS visible bands 1-7. The algorithm was developed by the original MODIS Rapid Response team to address the needs of the fire monitoring community who want to see smoke. Corrected Reflectance shows smoke more clearly than the standard Surface Reflectance product. In contrast, the MODIS Land Surface Reflectance product (MOD09) is a more complete atmospheric correction algorithm that includes aerosol correction, and is designed to derive land surface properties. In clear atmospheric conditions the Corrected Reflectance product is very similar to the MOD09 product, but they depart from each other in presence of aerosols. If you wish to perform a complete atmospheric correction, please do not use the Corrected Reflectance algorithm. An additional difference is that the Land Surface Reflectance product is only tuned for calculating the reflectance over land surfaces.</p>\n<p>References: <a href=\"https://earthdata.nasa.gov/s3fs-public/2022-02/MODIS_True_Color.pdf\" target=\"_blank\" rel=\"noopener\">NASA Earthdata - Creating Reprojected True Color MODIS Images: A Tutorial</a>; <a href=\"https://forum.earthdata.nasa.gov/viewtopic.php?t=5203\" target=\"_blank\" rel=\"noopener\">NASA Earthdata Forum - LANCE FAQ</a></p>",
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra (EOS PM-1)",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "250 m – 1 km",
+          "temporalResolution": "Daily"
+        },
+        "startDate": "2000-02-24",
+        "endDate": "2026-08-04",
+        "latestDate": "2026-08-04",
+        "category": "True Color",
+        "subtitle": "MODIS Terra"
       }
-    ],
-    "Temperature": [
-      {
-        "id": "AIRS_L3_Surface_Air_Temperature_Daily_Day",
-        "name": "Surface Air Temp (AIRS L3, Day)",
-        "description": "L3 gridded daytime air temperature at 2 m above surface from AIRS. Gap-free daily global coverage at ~1° resolution — no orbital banding. Note: 3–5 day processing lag; use a recent but not yesterday's date.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "AIRS_Surface_Air_Temperature_Daily_Day"
-      },
-      {
-        "id": "AIRS_L3_Surface_Air_Temperature_Daily_Night",
-        "name": "Surface Air Temp (AIRS L3, Night)",
-        "description": "L3 gridded nighttime air temperature at 2 m from AIRS. Gap-free daily global at ~1°. Compare with day to see diurnal range.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "AIRS_Surface_Air_Temperature_Daily_Night"
-      },
-      {
-        "id": "MODIS_Terra_L3_Land_Surface_Temp_Daily_Day",
-        "name": "Land Surface Temp (MODIS Terra L3, Day)",
-        "description": "L3 daytime land surface temperature from MODIS Terra. 1 km, daily. Measures ground temperature — critical for drought, urban heat, and crop stress. Morning overpass captures mid-morning temperatures.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_Land_Surface_Temp"
-      },
-      {
-        "id": "MODIS_Terra_L3_Land_Surface_Temp_Daily_Night",
-        "name": "Land Surface Temp (MODIS Terra L3, Night)",
-        "description": "L3 nighttime land surface temperature from MODIS Terra. 1 km, daily. Night temperatures reveal soil moisture conditions and minimum cooling. Compare with day to study heat retention.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-08",
-        "legendId": "MODIS_Land_Surface_Temp"
-      },
-      {
-        "id": "MODIS_Aqua_L3_Land_Surface_Temp_Daily_Day",
-        "name": "Land Surface Temp (MODIS Aqua L3, Day)",
-        "description": "L3 afternoon daytime land surface temperature from MODIS Aqua. 1 km, daily. Afternoon overpass captures peak daily temperatures — ideal for heat-stress and urban heat-island analysis.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-08",
-        "legendId": "MODIS_Land_Surface_Temp"
-      },
-      {
-        "id": "MODIS_Aqua_L3_Land_Surface_Temp_Daily_Night",
-        "name": "Land Surface Temp (MODIS Aqua L3, Night)",
-        "description": "L3 nighttime land surface temperature from MODIS Aqua. 1 km, daily. Aqua night pass fills spatial gaps left by Terra — useful in persistently cloudy regions.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-08",
-        "legendId": "MODIS_Land_Surface_Temp"
-      },
-      {
-        "id": "MODIS_Terra_L3_Land_Surface_Temp_8Day_Day",
-        "name": "Land Surface Temp 8-Day (MODIS Terra, Day)",
-        "description": "8-day composite daytime land surface temperature from MODIS Terra. 1 km. Best-quality pixel over 8 days — far fewer cloud gaps than the daily product. Use for heat stress and drought monitoring where daily coverage is too patchy.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-05-25",
-        "legendId": "MODIS_Land_Surface_Temp"
-      },
-      {
-        "id": "MODIS_Terra_L3_Land_Surface_Temp_8Day_Night",
-        "name": "Land Surface Temp 8-Day (MODIS Terra, Night)",
-        "description": "8-day composite nighttime land surface temperature from MODIS Terra. 1 km. Reduced cloud gaps vs daily — use to study minimum temperatures and heat retention over persistently cloudy regions.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-05-25",
-        "legendId": "MODIS_Land_Surface_Temp"
-      },
-      {
-        "id": "MODIS_Aqua_L3_Land_Surface_Temp_8Day_Day",
-        "name": "Land Surface Temp 8-Day (MODIS Aqua, Day)",
-        "description": "8-day composite daytime land surface temperature from MODIS Aqua. 1 km. Afternoon overpass composite — captures peak daily temperatures with fewer cloud gaps than the daily product.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-05-25",
-        "legendId": "MODIS_Land_Surface_Temp"
-      },
-      {
-        "id": "MODIS_Aqua_L3_Land_Surface_Temp_8Day_Night",
-        "name": "Land Surface Temp 8-Day (MODIS Aqua, Night)",
-        "description": "8-day composite nighttime land surface temperature from MODIS Aqua. 1 km. Aqua night composite fills persistent gap regions left by Terra — good for cloud-prone coastal and tropical areas.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-05-25",
-        "legendId": "MODIS_Land_Surface_Temp"
-      },
-      {
-        "id": "VIIRS_NOAA20_Land_Surface_Temp_Day",
-        "name": "Land Surface Temp (VIIRS NOAA-20, Day)",
-        "description": "Daytime land surface temperature from VIIRS on NOAA-20. 750 m, daily. Current-generation sensor with improved calibration over MODIS. Good spatial detail for urban and agricultural heat monitoring.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_NOAA20_Land_Surface_Temp_Night",
-        "name": "Land Surface Temp (VIIRS NOAA-20, Night)",
-        "description": "Nighttime land surface temperature from VIIRS NOAA-20. 750 m, daily. Night temperatures assess surface moisture and map minimum temperatures.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      }
-    ],
-    "Vegetation & Land Cover": [
-      {
-        "id": "MODIS_Terra_NDVI_8Day",
-        "name": "NDVI 8-Day Composite (MODIS Terra)",
-        "description": "Normalised Difference Vegetation Index from MODIS Terra. 8-day composite at 250 m — high temporal frequency for monitoring rapid vegetation changes such as post-rain greening and fire recovery.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": "MODIS_NDVI"
-      },
-      {
-        "id": "MODIS_Terra_L3_NDVI_16Day",
-        "name": "NDVI 16-Day Composite (MODIS Terra, L3)",
-        "description": "NDVI from MODIS Terra L3. 16-day composite at 250 m, maximum-value composite reduces cloud contamination. Values −1 to +1 — higher means denser vegetation. Note: only valid on 16-day period boundaries.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_NDVI"
-      },
-      {
-        "id": "MODIS_Terra_L3_NDVI_Monthly",
-        "name": "NDVI Monthly Composite (MODIS Terra, L3)",
-        "description": "Monthly NDVI composite from MODIS Terra L3 at 1 km. Less cloud contamination than daily or 8-day products — ideal for trend analysis and long-term drought monitoring.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-04-01",
-        "legendId": "MODIS_NDVI"
-      },
-      {
-        "id": "VIIRS_NOAA20_NDVI_8Day",
-        "name": "NDVI 8-Day (VIIRS NOAA-20)",
-        "description": "Normalised Difference Vegetation Index from VIIRS NOAA-20. 8-day composite at 500 m. Current-generation sensor — use for the most recent data or to cross-validate MODIS NDVI.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": "MODIS_NDVI"
-      },
-      {
-        "id": "MODIS_Terra_EVI_8Day",
-        "name": "EVI 8-Day Composite (MODIS Terra)",
-        "description": "Enhanced Vegetation Index from MODIS Terra. 8-day composite at 250 m. More sensitive than NDVI in high-biomass areas — reduces atmospheric and soil background noise. Preferred in tropical forest regions.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": "MODIS_EVI"
-      },
-      {
-        "id": "MODIS_Terra_L3_EVI_16Day",
-        "name": "EVI 16-Day Composite (MODIS Terra, L3)",
-        "description": "EVI from MODIS Terra L3. 16-day composite at 250 m with cloud compositing. Use in dense forest areas where NDVI saturates.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_EVI"
-      },
-      {
-        "id": "VIIRS_NOAA20_EVI_8Day",
-        "name": "EVI 8-Day (VIIRS NOAA-20)",
-        "description": "Enhanced Vegetation Index from VIIRS NOAA-20. 8-day composite at 500 m. Current-generation EVI — consistent methodology with MODIS for long-term trend comparisons.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": "MODIS_EVI"
-      },
-      {
-        "id": "MODIS_Combined_L3_IGBP_Land_Cover_Type_Annual",
-        "name": "Land Cover Type (IGBP, Annual)",
-        "description": "Annual global land cover at 500 m using the IGBP classification from combined MODIS Terra+Aqua. 17 classes: forest, savanna, grassland, cropland, urban, water, and more.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2024-01-01",
-        "legendId": null
-      },
-      {
-        "id": "GEDI_ISS_L3_Canopy_Height_Mean_RH100_201904-202303",
-        "name": "Canopy Height Mean (GEDI 2019–2023)",
-        "description": "Mean vegetation canopy height from NASA GEDI lidar on the ISS. Cumulative 2019–2023 dataset at ~1 km. RH100 = tallest vegetation return. Critical for mapping Africa's forest cover, degradation, and carbon stocks.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2019-04-18",
-        "legendId": null
-      },
-      {
-        "id": "GEDI_ISS_L4B_Aboveground_Biomass_Density_Mean_201904-202303",
-        "name": "Aboveground Biomass Density (GEDI 2019–2023)",
-        "description": "Mean aboveground biomass density in Mg/ha from NASA GEDI lidar. Cumulative 2019–2023 at ~1 km. Directly estimated from lidar waveform structure — unprecedented accuracy for African forest carbon monitoring.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2019-04-18",
-        "legendId": null
-      },
-      {
-        "id": "OPERA_L3_DIST-ALERT-HLS_Color_Index",
-        "name": "Vegetation Disturbance Alert (OPERA/HLS, 30 m)",
-        "description": "Near-real-time vegetation disturbance detection at 30 m from Harmonized Landsat Sentinel-2. Highlights recent changes from fire, drought, deforestation, or flooding. Zoom to level 10+ for full detail.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level12",
-        "format": "image/png",
-        "time": "2026-06-07",
-        "legendId": null
-      },
-      {
-        "id": "OCO-2_Solar_Induced_Florescence_Blended",
-        "name": "Solar-Induced Fluorescence (OCO-2, Blended)",
-        "description": "Solar-induced chlorophyll fluorescence (SIF) from OCO-2. A direct proxy for gross primary production (photosynthesis). More sensitive than NDVI to actual carbon uptake — reveals drought stress before greenness declines.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2025-08-13",
-        "legendId": null
-      },
-      {
-        "id": "MODIS_Combined_L3_Black_Sky_Albedo_Daily",
-        "name": "Black-Sky Albedo Daily (MODIS Combined L3)",
-        "description": "Daily black-sky (directional-hemispherical) albedo from combined MODIS Terra+Aqua at 1 km. Measures the fraction of incoming solar radiation reflected under direct beam illumination. Input for surface energy balance and climate models.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "MODIS_Combined_L3_White_Sky_Albedo_Daily",
-        "name": "White-Sky Albedo Daily (MODIS Combined L3)",
-        "description": "Daily white-sky (bi-hemispherical) albedo from combined MODIS Terra+Aqua at 1 km. Albedo under completely diffuse illumination. Compare with black-sky albedo to see the effect of atmospheric scattering.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "MEaSUREs_Daily_Landscape_Freeze_Thaw_AMSRE",
-        "name": "Freeze/Thaw State (MEaSUREs, AMSR-E)",
-        "description": "Daily landscape freeze/thaw state from AMSR-E on Aqua. Classifies each grid cell as frozen, thawed or transitional. ~1 km. Important for high-latitude phenology, carbon cycle and permafrost studies.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2010-06-01",
-        "legendId": null
-      }
-    ],
-    "Floods & Surface Water": [
-      {
-        "id": "MODIS_Combined_Flood_1-Day",
-        "name": "Flood Extent 1-Day (MODIS)",
-        "description": "Daily surface water and flood extent from combined MODIS Terra+Aqua. 250 m. Detects anomalous surface water vs a long-term baseline — use for near-real-time flood mapping.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "MODIS_Combined_Flood_2-Day",
-        "name": "Flood Extent 2-Day (MODIS)",
-        "description": "2-day composite flood extent from combined MODIS. 250 m. Fewer cloud gaps than the 1-day product with minimal temporal lag.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "MODIS_Combined_Flood_3-Day",
-        "name": "Flood Extent 3-Day (MODIS)",
-        "description": "3-day composite flood extent from MODIS. 250 m. Best cloud coverage of the MODIS flood series — use in persistently cloudy regions.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_Combined_Flood_1-Day",
-        "name": "Flood Extent 1-Day (VIIRS, 375 m)",
-        "description": "Daily flood extent from combined VIIRS sensors. 375 m — finer spatial detail than MODIS flood products. Best available near-real-time flood mapping at this resolution.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_Combined_Flood_2-Day",
-        "name": "Flood Extent 2-Day (VIIRS, 375 m)",
-        "description": "2-day composite flood extent from VIIRS. 375 m resolution. Reduces cloud gaps while keeping near-real-time response.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_Combined_Flood_3-Day",
-        "name": "Flood Extent 3-Day (VIIRS, 375 m)",
-        "description": "3-day composite flood extent from VIIRS. 375 m. Best cloud coverage of the VIIRS flood series.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "OPERA_L3_Dynamic_Surface_Water_Extent-HLS",
-        "name": "Surface Water Extent (OPERA/HLS, 30 m)",
-        "description": "Dynamic surface water extent at 30 m from Harmonized Landsat Sentinel-2. Near-real-time high-resolution water mapping. Detects rivers, lakes, reservoirs, and floodplains. Zoom to level 10+ for full detail.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level12",
-        "format": "image/png",
-        "time": "2026-06-08",
-        "legendId": null
-      },
-      {
-        "id": "OPERA_L3_Dynamic_Surface_Water_Extent-Sentinel-1",
-        "name": "Surface Water Extent (SAR, Sentinel-1, 30 m)",
-        "description": "Dynamic surface water extent at 30 m from Sentinel-1 SAR. Works through cloud cover — SAR penetrates clouds unlike optical sensors, making it essential for flood monitoring during active rain events.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level12",
-        "format": "image/png",
-        "time": "2026-06-06",
-        "legendId": null
-      }
-    ],
-    "Precipitation": [
+    ]
+    },
+    "Precipitation": {
+      "icon": "fluent:weather-rain-20-filled",
+      "description": "Rain and snowfall measurements from satellite sensors. Track storms, monsoons, and rainfall anomalies over time.",
+      "layers": [
       {
         "id": "IMERG_Precipitation_Rate_30min",
-        "name": "Precipitation Rate — Near Real-Time (IMERG, 30-min)",
-        "description": "Near-real-time global precipitation from the GPM constellation. 10 km resolution, updated every 30 minutes. The most current available global rainfall estimate. Use dates within the last few days.",
+        "name": "Precipitation — Right Now",
+        "description": "Near-real-time global precipitation, 10km, updated every 30 min. The 'is it raining there today' layer. Use dates within the last few days.",
+        "role": "primary",
+        "storyDefault": true,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": "GPM_Precipitation_Rate"
+        "legendId": "GPM_Precipitation_Rate",
+        "section": "imagery",
+        "category": "Precipitation",
+        "subtitle": "IMERG NRT"
       },
       {
         "id": "IMERG_Precipitation_Rate",
-        "name": "Precipitation Rate — Archive (IMERG, 30-min)",
-        "description": "GPM IMERG 30-minute precipitation archive. 10 km resolution. Use for specific historical events — supply a full datetime e.g. 2024-11-29T23:30:00Z. Archive dates back to 2000.",
+        "name": "Precipitation — Historical Event",
+        "description": "IMERG archive for reconstructing a specific past storm. Needs a full ISO datetime. Example default set to Cyclone Freddy's Mozambique landfall.",
+        "role": "secondary",
+        "storyDefault": false,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2024-11-29T23:30:00Z",
-        "legendId": "GPM_Precipitation_Rate"
-      },
-      {
-        "id": "GMI_Precipitation_Rate_Asc",
-        "name": "Precipitation Rate — GPM Core Satellite (Ascending)",
-        "description": "Instantaneous precipitation rate from the GPM Microwave Imager on the GPM Core Observatory. Ascending orbital swath — shows the actual satellite pass, not a gridded product. 5 km resolution.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": null
-      },
-      {
-        "id": "AIRS_Precipitation_Day",
-        "name": "Precipitation (AIRS, Daily)",
-        "description": "Daily precipitation estimate from AIRS sounder on Aqua. Global coverage at ~50 km resolution. Note: 7–10 day processing lag; use a recent archived date.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2025-12-16",
-        "legendId": null
-      },
-      {
-        "id": "GLDAS_Surface_Total_Precipitation_Rate_Monthly",
-        "name": "Precipitation Rate — Monthly Climatology (GLDAS)",
-        "description": "Monthly mean precipitation from the Global Land Data Assimilation System (GLDAS). 0.25° resolution, updated monthly. Useful for seasonal climatology and drought indices.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-01-01",
-        "legendId": null
-      },
-      {
-        "id": "LIS_Very_High_Resolution_Lightning_Full_Climatology_LIS_Mean_Flash_Rate",
-        "name": "Lightning Flash Rate Climatology (LIS, Full)",
-        "description": "Mean total lightning flash rate from the LIS (TRMM + ISS) full climatology. ~0.5°. The Congo Basin is the most lightning-prone region on Earth — this layer visualises the global hotspot.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "1998-01-01",
-        "legendId": null
-      },
-      {
-        "id": "LIS_Very_High_Resolution_Lightning_Monthly_Climatology_LIS_Mean_Flash_Rate",
-        "name": "Lightning Flash Rate Monthly Climatology (LIS)",
-        "description": "Monthly mean lightning flash rate from LIS climatology. 12 monthly steps reveal the seasonal migration of thunderstorm activity — peak in boreal spring over the Congo Basin and autumn over the Sahel.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "1998-01-01",
-        "legendId": null
-      },
-      {
-        "id": "LIS_Very_High_Resolution_Lightning_Seasonal_Climatology_LIS_Mean_Flash_Rate",
-        "name": "Lightning Flash Rate Seasonal Climatology (LIS)",
-        "description": "Seasonal mean lightning flash rate from LIS climatology (DJF, MAM, JJA, SON). Shows the progression of thunderstorm activity across Africa through the year.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "1998-01-01",
-        "legendId": null
+        "legendId": "GPM_Precipitation_Rate",
+        "section": "imagery",
+        "category": "Precipitation",
+        "subtitle": "IMERG Archive"
       }
-    ],
-    "Soil Moisture": [
+    ]
+    },
+    "Vegetation": {
+      "icon": "fluent:leaf-20-filled",
+      "description": "Plant health and density indicators (NDVI, EVI). Monitor drought impact, crop health, and seasonal greenness changes.",
+      "layers": [
       {
-        "id": "SMAP_L3_Passive_Day_Soil_Moisture",
-        "name": "Soil Moisture — Surface (SMAP L3, Day)",
-        "description": "Daily surface soil moisture (0–5 cm) from NASA SMAP passive radiometer. ~36 km resolution. Near-real-time daily global coverage. High values indicate wet soil; low values indicate drought stress.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "id": "MODIS_Terra_L3_NDVI_Monthly",
+        "name": "Vegetation — NDVI Trend",
+        "description": "Monthly NDVI composite, least cloud noise. Use for season-to-season or year-to-year comparison stories (crop stress, greening/browning trends).",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
         "format": "image/png",
-        "time": "2026-05-06",
-        "legendId": null
+        "legendId": "MODIS_NDVI",
+        "section": "imagery",
+        "category": "Vegetation",
+        "subtitle": "MODIS Terra Monthly"
       },
       {
-        "id": "SMAP_L4_Analyzed_Surface_Soil_Moisture",
-        "name": "Soil Moisture — Surface (SMAP L4, Modeled)",
-        "description": "Surface soil moisture (0–5 cm) from SMAP Level-4 land surface model. ~9 km resolution, 3-hourly. Gap-filled using model + observations. More spatially complete than L3 passive alone.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-05-05",
-        "legendId": null
-      },
-      {
-        "id": "SMAP_L4_Analyzed_Root_Zone_Soil_Moisture",
-        "name": "Soil Moisture — Root Zone (SMAP L4, Modeled)",
-        "description": "Root-zone soil moisture (0–100 cm) from SMAP Level-4. ~9 km, 3-hourly. Captures moisture available to plant roots — most directly related to agricultural drought and vegetation stress.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-05-05",
-        "legendId": null
-      },
-      {
-        "id": "LPRM_AMSR2_Surface_Soil_Moisture_C1_Band_Day_Daily",
-        "name": "Soil Moisture — Surface (AMSR-2 LPRM, Day)",
-        "description": "Daily surface soil moisture from AMSR-2 using the Land Parameter Retrieval Model (LPRM). ~25 km resolution. Independent of SMAP — useful for cross-validation and continuity with the AMSRE record.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-04",
-        "legendId": null
-      },
-      {
-        "id": "GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI",
-        "name": "Groundwater Anomaly (GRACE-FO Mascon)",
-        "description": "Liquid water equivalent thickness anomaly from GRACE-FO mascon solutions. ~300 km resolution, monthly. Captures total water storage change including groundwater — the only satellite product sensitive to deep aquifer depletion.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2022-07-01",
-        "legendId": null
-      }
-    ],
-    "Snow & Ice": [
-      {
-        "id": "MODIS_Terra_L3_NDSI_Snow_Cover_Daily",
-        "name": "Snow Cover Daily (MODIS Terra, NDSI)",
-        "description": "Daily snow cover from MODIS Terra at 500 m using the Normalised Difference Snow Index (NDSI). Morning overpass. Shows snow on land and ice on water bodies.",
+        "id": "VIIRS_NOAA20_NDVI_8Day",
+        "name": "Vegetation — NDVI Current",
+        "description": "Current-generation 8-day NDVI composite. Use when the monthly layer is too stale for a fast-moving story.",
+        "role": "secondary",
+        "storyDefault": false,
         "tileMatrixSet": "GoogleMapsCompatible_Level8",
         "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_Snow_Cover"
-      },
-      {
-        "id": "MODIS_Aqua_L3_NDSI_Snow_Cover_Daily",
-        "name": "Snow Cover Daily (MODIS Aqua, NDSI)",
-        "description": "Daily snow cover from MODIS Aqua at 500 m using NDSI. Afternoon overpass complements Terra for fuller daily coverage, particularly useful where morning pass is cloud-obscured.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_Snow_Cover"
-      },
-      {
-        "id": "VIIRS_NOAA20_NDSI_Snow_Cover",
-        "name": "Snow Cover Daily (VIIRS NOAA-20, NDSI)",
-        "description": "Daily snow cover from VIIRS NOAA-20 at 375 m — higher resolution than MODIS snow products. Current-generation sensor. Useful for mountain snowpack monitoring in the Atlas and Ethiopian Highlands.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": "MODIS_Snow_Cover"
+        "legendId": "MODIS_NDVI",
+        "section": "imagery",
+        "category": "Vegetation",
+        "subtitle": "VIIRS NOAA-20"
       }
-    ],
-    "Water Vapor & Clouds": [
+    ]
+    },
+    "Air Quality": {
+      "icon": "fluent:weather-fog-20-filled",
+      "description": "Atmospheric composition data including aerosols, dust, smoke, and pollutant concentrations. Key for air quality reporting.",
+      "layers": [
       {
-        "id": "MODIS_Aqua_Water_Vapor_5km_Day",
-        "name": "Water Vapor Column (MODIS Aqua, Day)",
-        "description": "Total column water vapor from MODIS Aqua. 5 km, daily. Shows atmospheric moisture content — useful for weather forecasting and tracking moisture transport into Africa.",
+        "id": "TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column",
+        "name": "Air Quality — NO₂",
+        "description": "Best-available NO2 column, ~7km, near-daily. Urban pollution, industrial emissions, biomass burning. Use for city air-quality stories.",
+        "role": "primary",
+        "storyDefault": true,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_Water_Vapor"
-      },
-      {
-        "id": "MODIS_Terra_Water_Vapor_5km_Day",
-        "name": "Water Vapor Column (MODIS Terra, Day)",
-        "description": "Total column water vapor from MODIS Terra. 5 km, daily. Morning overpass complements Aqua — use together to see diurnal moisture changes over land.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": "MODIS_Water_Vapor"
-      },
-      {
-        "id": "MODIS_Aqua_Cloud_Top_Temp_Day",
-        "name": "Cloud Top Temperature (MODIS Aqua, Day)",
-        "description": "Temperature at cloud tops from MODIS Aqua. 5 km. Colder values indicate taller, more vigorous convective clouds and potentially severe weather. Essential for thunderstorm monitoring.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_Cloud_Top_Temp"
-      },
-      {
-        "id": "MODIS_Terra_Cloud_Top_Temp_Day",
-        "name": "Cloud Top Temperature (MODIS Terra, Day)",
-        "description": "Cloud top temperature from MODIS Terra. 5 km. Pairs with Aqua to give two daily snapshots of cloud height and storm intensity.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_Cloud_Top_Temp"
-      },
-      {
-        "id": "VIIRS_NOAA20_Cloud_Top_Height_Day",
-        "name": "Cloud Top Height (VIIRS NOAA-20, Day)",
-        "description": "Geometric cloud top height from VIIRS NOAA-20. 750 m, daily. Height in metres rather than temperature — directly interpretable for convective storm analysis.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-08",
-        "legendId": null
-      },
-      {
-        "id": "AIRS_L2_Total_Cloud_Fraction_Day",
-        "name": "Cloud Fraction (AIRS, Day)",
-        "description": "Fraction of sky covered by cloud from the AIRS sounder. Daily swath at ~15 km resolution. Useful for understanding cloud climatology and regional cloud cover patterns.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      }
-    ],
-    "Ocean & Water Quality": [
-      {
-        "id": "GHRSST_L4_MUR_Sea_Surface_Temperature",
-        "name": "Sea Surface Temperature (MUR L4)",
-        "description": "Multi-sensor blended L4 SST. Gap-free daily global at 1 km. Shows ocean temperature patterns, upwelling zones, and thermal fronts. MUR algorithm combines multiple satellite sensors. Use full datetime: e.g. 2024-11-29T09:00:00Z.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2024-11-29T09:00:00Z",
-        "legendId": "GHRSST_Sea_Surface_Temperature"
-      },
-      {
-        "id": "GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies",
-        "name": "Sea Surface Temperature Anomaly (MUR L4)",
-        "description": "Daily SST anomaly relative to a long-term climatological baseline. 1 km, gap-free. Positive anomalies (warm) highlight marine heat waves; negative anomalies reveal upwelling and cold events.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-08",
-        "legendId": null
-      },
-      {
-        "id": "GHRSST_L4_GAMSSA_GDS2_Sea_Surface_Temperature",
-        "name": "Sea Surface Temperature (GAMSSA L4)",
-        "description": "Australian BoM GAMSSA blended L4 SST using AVHRR + AMSR sensors. Daily global at ~11 km resolution. An independent SST dataset useful for cross-comparison with MUR around the southern African coast.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-08",
-        "legendId": null
-      },
-      {
-        "id": "MODIS_Aqua_L2_Chlorophyll_A",
-        "name": "Ocean Chlorophyll-a (MODIS Aqua L2)",
-        "description": "Ocean chlorophyll-a concentration from MODIS Aqua. Proxy for phytoplankton biomass and ocean primary productivity. 1 km swath. High values (green) = algal blooms; low values (blue) = clear ocean.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_Chlorophyll_A"
-      },
-      {
-        "id": "VIIRS_NOAA20_Chlorophyll_a",
-        "name": "Ocean Chlorophyll-a (VIIRS NOAA-20)",
-        "description": "Chlorophyll-a from VIIRS NOAA-20. 750 m swath, daily. Current-generation ocean color product — useful for monitoring Benguela and Somali upwelling productivity.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": "MODIS_Chlorophyll_A"
-      },
-      {
-        "id": "S3A_OLCI_Chlorophyll_a",
-        "name": "Ocean Chlorophyll-a (Sentinel-3A OLCI)",
-        "description": "Chlorophyll-a from the Sentinel-3A OLCI ocean colour sensor. ~300 m resolution — the highest-resolution operational ocean colour product. Ideal for coastal and inland water quality monitoring.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-04-28",
-        "legendId": "MODIS_Chlorophyll_A"
-      },
-      {
-        "id": "JPL_MEaSUREs_L4_Sea_Surface_Height_Anomalies",
-        "name": "Sea Surface Height Anomaly (MEaSUREs L4)",
-        "description": "Gridded sea surface height anomaly from multiple altimeters (TOPEX/Poseidon, Jason series). ~25 km, 5-day. Tracks ocean circulation, eddies, and sea level rise. Positive anomalies = higher sea surface.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2017-10-29",
-        "legendId": null
-      },
-      {
-        "id": "SMAP_L3_Sea_Surface_Salinity_CAP_Monthly",
-        "name": "Sea Surface Salinity (SMAP L3, Monthly)",
-        "description": "Monthly sea surface salinity from SMAP using the CAP algorithm. ~40 km. Monitors freshwater flux, river plume dispersal (Congo, Niger, Zambezi), and evaporation-precipitation patterns.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2025-01-01",
-        "legendId": null
-      },
-      {
-        "id": "SMAP_L3_Sea_Surface_Salinity_CAP_8Day_RunningMean",
-        "name": "Sea Surface Salinity (SMAP L3, 8-Day Running Mean)",
-        "description": "8-day running mean sea surface salinity from SMAP. Higher temporal frequency than monthly — better for observing short-term freshwater events like flood plumes and monsoon-driven dilution.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-03-29",
-        "legendId": null
-      },
-      {
-        "id": "OSCAR_Sea_Surface_Currents_Zonal",
-        "name": "Sea Surface Currents — Zonal Component (OSCAR)",
-        "description": "Zonal (east-west) near-surface ocean current velocity from OSCAR. ~25 km, 5-day. Derived from altimetry, scatterometer winds and SST. Shows the Angola, Agulhas and Somali current systems.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2024-07-07",
-        "legendId": null
-      },
-      {
-        "id": "OSCAR_Sea_Surface_Currents_Meridional",
-        "name": "Sea Surface Currents — Meridional Component (OSCAR)",
-        "description": "Meridional (north-south) near-surface ocean current velocity from OSCAR. Complements the zonal component for full vector current visualisation across the Agulhas, Benguela and Somali currents.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2024-07-07",
-        "legendId": null
-      },
-      {
-        "id": "AMSRU2_Sea_Ice_Concentration_12km",
-        "name": "Sea Ice Concentration (AMSR2, 12 km)",
-        "description": "Daily sea ice concentration from AMSR2 on GCOM-W1 at 12 km. Tracks Arctic and Antarctic sea ice extent. Relevant for southern ocean sea ice monitoring around Antarctica.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2025-09-01",
-        "legendId": null
-      },
-      {
-        "id": "GHRSST_L4_MUR_Sea_Ice_Concentration",
-        "name": "Sea Ice Concentration (MUR L4)",
-        "description": "Daily sea ice concentration from the MUR multi-sensor blended analysis. 1 km, gap-free. Higher resolution than AMSR2 — better for coastal sea ice and polynya detection.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      }
-    ],
-    "Aerosols & Air Quality": [
-      {
-        "id": "AIRS_L3_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Daily_Day",
-        "name": "Carbon Monoxide 500 hPa (AIRS L3, Day)",
-        "description": "Daily daytime carbon monoxide volume mixing ratio at 500 hPa from AIRS on Aqua. ~50 km. Tracks CO from biomass burning, urban pollution and industrial sources. Lower-tropospheric transport plumes visible for days.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-07",
-        "legendId": null
-      },
-      {
-        "id": "AIRS_L3_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Daily_Night",
-        "name": "Carbon Monoxide 500 hPa (AIRS L3, Night)",
-        "description": "Daily nighttime carbon monoxide volume mixing ratio at 500 hPa from AIRS. Complements the daytime product — useful for observing diurnal variation in CO plumes. ~50 km.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-07",
-        "legendId": null
-      },
-      {
-        "id": "AIRS_L3_Methane_400hPa_Volume_Mixing_Ratio_Daily_Day",
-        "name": "Methane 400 hPa (AIRS L3, Day)",
-        "description": "Daily daytime methane volume mixing ratio at 400 hPa from AIRS on Aqua. ~50 km. Monitors the second most important anthropogenic greenhouse gas. Useful for identifying wetland emissions and fossil-fuel sources.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-07",
-        "legendId": null
-      },
-      {
-        "id": "AIRS_L3_Methane_400hPa_Volume_Mixing_Ratio_Daily_Night",
-        "name": "Methane 400 hPa (AIRS L3, Night)",
-        "description": "Daily nighttime methane volume mixing ratio at 400 hPa from AIRS. Supplements daytime methane column for diurnal insight.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-07",
-        "legendId": null
-      },
-      {
-        "id": "AIRS_L2_Dust_Score_Day",
-        "name": "Dust Score (AIRS L2, Day)",
-        "description": "Daytime dust score from AIRS — detects airborne mineral dust using infrared sounding. Maps Saharan dust transport, Harmattan haze, and dust outbreaks across West Africa.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": null
-      },
-      {
-        "id": "AIRS_L2_Dust_Score_Night",
-        "name": "Dust Score (AIRS L2, Night)",
-        "description": "Nighttime dust score from AIRS infrared sounding. Complements daytime dust product — useful where daytime cloud cover obscures dust plumes.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-04",
-        "legendId": null
-      },
-      {
-        "id": "MERRA2_Dust_Surface_Mass_Concentration_PM25_Monthly",
-        "name": "Dust PM2.5 Surface Mass Concentration (MERRA-2, Monthly)",
-        "description": "Monthly mean dust PM2.5 surface mass concentration from NASA MERRA-2 reanalysis. ~50 km. Estimates surface-level fine dust exposure — directly relevant to air quality and public health in the Sahel and Sahara.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2025-07-01",
-        "legendId": null
-      },
-      {
-        "id": "MERRA2_Carbon_Monoxide_Emission_Monthly",
-        "name": "Carbon Monoxide Emission (MERRA-2, Monthly)",
-        "description": "Monthly carbon monoxide emissions from MERRA-2 reanalysis. Quantifies CO sources from biomass burning, fossil fuels and biofuel combustion. Useful for identifying burning seasons and emission hotspots.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2025-07-01",
-        "legendId": null
+        "legendId": null,
+        "section": "imagery",
+        "category": "Air Quality",
+        "subtitle": "TROPOMI Sentinel-5P"
       },
       {
         "id": "MODIS_Combined_Value_Added_AOD",
-        "name": "Aerosol Optical Depth (MODIS Combined)",
-        "description": "Combined aerosol optical depth from Terra+Aqua MODIS at 10 km. Shows air quality, Saharan dust storms, and smoke from biomass burning. Higher values = more aerosols.",
+        "name": "Air Quality — Aerosols",
+        "description": "Combined aerosol optical depth, 10km. The Saharan dust / biomass-burning-smoke layer. Central for the Southern Africa burning-season and Sahara dust stories.",
+        "role": "primary",
+        "storyDefault": true,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "MODIS_Combined_Value_Added_AOD"
-      },
-      {
-        "id": "VIIRS_NOAA20_AOD_Dark_Target_Land_Ocean",
-        "name": "Aerosol Optical Depth (VIIRS NOAA-20, Dark Target)",
-        "description": "AOD from VIIRS NOAA-20 using the Dark Target algorithm. ~6 km, daily. Current-generation replacement for MODIS AOD with improved retrieval over bright desert surfaces relevant to northern Africa.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "OMI_Aerosol_Index",
-        "name": "UV Aerosol Index (OMI)",
-        "description": "Absorbing aerosol index from OMI using UV measurements. Positive values indicate absorbing aerosols — dust or smoke. 13 km, daily. Good for tracking Saharan dust transport and wildfire smoke plumes.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2024-11-20",
-        "legendId": "OMI_Aerosol_Index"
-      },
-      {
-        "id": "TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column",
-        "name": "Tropospheric NO₂ (TROPOMI/Sentinel-5P)",
-        "description": "Tropospheric nitrogen dioxide column from TROPOMI on Sentinel-5P. ~7 km, near-daily global. Best-available satellite NO₂ product. Maps urban air pollution, industrial emissions, and biomass burning.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "OMI_Nitrogen_Dioxide_Tropo_Column",
-        "name": "Tropospheric NO₂ (OMI, Aura)",
-        "description": "Tropospheric NO₂ from OMI on the Aura satellite. 13 km, daily. Longer record than TROPOMI (from 2004) — use for long-term air quality trend analysis.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-06",
-        "legendId": null
+        "legendId": "MODIS_Combined_Value_Added_AOD",
+        "section": "imagery",
+        "category": "Air Quality",
+        "subtitle": "MODIS Combined AOD"
       },
       {
         "id": "TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column",
-        "name": "Sulfur Dioxide Column (TROPOMI/Sentinel-5P)",
-        "description": "SO₂ total vertical column from TROPOMI. ~7 km, near-daily. Detects volcanic eruptions, industrial smelters, and power plants. Highly relevant for monitoring East African Rift volcanoes.",
+        "name": "Air Quality — SO₂",
+        "description": "SO2 vertical column, ~7km, near-daily. Detects volcanic eruptions and industrial/power-plant emissions. Kept specifically for East African Rift volcano stories (e.g. Nyiragongo).",
+        "role": "secondary",
+        "storyDefault": false,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "OMI_SO2_Lower_Troposphere",
-        "name": "SO₂ Lower Troposphere (OMI)",
-        "description": "Sulfur dioxide in the lower troposphere from OMI. 13 km, daily. Longer record than TROPOMI — maps industrial SO₂ and diffuse volcanic degassing over the African Rift.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "OMI_Ozone_DOAS_Total_Column",
-        "name": "Total Ozone Column (OMI, DOAS)",
-        "description": "Total column ozone from OMI using the DOAS algorithm. ~13 km, daily. Monitors stratospheric ozone — important for UV radiation exposure and long-term ozone layer recovery.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-06",
-        "legendId": null
-      }
-    ],
-    "Night Lights": [
-      {
-        "id": "VIIRS_NOAA20_DayNightBand",
-        "name": "Day/Night Band (VIIRS NOAA-20, Daily)",
-        "description": "Near-daily low-light imagery from the VIIRS Day/Night Band on NOAA-20. 750 m resolution. Shows city lights, fires, fishing fleets, gas flares, and aurora. Valuable for tracking electrification and conflict events.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_CityLights_2012",
-        "name": "City Lights Annual Composite (VIIRS 2012–)",
-        "description": "Monthly and annual composites of VIIRS night-light radiance. 500 m. Cleaned of moonlight, fires, and aurora — shows stable human-made light sources. Available as annual and monthly products.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/jpeg",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "VIIRS_Night_Lights",
-        "name": "Night Lights (VIIRS Black Marble, 2016)",
-        "description": "Annual night-light composite from the VIIRS Black Marble product. 500 m. Atmospherically corrected and cloud-screened. Best product for mapping electrification and economic activity.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2016-01-01",
-        "legendId": null
-      }
-    ],
-    "Population & Land Use": [
-      {
-        "id": "GPW_Population_Density_2020",
-        "name": "Population Density 2020 (GPW v4)",
-        "description": "Gridded Population of the World population density for 2020. ~5 km resolution. People per km². Use alongside climate layers to assess exposure of populations to floods, heat, or drought.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "GPW_Population_Density_2000",
-        "name": "Population Density 2000 (GPW v4)",
-        "description": "Gridded Population of the World for the year 2000. Compare with the 2020 layer to visualise 20 years of population growth and urbanisation across Africa.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "Probabilities_of_Urban_Expansion_2000-2030",
-        "name": "Probability of Urban Expansion 2000–2030",
-        "description": "Statistical probability that a grid cell transitions from non-urban to urban between 2000 and 2030. ~1 km. Highlights likely future urban growth corridors.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "Agricultural_Lands_Croplands_2000",
-        "name": "Cropland Extent 2000",
-        "description": "Global cropland extent circa 2000 from satellite-derived land use. ~1 km. Shows the fraction of each grid cell under cultivated crops. Baseline for monitoring agricultural expansion and food security.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "Agricultural_Lands_Pastures_2000",
-        "name": "Pasture Extent 2000",
-        "description": "Global pastureland extent circa 2000. ~1 km. Fraction of grid cell used for grazing livestock. Pairs with cropland layer to map total agricultural footprint.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "Human_Footprint_1995-2004",
-        "name": "Human Footprint Index 1995–2004",
-        "description": "Composite index of cumulative human influence on the land: built areas, roads, agriculture, population, and night lights. Higher values = more impacted. Useful for biodiversity and conservation planning.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "GRUMP_Settlements",
-        "name": "Settlements (GRUMP)",
-        "description": "Settlement points from the Global Rural-Urban Mapping Project. Shows location and extent of cities, towns and villages. Static; best-available vintage ~2000.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level9",
-        "format": "image/png",
-        "time": "2026-06-09",
         "legendId": null,
-        "wms": true
-      },
-      {
-        "id": "Landsat_Human_Built-up_And_Settlement_Extent",
-        "name": "Built-up & Settlement Extent (Landsat, 30 m)",
-        "description": "Human built-up and settlement extent derived from Landsat at 30 m (HBASE, ~2010). High-res footprint of urbanisation. Zoom in for detail.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level12",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "Landsat_Global_Man-made_Impervious_Surface",
-        "name": "Impervious Surface % (Landsat, 30 m)",
-        "description": "Percentage of man-made impervious surface (roads, roofs, paving) from Landsat at 30 m (GMIS, ~2010). Proxy for urban density and flood runoff risk. Zoom in for detail.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level12",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "Anthropogenic_Biomes_of_the_World_2001-2006",
-        "name": "Anthropogenic Biomes (2001-2006)",
-        "description": "Anthromes: how humans have reshaped ecosystems — dense settlements, villages, croplands, rangelands and wildlands. Static, ~10 km.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "Last_of_the_Wild_1995-2004",
-        "name": "Last of the Wild (1995-2004)",
-        "description": "The 10% wildest areas of each biome with least human influence, from the Global Human Footprint. Complements the existing Human Footprint layer.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "Amphibian_Richness_All_Species_2013",
-        "name": "Amphibian Richness — All Species (2013)",
-        "description": "Number of amphibian species per grid cell from the SEDAC Amphibian Richness dataset. ~10 km. Africa has exceptional amphibian diversity — this layer highlights biodiversity hotspots and conservation priorities.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2025-06-05",
-        "legendId": null
-      },
-      {
-        "id": "Amphibian_Richness_Endangered_Species_2013",
-        "name": "Amphibian Richness — Endangered Species (2013)",
-        "description": "Number of threatened amphibian species per grid cell (IUCN Endangered + Critically Endangered). Identifies the most vulnerable biodiversity hotspots, particularly in the Eastern Arc Mountains and Cameroon highlands.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2025-06-05",
-        "legendId": null
-      },
-      {
-        "id": "GRanD_Dams",
-        "name": "Global Dams (GRanD v1.3)",
-        "description": "Global Reservoir and Dam database point locations from the GRanD v1.3 dataset. ~7,000 dams including major African dams: Kariba, Cahora Bassa, Aswan, GERD. Each point includes dam height, reservoir area and primary use.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "1995-05-01",
-        "legendId": null,
-        "wms": true
-      },
-      {
-        "id": "GRanD_Reservoirs",
-        "name": "Global Reservoirs (GRanD v1.3)",
-        "description": "Global Reservoir and Dam database reservoir polygons from GRanD v1.3. Shows the extent of man-made lakes behind major dams. Key for tracking water infrastructure and surface water change across Africa's river basins.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2025-06-06",
-        "legendId": null,
-        "wms": true
+        "section": "imagery",
+        "category": "Air Quality",
+        "subtitle": "TROPOMI Sentinel-5P"
       }
-    ],
-    "Elevation & Terrain": [
-      {
-        "id": "ASTER_GDEM_Color_Shaded_Relief",
-        "name": "Elevation — ASTER GDEM (Colour Shaded Relief)",
-        "description": "Colour-coded shaded relief from the ASTER Global Digital Elevation Model at 30 m resolution. Covers 83°N–83°S. Zoom to level 10+ for full detail. Use to understand topographic context for climate and flood vulnerability.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level12",
-        "format": "image/jpeg",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "SRTM_Color_Index",
-        "name": "Elevation — SRTM (Colour Index)",
-        "description": "Colour elevation index from the Shuttle Radar Topography Mission (SRTM). ~30 m resolution (1 arc-second). Acquired in 11 days in Feb 2000. Widely used baseline DEM for Africa. Zoom to level 10+ for detail.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level12",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "BlueMarble_ShadedRelief_Bathymetry",
-        "name": "Blue Marble + Bathymetry (MODIS)",
-        "description": "Classic NASA Blue Marble Next Generation composite with shaded relief and ocean bathymetry. Static. A beautiful cloud-free base image of the planet.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/jpeg",
-        "time": "2026-06-09",
-        "legendId": null
-      }
-    ],
-    "Fires & Thermal Anomalies": [
+    ]
+    },
+    "Wildfire": {
+      "icon": "fluent:fire-20-filled",
+      "description": "Active fire detections, burn scars, and fire radiative power. Essential for wildfire monitoring and aftermath analysis.",
+      "layers": [
       {
         "id": "VIIRS_NOAA20_Thermal_Anomalies_375m_All",
-        "name": "Fires & Thermal Anomalies (VIIRS NOAA-20, 375 m)",
-        "description": "Active fire detections from VIIRS on NOAA-20 at 375 m, day and night combined. Near-real-time. Each point is a detected thermal anomaly: wildfires, agricultural burning, gas flares, volcanoes.",
+        "name": "Active Fires — Current",
+        "description": "Flagship active-fire point layer, 375m, day+night. This is the headline wildfire layer.",
+        "role": "primary",
+        "storyDefault": true,
         "tileMatrixSet": "GoogleMapsCompatible_Level8",
         "format": "image/png",
-        "time": "2026-06-10",
         "legendId": null,
-        "wms": true
-      },
-      {
-        "id": "VIIRS_SNPP_Thermal_Anomalies_375m_All",
-        "name": "Fires & Thermal Anomalies (VIIRS Suomi NPP, 375 m)",
-        "description": "Active fire detections from VIIRS on Suomi NPP at 375 m, day and night combined. Longest VIIRS fire record; afternoon/early-morning overpasses.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level8",
-        "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": null,
-        "wms": true
+        "wms": true,
+        "group": "active_fires_viirs",
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "VIIRS NOAA-20"
       },
       {
         "id": "VIIRS_NOAA21_Thermal_Anomalies_375m_All",
-        "name": "Fires & Thermal Anomalies (VIIRS NOAA-21, 375 m)",
-        "description": "Active fire detections from VIIRS on NOAA-21 at 375 m, day and night combined. Newest JPSS sensor, adds an extra daily overpass to the fire record.",
+        "name": "Active Fires — Extra Pass",
+        "description": "Same product family as NOAA-20, adds an extra daily overpass. Surface as a togglable variant under 'Active Fires', not a separate menu item.",
+        "role": "secondary",
+        "storyDefault": false,
         "tileMatrixSet": "GoogleMapsCompatible_Level8",
         "format": "image/png",
-        "time": "2026-06-10",
         "legendId": null,
-        "wms": true
+        "wms": true,
+        "group": "active_fires_viirs",
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "VIIRS NOAA-21"
+      },
+      {
+        "id": "VIIRS_SNPP_Thermal_Anomalies_375m_All",
+        "name": "Active Fires — Extended",
+        "description": "Same product family, oldest VIIRS platform. Togglable variant under 'Active Fires' for maximum daily coverage.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true,
+        "group": "active_fires_viirs",
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "VIIRS Suomi NPP"
       },
       {
         "id": "MODIS_Combined_Thermal_Anomalies_All",
-        "name": "Fires & Thermal Anomalies (MODIS Terra+Aqua, 1 km)",
-        "description": "Active fire detections from combined MODIS Terra+Aqua at 1 km, day and night. Coarser than VIIRS but four overpasses per day and a record back to the early 2000s.",
+        "name": "Active Fires — Historical",
+        "description": "Coarser (1km) but the only fire-detection layer with a record back to the early 2000s. Use for 'is this worse than previous years' comparison stories.",
+        "role": "secondary",
+        "storyDefault": false,
         "tileMatrixSet": "GoogleMapsCompatible_Level7",
         "format": "image/png",
-        "time": "2026-06-10",
         "legendId": null,
-        "wms": true
+        "wms": true,
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "MODIS Terra+Aqua"
+      },
+      {
+        "id": "VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1",
+        "name": "Burn Scars — False Color",
+        "description": "375m false color; burn scars appear orange-red. Use alongside the active-fire points to show cumulative damage, not just today's detections.",
+        "role": "context",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "VIIRS M11-I2-I1"
+      }
+    ]
+    },
+    "Floods": {
+      "icon": "fluent:drop-20-filled",
+      "description": "Surface water extent and flood detection imagery. Useful for disaster response and flood risk assessment.",
+      "layers": [
+      {
+        "id": "VIIRS_Combined_Flood_1-Day",
+        "name": "Flood Extent — Current",
+        "description": "Best-resolution near-real-time flood extent. A frequent, distinct African story from precipitation — this is the 'impact' layer, IMERG is the 'cause' layer.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Floods",
+        "subtitle": "VIIRS 375m"
+      }
+    ]
+    },
+    "Drought": {
+      "icon": "fluent:weather-sunny-20-filled",
+      "description": "Soil moisture, evaporation, and water stress indicators. Track drought conditions and water availability.",
+      "layers": [
+      {
+        "id": "SMAP_L3_Passive_Day_Soil_Moisture",
+        "name": "Drought — Soil Moisture",
+        "description": "Surface (0-5cm) soil moisture, ~36km, daily. Responds fast to rainfall deficit — use this over the L4 root-zone product for single-season drought stories.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Drought",
+        "subtitle": "SMAP L3 Passive"
+      },
+      {
+        "id": "MODIS_Terra_L3_Land_Surface_Temp_Daily_Day",
+        "name": "Drought — Land Temperature",
+        "description": "1km daily daytime land surface temp. The heat-stress companion to soil moisture.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "legendId": "MODIS_Land_Surface_Temp",
+        "section": "imagery",
+        "category": "Drought",
+        "subtitle": "MODIS Terra LST"
+      },
+      {
+        "id": "GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI",
+        "name": "Drought — Groundwater",
+        "description": "~300km, monthly. Coarse, but the only satellite product that sees deep aquifer depletion. Kept specifically for basin-scale stories: Lake Chad, Nile/GERD.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Drought",
+        "subtitle": "GRACE-FO Mascon"
+      }
+    ]
+    }
+  },
+  "sections": {
+    "base": [
+      {
+        "id": "BlueMarble_NextGeneration",
+        "name": "Blue Marble — Static Reference",
+        "description": "Static NASA Blue Marble reference imagery. Good fallback base when daily imagery is patchy; loads at Level8.",
+        "role": "base",
+        "section": "base",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/jpeg",
+        "legendId": null,
+        "gibsDescription": "<h4>About Blue Marble</h4>\n<p>The MODIS Blue Marble, Next Generation is a static product created with data from 2004 from the MODIS instrument on board the Terra satellite. The image resolution is 500 m. It can be viewed in Worldview/Global Imagery Browse Services (GIBS). Images for January – December 2004 can be downloaded from <a href=\"https://visibleearth.nasa.gov/view.php?id=74117\" target=\"_blank\" rel=\"noopener\">NASA’s Visible Earth</a>.</p>\n<p>References: <a href=\"https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/\" target=\"_blank\" rel=\"noopener\">NASA Earth Observatory - Blue Marble</a>; <a href=\"https://neo.gsfc.nasa.gov/view.php?datasetId=BlueMarbleNG-TB\" target=\"_blank\" rel=\"noopener\">NASA Earth Observations - Blue Marble</a>; <a href=\"https://neo.gsfc.nasa.gov/view.php?datasetId=BlueMarbleNG-TB\" target=\"_blank\" rel=\"noopener\">NASA Earth Observations - Blue Marble: Next Generation+Topography and Bathymetry</a></p>",
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra (EOS PM-1)",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "500 m",
+          "temporalResolution": "Static"
+        },
+        "startDate": null,
+        "endDate": null,
+        "category": "Blue Marble",
+        "subtitle": "MODIS Terra"
+      },
+      {
+        "id": "OpenStreetMap",
+        "name": "OpenStreetMap",
+        "subtitle": "OSM Standard",
+        "description": "OpenStreetMap standard street tiles (© OpenStreetMap contributors). A familiar street-map base for context when satellite imagery isn't needed.",
+        "role": "base",
+        "section": "base",
+        "storyDefault": false,
+        "tiles": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "format": "image/png",
+        "attribution": "© OpenStreetMap contributors",
+        "legendId": null,
+        "gibsDescription": "<p>OpenStreetMap standard map tiles, © <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap contributors</a>. Provided as a familiar street-map base for context when the NASA imagery isn't needed.</p>",
+        "metadata": {
+          "mission": "Community",
+          "satellite": "N/A",
+          "sensors": "Vector & raster",
+          "orbit": "N/A",
+          "energySource": "N/A",
+          "spectralRange": "N/A",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global",
+          "spatialResolution": "N/A",
+          "temporalResolution": "Continuous"
+        },
+        "startDate": null,
+        "endDate": null,
+        "category": "OpenStreetMap"
       }
     ],
-    "Orbit Tracks": [
+    "imagery": [
       {
-        "id": "OrbitTracks_Terra_Descending",
-        "name": "Orbit Track — Terra (Descending)",
-        "description": "Daily ground track with overpass times for Terra (MODIS, ASTER, MISR). Descending = daytime ~10:30 local overpass. Pair with MODIS Terra layers to see when imagery was captured.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-10",
+        "id": "VIIRS_NOAA21_CorrectedReflectance_TrueColor",
+        "name": "True Color — Current",
+        "subtitle": "VIIRS NOAA-21",
+        "description": "Default base map. Most current-generation daily true color, 375m. Use for 'what does it look like today/recently'.",
+        "role": "base",
+        "section": "imagery",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
         "legendId": null,
-        "wms": true
+        "gibsDescription": "<p>True Color: Red = Band I1, Green = Band M4, Blue = Band M3</p>\n<p>These images are called true-color or natural color because this combination of wavelengths is similar to what the human eye would see. The images are natural-looking images of land surface, oceanic and atmospheric features.</p>\n<p>The Visible Infrared Imaging Radiometer Suite (VIIRS) Corrected Reflectance imagery is available only as near real-time imagery. The VIIRS instrument is aboard the joint NASA/NOAA NOAA-21 (JPSS-2) satellite. The imagery can be visualized in Worldview and the Global Imagery Browse Services (GIBS). The sensor resolution is 750 m and 375 m (M Bands are 750 m, I Bands are 375 m), imagery resolution is 250 m, and the temporal resolution is daily.</p>\n<p>Note: The Corrected Reflectance and the Thermal Band I5 imagery from NOAA-21/VIIRS will occasionally show a checkered pattern, especially over the respective polar areas. This is due to overlapping and superimposition of observations from multiple orbits with widely different cloud/snow coverages. The checkered pattern may also arise from the mixture of partial day and night observations. Though all necessary steps have been taken to mitigate this effect, users may still notice this to some extent over the polar areas, depending on the season.</p>\n<p>References<br></p>\n<p>VJ203MOD_NRT <a href=\"https://doi.org/10.5067/VIIRS/VJ203IMG_NRT.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ103MOD_NRT.021</a><br></p>\n<p>VJ203MOD <a href=\"https://doi.org/10.5067/VIIRS/VJ203MOD.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ203MOD.021</a><br></p>\n<p>VJ203IMG_NRT <a href=\"https://doi.org/10.5067/VIIRS/VJ203MOD_NRT.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ103IMG_NRT.021</a><br></p>\n<p>VJ203IMG <a href=\"https://doi.org/10.5067/VIIRS/VJ203IMG.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ203IMG.021</a><br></p>\n<p>VJ202MOD_NRT <a href=\"https://doi.org/10.5067/VIIRS/VJ202MOD_NRT.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ102MOD_NRT.021</a><br></p>\n<p>VJ202MOD <a href=\"https://doi.org/10.5067/VIIRS/VJ202MOD.002\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ202MOD.002</a><br></p>\n<p>VJ202IMG_NRT <a href=\"https://doi.org/10.5067/VIIRS/VJ202IMG_NRT.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ102IMG_NRT.021</a><br></p>\n<p>VJ202IMG <a href=\"https://doi.org/10.5067/VIIRS/VJ202IMG.021\" target=\"_blank\" rel=\"noopener\">doi:10.5067/VIIRS/VJ202IMG.021</a></p>",
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-21 (JPSS-2)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375–750 m",
+          "temporalResolution": "Daily"
+        },
+        "startDate": "2023-02-10",
+        "endDate": "2026-08-04",
+        "latestDate": "2026-08-04",
+        "category": "True Color"
       },
       {
-        "id": "OrbitTracks_Aqua_Ascending",
-        "name": "Orbit Track — Aqua (Ascending)",
-        "description": "Daily ground track with overpass times for Aqua (MODIS, AIRS). Ascending = daytime ~13:30 local overpass. Pair with MODIS Aqua and AIRS layers.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
-        "format": "image/png",
-        "time": "2026-06-10",
+        "id": "MODIS_Terra_CorrectedReflectance_TrueColor",
+        "name": "True Color — Long Record",
+        "description": "Only true-color option with a record back to 2000. Use for multi-year/decade before-after comparisons, not day-to-day snapshots.",
+        "role": "base",
+        "section": "imagery",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
         "legendId": null,
-        "wms": true
+        "gibsDescription": "<h4>MODIS Corrected Reflectance vs. MODIS Surface Reflectance</h4>\n<p>The MODIS Corrected Reflectance algorithm utilizes MODIS Level 1B data (the calibrated, geolocated radiances). It is not a standard, science quality product. The purpose of this algorithm is to provide natural-looking images by removing gross atmospheric effects, such as Rayleigh scattering, from MODIS visible bands 1-7. The algorithm was developed by the original MODIS Rapid Response team to address the needs of the fire monitoring community who want to see smoke. Corrected Reflectance shows smoke more clearly than the standard Surface Reflectance product. In contrast, the MODIS Land Surface Reflectance product (MOD09) is a more complete atmospheric correction algorithm that includes aerosol correction, and is designed to derive land surface properties. In clear atmospheric conditions the Corrected Reflectance product is very similar to the MOD09 product, but they depart from each other in presence of aerosols. If you wish to perform a complete atmospheric correction, please do not use the Corrected Reflectance algorithm. An additional difference is that the Land Surface Reflectance product is only tuned for calculating the reflectance over land surfaces.</p>\n<p>References: <a href=\"https://earthdata.nasa.gov/s3fs-public/2022-02/MODIS_True_Color.pdf\" target=\"_blank\" rel=\"noopener\">NASA Earthdata - Creating Reprojected True Color MODIS Images: A Tutorial</a>; <a href=\"https://forum.earthdata.nasa.gov/viewtopic.php?t=5203\" target=\"_blank\" rel=\"noopener\">NASA Earthdata Forum - LANCE FAQ</a></p>",
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra (EOS PM-1)",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "250 m – 1 km",
+          "temporalResolution": "Daily"
+        },
+        "startDate": "2000-02-24",
+        "endDate": "2026-08-04",
+        "latestDate": "2026-08-04",
+        "category": "True Color",
+        "subtitle": "MODIS Terra"
       },
       {
-        "id": "OrbitTracks_NOAA-20_Ascending",
-        "name": "Orbit Track — NOAA-20 (Ascending)",
-        "description": "Daily ground track with overpass times for NOAA-20 (VIIRS). Ascending = daytime ~13:30 local overpass. Pair with VIIRS NOAA-20 layers.",
+        "id": "IMERG_Precipitation_Rate_30min",
+        "name": "Precipitation — Right Now",
+        "description": "Near-real-time global precipitation, 10km, updated every 30 min. The 'is it raining there today' layer. Use dates within the last few days.",
+        "role": "primary",
+        "storyDefault": true,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": null,
-        "wms": true
+        "legendId": "GPM_Precipitation_Rate",
+        "section": "imagery",
+        "category": "Precipitation",
+        "subtitle": "IMERG NRT"
       },
       {
-        "id": "OrbitTracks_Suomi_NPP_Ascending",
-        "name": "Orbit Track — Suomi NPP (Ascending)",
-        "description": "Daily ground track with overpass times for Suomi NPP (VIIRS). Ascending = daytime ~13:30 local overpass. Pair with VIIRS SNPP layers.",
+        "id": "IMERG_Precipitation_Rate",
+        "name": "Precipitation — Historical Event",
+        "description": "IMERG archive for reconstructing a specific past storm. Needs a full ISO datetime. Example default set to Cyclone Freddy's Mozambique landfall.",
+        "role": "secondary",
+        "storyDefault": false,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": null,
-        "wms": true
+        "legendId": "GPM_Precipitation_Rate",
+        "section": "imagery",
+        "category": "Precipitation",
+        "subtitle": "IMERG Archive"
       },
       {
-        "id": "OrbitTracks_GPM_Ascending",
-        "name": "Orbit Track — GPM (Ascending)",
-        "description": "Daily ground track with overpass times for GPM Core Observatory (rain radar + GMI). Non-sun-synchronous 65-degree orbit. Pair with IMERG precipitation layers.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "id": "MODIS_Terra_L3_NDVI_Monthly",
+        "name": "Vegetation — NDVI Trend",
+        "description": "Monthly NDVI composite, least cloud noise. Use for season-to-season or year-to-year comparison stories (crop stress, greening/browning trends).",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
         "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": null,
-        "wms": true
+        "legendId": "MODIS_NDVI",
+        "section": "imagery",
+        "category": "Vegetation",
+        "subtitle": "MODIS Terra Monthly"
       },
       {
-        "id": "OrbitTracks_ISS_Ascending",
-        "name": "Orbit Track — ISS (Ascending)",
-        "description": "Daily ground track with overpass times for International Space Station (GEDI lidar, LIS lightning sensor). 51.6-degree orbit covering the tropics and mid-latitudes. Pair with GEDI canopy height and biomass layers.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "id": "VIIRS_NOAA20_NDVI_8Day",
+        "name": "Vegetation — NDVI Current",
+        "description": "Current-generation 8-day NDVI composite. Use when the monthly layer is too stale for a fast-moving story.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
         "format": "image/png",
-        "time": "2026-06-10",
-        "legendId": null,
-        "wms": true
+        "legendId": "MODIS_NDVI",
+        "section": "imagery",
+        "category": "Vegetation",
+        "subtitle": "VIIRS NOAA-20"
       },
       {
-        "id": "OrbitTracks_Sentinel-5P_Ascending",
-        "name": "Orbit Track — Sentinel-5P (Ascending)",
-        "description": "Daily ground track with overpass times for Sentinel-5P (TROPOMI). Ascending = daytime ~13:30 local overpass. Pair with TROPOMI NO2 and SO2 layers.",
+        "id": "TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column",
+        "name": "Air Quality — NO₂",
+        "description": "Best-available NO2 column, ~7km, near-daily. Urban pollution, industrial emissions, biomass burning. Use for city air-quality stories.",
+        "role": "primary",
+        "storyDefault": true,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2026-06-10",
         "legendId": null,
-        "wms": true
+        "section": "imagery",
+        "category": "Air Quality",
+        "subtitle": "TROPOMI Sentinel-5P"
       },
       {
-        "id": "OrbitTracks_Landsat-9_Descending",
-        "name": "Orbit Track — Landsat-9 (Descending)",
-        "description": "Daily ground track with overpass times for Landsat-9 (OLI-2). Descending = daytime ~10:00 local overpass, 16-day repeat. Useful for planning around high-resolution acquisitions.",
+        "id": "MODIS_Combined_Value_Added_AOD",
+        "name": "Air Quality — Aerosols",
+        "description": "Combined aerosol optical depth, 10km. The Saharan dust / biomass-burning-smoke layer. Central for the Southern Africa burning-season and Sahara dust stories.",
+        "role": "primary",
+        "storyDefault": true,
         "tileMatrixSet": "GoogleMapsCompatible_Level6",
         "format": "image/png",
-        "time": "2026-06-10",
+        "legendId": "MODIS_Combined_Value_Added_AOD",
+        "section": "imagery",
+        "category": "Air Quality",
+        "subtitle": "MODIS Combined AOD"
+      },
+      {
+        "id": "TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column",
+        "name": "Air Quality — SO₂",
+        "description": "SO2 vertical column, ~7km, near-daily. Detects volcanic eruptions and industrial/power-plant emissions. Kept specifically for East African Rift volcano stories (e.g. Nyiragongo).",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
         "legendId": null,
-        "wms": true
+        "section": "imagery",
+        "category": "Air Quality",
+        "subtitle": "TROPOMI Sentinel-5P"
+      },
+      {
+        "id": "VIIRS_NOAA20_Thermal_Anomalies_375m_All",
+        "name": "Active Fires — Current",
+        "description": "Flagship active-fire point layer, 375m, day+night. This is the headline wildfire layer.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true,
+        "group": "active_fires_viirs",
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "VIIRS NOAA-20"
+      },
+      {
+        "id": "VIIRS_NOAA21_Thermal_Anomalies_375m_All",
+        "name": "Active Fires — Extra Pass",
+        "description": "Same product family as NOAA-20, adds an extra daily overpass. Surface as a togglable variant under 'Active Fires', not a separate menu item.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true,
+        "group": "active_fires_viirs",
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "VIIRS NOAA-21"
+      },
+      {
+        "id": "VIIRS_SNPP_Thermal_Anomalies_375m_All",
+        "name": "Active Fires — Extended",
+        "description": "Same product family, oldest VIIRS platform. Togglable variant under 'Active Fires' for maximum daily coverage.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level8",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true,
+        "group": "active_fires_viirs",
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "VIIRS Suomi NPP"
+      },
+      {
+        "id": "MODIS_Combined_Thermal_Anomalies_All",
+        "name": "Active Fires — Historical",
+        "description": "Coarser (1km) but the only fire-detection layer with a record back to the early 2000s. Use for 'is this worse than previous years' comparison stories.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "legendId": null,
+        "wms": true,
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "MODIS Terra+Aqua"
+      },
+      {
+        "id": "VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1",
+        "name": "Burn Scars — False Color",
+        "description": "375m false color; burn scars appear orange-red. Use alongside the active-fire points to show cumulative damage, not just today's detections.",
+        "role": "context",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Wildfire",
+        "subtitle": "VIIRS M11-I2-I1"
+      },
+      {
+        "id": "VIIRS_Combined_Flood_1-Day",
+        "name": "Flood Extent — Current",
+        "description": "Best-resolution near-real-time flood extent. A frequent, distinct African story from precipitation — this is the 'impact' layer, IMERG is the 'cause' layer.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/png",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Floods",
+        "subtitle": "VIIRS 375m"
+      },
+      {
+        "id": "SMAP_L3_Passive_Day_Soil_Moisture",
+        "name": "Drought — Soil Moisture",
+        "description": "Surface (0-5cm) soil moisture, ~36km, daily. Responds fast to rainfall deficit — use this over the L4 root-zone product for single-season drought stories.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Drought",
+        "subtitle": "SMAP L3 Passive"
+      },
+      {
+        "id": "MODIS_Terra_L3_Land_Surface_Temp_Daily_Day",
+        "name": "Drought — Land Temperature",
+        "description": "1km daily daytime land surface temp. The heat-stress companion to soil moisture.",
+        "role": "primary",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "legendId": "MODIS_Land_Surface_Temp",
+        "section": "imagery",
+        "category": "Drought",
+        "subtitle": "MODIS Terra LST"
+      },
+      {
+        "id": "GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI",
+        "name": "Drought — Groundwater",
+        "description": "~300km, monthly. Coarse, but the only satellite product that sees deep aquifer depletion. Kept specifically for basin-scale stories: Lake Chad, Nile/GERD.",
+        "role": "secondary",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Drought",
+        "subtitle": "GRACE-FO Mascon"
       }
     ],
-    "Natural Hazard Risk": [
+    "reference": [
       {
-        "id": "NDH_Drought_Hazard_Frequency_Distribution_1980-2000",
-        "name": "Drought Hazard Frequency (1980-2000)",
-        "description": "Global drought hazard frequency and distribution, 1980-2000, based on precipitation deficit. Static SEDAC Natural Disaster Hotspots layer (~28 km). Use with population density to assess exposure.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "id": "Coastlines",
+        "name": "Coastlines",
+        "description": "Static vector coastline reference overlay. Uses the GIBS 'default' time keyword, so it is date-independent and always available.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": true,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
         "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
+        "legendId": null,
+        "gibsDescription": "<p>The Coastlines layer is a reference layer that displays global coastlines.</p>\n<p>Coastlines information are gleaned from <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap</a> and the SCAR Antarctic Digital Database (2010) for Antarctic coastlines.</p>",
+        "metadata": {
+          "mission": "N/A (Vector data)",
+          "satellite": "N/A",
+          "sensors": "N/A",
+          "orbit": "N/A",
+          "energySource": "N/A",
+          "spectralRange": "N/A",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global",
+          "spatialResolution": "Vector (scales with zoom)",
+          "temporalResolution": "Static"
+        },
+        "startDate": null,
+        "endDate": null,
+        "category": "Reference",
+        "subtitle": "Static overlay"
       },
       {
-        "id": "NDH_Drought_Mortality_Risks_Distribution_2000",
-        "name": "Drought Mortality Risk (2000)",
-        "description": "Estimated drought mortality risk based on hazard frequency and population exposure. Static SEDAC Natural Disaster Hotspots layer (~28 km). Use with population density to assess exposure.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "id": "Reference_Labels",
+        "name": "Place Labels",
+        "description": "Place and country labels (GIBS Reference_Labels, Level9). Static reference overlay.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
         "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
+        "legendId": null,
+        "gibsDescription": "<p>The Place Labels layer is a reference layer that displays labels for countries, states, major cities, minor cities, towns, airports, universities/schools, hospitals, water bodies, and national parks/protected areas.</p>\n<p>Place Labels information are provided by Esri, TomTom, Garmin, FAO, NOAA, USGS, © OpenStreetMap contributors, and the GIS User Community via the <a href=\"https://www.arcgis.com/home/item.html?id=a70340a048224752915ddbed9d2101a7\" target=\"_blank\" rel=\"noopener\">Hybrid Reference Layer (WGS84)</a>.</p>\n<p>Alignment of boundaries is a presentation of the feature provided by our data vendors and does not imply endorsement by Esri or any governing authority.</p>",
+        "metadata": {
+          "mission": "N/A (Vector data)",
+          "satellite": "N/A",
+          "sensors": "N/A",
+          "orbit": "N/A",
+          "energySource": "N/A",
+          "spectralRange": "N/A",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global",
+          "spatialResolution": "Vector (scales with zoom)",
+          "temporalResolution": "Static"
+        },
+        "startDate": null,
+        "endDate": null,
+        "category": "Reference",
+        "subtitle": "Cities & countries"
       },
       {
-        "id": "NDH_Flood_Hazard_Frequency_Distribution_1985-2003",
-        "name": "Flood Hazard Frequency (1985-2003)",
-        "description": "Global flood hazard frequency and distribution from observed flood events, 1985-2003. Static SEDAC Natural Disaster Hotspots layer (~28 km). Use with population density to assess exposure.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "id": "Reference_Features",
+        "name": "Reference Features",
+        "description": "Political border and feature lines (GIBS Reference_Features, Level9). Static reference overlay.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
         "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
+        "legendId": null,
+        "gibsDescription": "<p>The Coastlines/Borders/Roads layer is a reference layer that displays global coastlines, country borders, first order administrative boundaries and major roads.</p>\n<p>Coastlines/Borders/Roads information are gleaned from <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap</a> and <a href=\"https://www.naturalearthdata.com/\" target=\"_blank\" rel=\"noopener\">Natural Earth</a>.</p>",
+        "metadata": {
+          "mission": "N/A (Vector data)",
+          "satellite": "N/A",
+          "sensors": "N/A",
+          "orbit": "N/A",
+          "energySource": "N/A",
+          "spectralRange": "N/A",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global",
+          "spatialResolution": "Vector (scales with zoom)",
+          "temporalResolution": "Static"
+        },
+        "startDate": null,
+        "endDate": null,
+        "category": "Reference",
+        "subtitle": "Borders & roads"
       },
       {
-        "id": "NDH_Flood_Mortality_Risks_Distribution_2000",
-        "name": "Flood Mortality Risk (2000)",
-        "description": "Estimated flood mortality risk based on hazard frequency and population exposure. Static SEDAC Natural Disaster Hotspots layer (~28 km). Use with population density to assess exposure.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "id": "Graticule_15m",
+        "name": "Graticule Grid",
+        "description": "Latitude/longitude graticule (GIBS Graticule_15m, Level13). Static reference overlay.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level13",
         "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
+        "legendId": null,
+        "gibsDescription": "<p>The Latitude-Longitude Lines layer is a vector layer displaying the grid/graticule of latitude and longitude lines over the globe.</p>\n<p>In the geographic projection, Latitude-Longitude Lines were generated from Shapefiles provided by <a href=\"https://www.naturalearthdata.com/\" target=\"_blank\" rel=\"noopener\">Natural Earth</a>. For the Arctic and Antarctic polar stereographic projections, the graticule layers were generated from <a href=\"https://www.polarview.aq/\" target=\"_blank\" rel=\"noopener\">Polarview</a>.</p>",
+        "metadata": {
+          "mission": "N/A (Vector data)",
+          "satellite": "N/A",
+          "sensors": "N/A",
+          "orbit": "N/A",
+          "energySource": "N/A",
+          "spectralRange": "N/A",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global",
+          "spatialResolution": "Vector (15 arc-minute grid)",
+          "temporalResolution": "Static"
+        },
+        "startDate": null,
+        "endDate": null,
+        "category": "Reference",
+        "subtitle": "Lat/lon lines"
       },
       {
-        "id": "NDH_Cyclone_Hazard_Frequency_Distribution_1980-2000",
-        "name": "Cyclone Hazard Frequency (1980-2000)",
-        "description": "Global tropical cyclone hazard frequency and distribution, 1980-2000. Relevant to Madagascar, Mozambique and the Indian Ocean coast. Static SEDAC Natural Disaster Hotspots layer (~28 km). Use with population density to assess exposure.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "id": "OSM_Land_Mask",
+        "name": "Land Mask",
+        "description": "OpenStreetMap-derived land/ocean mask (GIBS OSM_Land_Mask, Level9). Darkens oceans as an underlay.",
+        "role": "overlay",
+        "section": "reference",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
         "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "NDH_Cyclone_Mortality_Risks_Distribution_2000",
-        "name": "Cyclone Mortality Risk (2000)",
-        "description": "Estimated cyclone mortality risk based on hazard frequency and population exposure. Static SEDAC Natural Disaster Hotspots layer (~28 km). Use with population density to assess exposure.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "NDH_Volcano_Hazard_Frequency_Distribution_1979-2000",
-        "name": "Volcano Hazard Frequency (1979-2000)",
-        "description": "Global volcano hazard frequency and distribution, 1979-2000. Static SEDAC Natural Disaster Hotspots layer (~28 km). Use with population density to assess exposure.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
-      },
-      {
-        "id": "NDH_Landslide_Hazard_Distribution_2000",
-        "name": "Landslide Hazard (2000)",
-        "description": "Global landslide hazard distribution based on slope, soil, precipitation and seismicity. Static SEDAC Natural Disaster Hotspots layer (~28 km). Use with population density to assess exposure.",
-        "tileMatrixSet": "GoogleMapsCompatible_Level7",
-        "format": "image/png",
-        "time": "2026-06-09",
-        "legendId": null
+        "legendId": null,
+        "gibsDescription": "<p>The Land Mask overlay layer is a representation of land in dark grey. It was created as a way to mask land-covered areas to focus only on areas of water.</p>\n<p>The Land/Water Map was gleaned from <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap</a>.</p>",
+        "metadata": {
+          "mission": "N/A (Vector data)",
+          "satellite": "N/A",
+          "sensors": "N/A",
+          "orbit": "N/A",
+          "energySource": "N/A",
+          "spectralRange": "N/A",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global",
+          "spatialResolution": "Vector (scales with zoom)",
+          "temporalResolution": "Static"
+        },
+        "startDate": null,
+        "endDate": null,
+        "category": "Reference",
+        "subtitle": "Ocean darkening"
       }
     ]
   },
@@ -1268,20 +799,17 @@
       0,
       30
     ],
-    "zoom": 3,
+    "zoom": 4,
     "minZoom": 2,
     "maxZoom": 12
   },
   "wmtsBaseUrl": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best",
+  "wmsBaseUrl": "https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi",
   "format": "image/png",
   "_notes": {
-    "validation": "All layers verified HTTP 200 against GIBS epsg3857/best endpoint June 2026.",
-    "timeFormat": "Most layers use YYYY-MM-DD. Sub-daily products (IMERG archive, GHRSST MUR) use full ISO datetime.",
-    "compositeDates": "NDVI/EVI 16-day products use period-boundary dates — changing the date arbitrarily will 404.",
-    "airsLag": "AIRS L3 products have a 3–5 day processing lag — use dates at least 4 days in the past.",
-    "highResTiles": "Level12 layers (OPERA, ASTER, SRTM) render blank at low zoom; they require zoom 10+.",
-    "maxZoom": "mapSettings.maxZoom raised to 12 to allow exploration of high-res layers.",
-    "wmsLayers": "Layers flagged wms:true are vector products (MVT-only on WMTS); they are rendered via the GIBS WMS endpoint instead. TIME param is ignored by static WMS layers."
-  },
-  "wmsBaseUrl": "https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi"
+    "provenance": "Restored full layer catalogue from layers-full-backup.json on 2026-08-04. Categories with icons replace the old flat sections structure. Context category (GPW Population Density) intentionally excluded. GIBS metadata preserved from the enriched layers.json.",
+    "timeFormat": "Per-layer dates are intentionally NOT stored here — resolved at runtime (default for daily layers is yesterday). startDate/endDate reflect GIBS availability windows, shown in layer details.",
+    "fireGrouping": "The three VIIRS active-fire layers share group: active_fires_viirs — render as one feature with a satellite-pass toggle, not three menu entries.",
+    "categories": "Each category has an icon and description. Layers are grouped under the category's 'layers' array."
+  }
 }

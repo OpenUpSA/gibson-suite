@@ -48,7 +48,7 @@
 }
 
 .gibs-back-link {
-  color: #ffc93c;
+  color: #E3A520;
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -87,7 +87,7 @@
 }
 
 .gibs-search:focus {
-  border-color: #ffc93c;
+  border-color: #E3A520;
 }
 
 .gibs-search::placeholder {
@@ -152,7 +152,7 @@
 .gibs-cell-id {
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 12px;
-  color: #ffc93c;
+  color: #E3A520;
 }
 
 .gibs-cell-abs {
@@ -165,7 +165,7 @@
 .gibs-expand-btn {
   background: none;
   border: none;
-  color: #ffc93c;
+  color: #E3A520;
   cursor: pointer;
   font-size: 11px;
   padding: 0;
