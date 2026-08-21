@@ -414,10 +414,12 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
 
       if (!map.getSource(srcId)) {
         try {
-          const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, tab.date))
+          const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
           // Custom tile templates (e.g. OpenStreetMap) are served at full
           // zoom — the GIBS quality preset doesn't apply to them.
-          const maxzoom = layer.tiles ? 19 : QUALITY_MAXZOOM[settings.quality]
+          // WMS layers (fires, etc.) are rasterised server-side at any zoom,
+          // so don't cap them at the GIBS quality preset either.
+          const maxzoom = layer.tiles ? 19 : (layer.wms ? 12 : QUALITY_MAXZOOM[settings.quality])
           map.addSource(srcId, rasterSource([url], maxzoom, layer))
           map.addLayer({
             id: srcId,
@@ -443,7 +445,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
           try {
             const source = map.getSource(srcId)
             if (source && typeof source.setTiles === 'function') {
-              const url = buildTileUrlTemplate({ wmtsBaseUrl }, layer, layerTime(layer, tab.date))
+              const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
               console.warn(`[MapInstance] Updating tiles for tab "${tab.label}": new URL =`, url)
               source.setTiles([url])
               // Trigger a repaint to immediately show the new tiles

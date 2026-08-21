@@ -80,7 +80,19 @@
         "section": "imagery",
         "category": "Precipitation",
         "subtitle": "IMERG NRT"
-      },
+      ,
+        "metadata": {
+          "mission": "Global Precipitation Measurement (GPM)",
+          "satellite": "GPM Core Observatory",
+          "sensors": "GPM Microwave Imager (GMI) + partner satellites",
+          "orbit": "Sun-synchronous, 407 km altitude",
+          "energySource": "Passive (microwave)",
+          "spectralRange": "Microwave",
+          "spectralResolution": "13 channels (10-183 GHz)",
+          "spatialCoverage": "Global (60N-60S)",
+          "spatialResolution": "10 km",
+          "temporalResolution": "30 minutes"
+        }},
       {
         "id": "IMERG_Precipitation_Rate",
         "name": "Precipitation — Historical Event",
@@ -93,7 +105,19 @@
         "section": "imagery",
         "category": "Precipitation",
         "subtitle": "IMERG Archive"
-      }
+      ,
+        "metadata": {
+          "mission": "Global Precipitation Measurement (GPM)",
+          "satellite": "GPM Core Observatory",
+          "sensors": "GPM Microwave Imager (GMI) + partner satellites",
+          "orbit": "Sun-synchronous, 407 km altitude",
+          "energySource": "Passive (microwave)",
+          "spectralRange": "Microwave",
+          "spectralResolution": "13 channels (10-183 GHz)",
+          "spatialCoverage": "Global (60N-60S)",
+          "spatialResolution": "10 km",
+          "temporalResolution": "30 minutes (archived)"
+        }}
     ]
     },
     "Vegetation": {
@@ -112,7 +136,19 @@
         "section": "imagery",
         "category": "Vegetation",
         "subtitle": "MODIS Terra Monthly"
-      },
+      ,
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra (EOS AM-1)",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global (land)",
+          "spatialResolution": "250 m - 1 km",
+          "temporalResolution": "Monthly"
+        }},
       {
         "id": "VIIRS_NOAA20_NDVI_8Day",
         "name": "Vegetation — NDVI Current",
@@ -125,7 +161,19 @@
         "section": "imagery",
         "category": "Vegetation",
         "subtitle": "VIIRS NOAA-20"
-      }
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-20 (JPSS-1)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global (land)",
+          "spatialResolution": "375-750 m",
+          "temporalResolution": "8-day"
+        }}
     ]
     },
     "Air Quality": {
@@ -144,7 +192,19 @@
         "section": "imagery",
         "category": "Air Quality",
         "subtitle": "TROPOMI Sentinel-5P"
-      },
+      ,
+        "metadata": {
+          "mission": "Copernicus / ESA",
+          "satellite": "Sentinel-5P",
+          "sensors": "TROPOMI",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive (solar backscatter)",
+          "spectralRange": "UV-VIS-NIR-SWIR",
+          "spectralResolution": "Spectral bands (270-2380 nm)",
+          "spatialCoverage": "Global",
+          "spatialResolution": "~7 km x 3.5 km",
+          "temporalResolution": "Daily"
+        }},
       {
         "id": "MODIS_Combined_Value_Added_AOD",
         "name": "Air Quality — Aerosols",
@@ -157,7 +217,19 @@
         "section": "imagery",
         "category": "Air Quality",
         "subtitle": "MODIS Combined AOD"
-      },
+      ,
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra + Aqua",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "10 km",
+          "temporalResolution": "Daily"
+        }},
       {
         "id": "TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column",
         "name": "Air Quality — SO₂",
@@ -170,7 +242,19 @@
         "section": "imagery",
         "category": "Air Quality",
         "subtitle": "TROPOMI Sentinel-5P"
-      }
+      ,
+        "metadata": {
+          "mission": "Copernicus / ESA",
+          "satellite": "Sentinel-5P",
+          "sensors": "TROPOMI",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive (solar backscatter)",
+          "spectralRange": "UV-VIS-NIR-SWIR",
+          "spectralResolution": "Spectral bands (270-2380 nm)",
+          "spatialCoverage": "Global",
+          "spatialResolution": "~7 km x 3.5 km",
+          "temporalResolution": "Daily"
+        }}
     ]
     },
     "Wildfire": {
@@ -191,7 +275,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "VIIRS NOAA-20"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-20 (JPSS-1)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375 m",
+          "temporalResolution": "Daily (day + night)"
+        }},
       {
         "id": "VIIRS_NOAA21_Thermal_Anomalies_375m_All",
         "name": "Active Fires — Extra Pass",
@@ -206,7 +302,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "VIIRS NOAA-21"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-21 (JPSS-2)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375 m",
+          "temporalResolution": "Daily (day + night)"
+        }},
       {
         "id": "VIIRS_SNPP_Thermal_Anomalies_375m_All",
         "name": "Active Fires — Extended",
@@ -221,7 +329,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "VIIRS Suomi NPP"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "Suomi NPP",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375 m",
+          "temporalResolution": "Daily (day + night)"
+        }},
       {
         "id": "MODIS_Combined_Thermal_Anomalies_All",
         "name": "Active Fires — Historical",
@@ -235,7 +355,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "MODIS Terra+Aqua"
-      },
+      ,
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra + Aqua",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "1 km",
+          "temporalResolution": "Daily (day + night)"
+        }},
       {
         "id": "VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1",
         "name": "Burn Scars — False Color",
@@ -248,7 +380,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "VIIRS M11-I2-I1"
-      }
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-20 (JPSS-1)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375-750 m",
+          "temporalResolution": "Daily"
+        }}
     ]
     },
     "Floods": {
@@ -267,7 +411,19 @@
         "section": "imagery",
         "category": "Floods",
         "subtitle": "VIIRS 375m"
-      }
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-20 + NOAA-21 + Suomi NPP",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375 m",
+          "temporalResolution": "Daily"
+        }}
     ]
     },
     "Drought": {
@@ -286,7 +442,19 @@
         "section": "imagery",
         "category": "Drought",
         "subtitle": "SMAP L3 Passive"
-      },
+      ,
+        "metadata": {
+          "mission": "NASA Soil Moisture Active Passive (SMAP)",
+          "satellite": "SMAP",
+          "sensors": "SMAP Radiometer",
+          "orbit": "Sun-synchronous, 685 km altitude",
+          "energySource": "Passive (L-band microwave)",
+          "spectralRange": "Microwave (L-band 1.4 GHz)",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global (land)",
+          "spatialResolution": "~36 km",
+          "temporalResolution": "Daily (daytime)"
+        }},
       {
         "id": "MODIS_Terra_L3_Land_Surface_Temp_Daily_Day",
         "name": "Drought — Land Temperature",
@@ -299,7 +467,19 @@
         "section": "imagery",
         "category": "Drought",
         "subtitle": "MODIS Terra LST"
-      },
+      ,
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra (EOS AM-1)",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Thermal Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global (land)",
+          "spatialResolution": "1 km",
+          "temporalResolution": "Daily (daytime)"
+        }},
       {
         "id": "GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI",
         "name": "Drought — Groundwater",
@@ -312,7 +492,19 @@
         "section": "imagery",
         "category": "Drought",
         "subtitle": "GRACE-FO Mascon"
-      }
+      ,
+        "metadata": {
+          "mission": "GRACE Follow-On (NASA / DLR)",
+          "satellite": "GRACE-FO (twin satellites)",
+          "sensors": "K-band Microwave Ranging",
+          "orbit": "Near-polar, ~490 km altitude",
+          "energySource": "Passive (microwave ranging)",
+          "spectralRange": "N/A (gravimetry)",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global (land + ocean)",
+          "spatialResolution": "~300 km (Mascon)",
+          "temporalResolution": "Monthly"
+        }}
     ]
     }
   },
@@ -447,7 +639,19 @@
         "section": "imagery",
         "category": "Precipitation",
         "subtitle": "IMERG NRT"
-      },
+      ,
+        "metadata": {
+          "mission": "Global Precipitation Measurement (GPM)",
+          "satellite": "GPM Core Observatory",
+          "sensors": "GPM Microwave Imager (GMI) + partner satellites",
+          "orbit": "Sun-synchronous, 407 km altitude",
+          "energySource": "Passive (microwave)",
+          "spectralRange": "Microwave",
+          "spectralResolution": "13 channels (10-183 GHz)",
+          "spatialCoverage": "Global (60N-60S)",
+          "spatialResolution": "10 km",
+          "temporalResolution": "30 minutes"
+        }},
       {
         "id": "IMERG_Precipitation_Rate",
         "name": "Precipitation — Historical Event",
@@ -460,7 +664,19 @@
         "section": "imagery",
         "category": "Precipitation",
         "subtitle": "IMERG Archive"
-      },
+      ,
+        "metadata": {
+          "mission": "Global Precipitation Measurement (GPM)",
+          "satellite": "GPM Core Observatory",
+          "sensors": "GPM Microwave Imager (GMI) + partner satellites",
+          "orbit": "Sun-synchronous, 407 km altitude",
+          "energySource": "Passive (microwave)",
+          "spectralRange": "Microwave",
+          "spectralResolution": "13 channels (10-183 GHz)",
+          "spatialCoverage": "Global (60N-60S)",
+          "spatialResolution": "10 km",
+          "temporalResolution": "30 minutes (archived)"
+        }},
       {
         "id": "MODIS_Terra_L3_NDVI_Monthly",
         "name": "Vegetation — NDVI Trend",
@@ -473,7 +689,19 @@
         "section": "imagery",
         "category": "Vegetation",
         "subtitle": "MODIS Terra Monthly"
-      },
+      ,
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra (EOS AM-1)",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global (land)",
+          "spatialResolution": "250 m - 1 km",
+          "temporalResolution": "Monthly"
+        }},
       {
         "id": "VIIRS_NOAA20_NDVI_8Day",
         "name": "Vegetation — NDVI Current",
@@ -486,7 +714,19 @@
         "section": "imagery",
         "category": "Vegetation",
         "subtitle": "VIIRS NOAA-20"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-20 (JPSS-1)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global (land)",
+          "spatialResolution": "375-750 m",
+          "temporalResolution": "8-day"
+        }},
       {
         "id": "TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column",
         "name": "Air Quality — NO₂",
@@ -499,7 +739,19 @@
         "section": "imagery",
         "category": "Air Quality",
         "subtitle": "TROPOMI Sentinel-5P"
-      },
+      ,
+        "metadata": {
+          "mission": "Copernicus / ESA",
+          "satellite": "Sentinel-5P",
+          "sensors": "TROPOMI",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive (solar backscatter)",
+          "spectralRange": "UV-VIS-NIR-SWIR",
+          "spectralResolution": "Spectral bands (270-2380 nm)",
+          "spatialCoverage": "Global",
+          "spatialResolution": "~7 km x 3.5 km",
+          "temporalResolution": "Daily"
+        }},
       {
         "id": "MODIS_Combined_Value_Added_AOD",
         "name": "Air Quality — Aerosols",
@@ -512,7 +764,19 @@
         "section": "imagery",
         "category": "Air Quality",
         "subtitle": "MODIS Combined AOD"
-      },
+      ,
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra + Aqua",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "10 km",
+          "temporalResolution": "Daily"
+        }},
       {
         "id": "TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column",
         "name": "Air Quality — SO₂",
@@ -525,7 +789,19 @@
         "section": "imagery",
         "category": "Air Quality",
         "subtitle": "TROPOMI Sentinel-5P"
-      },
+      ,
+        "metadata": {
+          "mission": "Copernicus / ESA",
+          "satellite": "Sentinel-5P",
+          "sensors": "TROPOMI",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive (solar backscatter)",
+          "spectralRange": "UV-VIS-NIR-SWIR",
+          "spectralResolution": "Spectral bands (270-2380 nm)",
+          "spatialCoverage": "Global",
+          "spatialResolution": "~7 km x 3.5 km",
+          "temporalResolution": "Daily"
+        }},
       {
         "id": "VIIRS_NOAA20_Thermal_Anomalies_375m_All",
         "name": "Active Fires — Current",
@@ -540,7 +816,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "VIIRS NOAA-20"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-20 (JPSS-1)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375 m",
+          "temporalResolution": "Daily (day + night)"
+        }},
       {
         "id": "VIIRS_NOAA21_Thermal_Anomalies_375m_All",
         "name": "Active Fires — Extra Pass",
@@ -555,7 +843,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "VIIRS NOAA-21"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-21 (JPSS-2)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375 m",
+          "temporalResolution": "Daily (day + night)"
+        }},
       {
         "id": "VIIRS_SNPP_Thermal_Anomalies_375m_All",
         "name": "Active Fires — Extended",
@@ -570,7 +870,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "VIIRS Suomi NPP"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "Suomi NPP",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375 m",
+          "temporalResolution": "Daily (day + night)"
+        }},
       {
         "id": "MODIS_Combined_Thermal_Anomalies_All",
         "name": "Active Fires — Historical",
@@ -584,7 +896,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "MODIS Terra+Aqua"
-      },
+      ,
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra + Aqua",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "1 km",
+          "temporalResolution": "Daily (day + night)"
+        }},
       {
         "id": "VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1",
         "name": "Burn Scars — False Color",
@@ -597,7 +921,19 @@
         "section": "imagery",
         "category": "Wildfire",
         "subtitle": "VIIRS M11-I2-I1"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-20 (JPSS-1)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375-750 m",
+          "temporalResolution": "Daily"
+        }},
       {
         "id": "VIIRS_Combined_Flood_1-Day",
         "name": "Flood Extent — Current",
@@ -610,7 +946,19 @@
         "section": "imagery",
         "category": "Floods",
         "subtitle": "VIIRS 375m"
-      },
+      ,
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "NOAA-20 + NOAA-21 + Suomi NPP",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375 m",
+          "temporalResolution": "Daily"
+        }},
       {
         "id": "SMAP_L3_Passive_Day_Soil_Moisture",
         "name": "Drought — Soil Moisture",
@@ -623,7 +971,19 @@
         "section": "imagery",
         "category": "Drought",
         "subtitle": "SMAP L3 Passive"
-      },
+      ,
+        "metadata": {
+          "mission": "NASA Soil Moisture Active Passive (SMAP)",
+          "satellite": "SMAP",
+          "sensors": "SMAP Radiometer",
+          "orbit": "Sun-synchronous, 685 km altitude",
+          "energySource": "Passive (L-band microwave)",
+          "spectralRange": "Microwave (L-band 1.4 GHz)",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global (land)",
+          "spatialResolution": "~36 km",
+          "temporalResolution": "Daily (daytime)"
+        }},
       {
         "id": "MODIS_Terra_L3_Land_Surface_Temp_Daily_Day",
         "name": "Drought — Land Temperature",
@@ -636,7 +996,19 @@
         "section": "imagery",
         "category": "Drought",
         "subtitle": "MODIS Terra LST"
-      },
+      ,
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra (EOS AM-1)",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Thermal Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global (land)",
+          "spatialResolution": "1 km",
+          "temporalResolution": "Daily (daytime)"
+        }},
       {
         "id": "GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI",
         "name": "Drought — Groundwater",
@@ -649,7 +1021,19 @@
         "section": "imagery",
         "category": "Drought",
         "subtitle": "GRACE-FO Mascon"
-      }
+      ,
+        "metadata": {
+          "mission": "GRACE Follow-On (NASA / DLR)",
+          "satellite": "GRACE-FO (twin satellites)",
+          "sensors": "K-band Microwave Ranging",
+          "orbit": "Near-polar, ~490 km altitude",
+          "energySource": "Passive (microwave ranging)",
+          "spectralRange": "N/A (gravimetry)",
+          "spectralResolution": "N/A",
+          "spatialCoverage": "Global (land + ocean)",
+          "spatialResolution": "~300 km (Mascon)",
+          "temporalResolution": "Monthly"
+        }}
     ],
     "reference": [
       {
