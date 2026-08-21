@@ -221,6 +221,7 @@ import { buildTileUrlTemplate } from '../config/tileUrl'
 import { availableDates } from '../utils/gibsCaps'
 import { rectToBbox3857 } from '../utils/webMercator'
 import { renderTimelapseGif, GIF_MAX_WIDTH } from '../utils/timelapseGif'
+import { probeHasData, runPool } from '../utils/timelapseProbe'
 import { encodeProjectUrl, decodeProjectUrl, projectUrlFor, SHARE_LINK_LIMIT } from '../utils/shareProject'
 import { serializeProject, deserializeProject, downloadProjectFile } from '../utils/projectFile'
 
@@ -529,6 +530,11 @@ export default function Globe() {
   const [tlFetching, setTlFetching] = useState(false)
   const [tlProgress, setTlProgress] = useState(null)      // { done, total } while exporting
   const [tlSelected, setTlSelected] = useState(() => new Set())
+  // Preview browser: list mode first (no downloads) — images only load after
+  // the user confirms. status maps date → 'loading' | 'ok' | 'empty' | 'error'.
+  const [tlPreviewsConfirmed, setTlPreviewsConfirmed] = useState(false)
+  const [tlPreviewStatus, setTlPreviewStatus] = useState(() => new Map())
+  const [tlPreviewBusy, setTlPreviewBusy] = useState(false)
 
   // Default per-frame delay (seconds) applied to newly added frames.
   const DEFAULT_FRAME_DELAY = 2
@@ -799,6 +805,10 @@ export default function Globe() {
         setTlAvailableDates(dates)
         setTlPreviewLimit(PREVIEW_PAGE)
         setTlSelected(new Set())
+        // New date range → back to list mode; no previews until confirmed.
+        setTlPreviewsConfirmed(false)
+        setTlPreviewStatus(new Map())
+        setTlPreviewBusy(false)
       } catch (err) {
         console.warn('[Timelapse] Failed to load available dates:', err)
         if (!cancelled) setTlAvailableDates([])
@@ -1121,6 +1131,39 @@ export default function Globe() {
   const handleTlLoadMore = useCallback(() => {
     setTlPreviewLimit(prev => prev + PREVIEW_PAGE)
   }, [])
+
+  const handleTlClearSelection = useCallback(() => {
+    setTlSelected(new Set())
+  }, [])
+
+  const handleTlBackToList = useCallback(() => {
+    setTlPreviewsConfirmed(false)
+  }, [])
+
+  // Explicit confirmation: only now do we fetch anything. Each selected date
+  // is probed with a tiny 16×16 PNG (lightweight); dates with no imagery in
+  // the crop area are skipped and never downloaded. Probes run 4-at-a-time.
+  const handleTlLoadPreviews = useCallback(async () => {
+    if (!tlLayer || !tlRect || tlPreviewBusy) return
+    const dates = [...tlSelected].sort()
+    if (!dates.length) return
+    const bbox = rectToBbox3857(tlRect)
+    setTlPreviewsConfirmed(true)
+    setTlPreviewBusy(true)
+    setTlPreviewStatus(new Map(dates.map(d => [d, 'loading'])))
+    try {
+      await runPool(dates, async (date) => {
+        try {
+          const has = await probeHasData(wmsBaseUrl, tlLayer, bbox, date)
+          setTlPreviewStatus(prev => new Map(prev).set(date, has ? 'ok' : 'empty'))
+        } catch {
+          setTlPreviewStatus(prev => new Map(prev).set(date, 'error'))
+        }
+      })
+    } finally {
+      setTlPreviewBusy(false)
+    }
+  }, [tlLayer, tlRect, tlSelected, tlPreviewBusy, wmsBaseUrl])
 
   const handleTlRemoveFrame = useCallback((index) => {
     const removed = tlFrames[index]
@@ -1598,11 +1641,17 @@ export default function Globe() {
               dates={tlAvailableDates}
               limit={tlPreviewLimit}
               selected={tlSelected}
+              status={tlPreviewStatus}
+              busy={tlPreviewBusy}
+              confirmed={tlPreviewsConfirmed}
+              fetching={tlFetching}
               onToggleSelect={handleTlToggleSelect}
               onSelectVisible={handleTlSelectVisible}
+              onClearSelection={handleTlClearSelection}
               onAddSelected={handleTlAddSelected}
               onLoadMore={handleTlLoadMore}
-              fetching={tlFetching}
+              onConfirm={handleTlLoadPreviews}
+              onBackToList={handleTlBackToList}
             />
           </div>
         </div>
