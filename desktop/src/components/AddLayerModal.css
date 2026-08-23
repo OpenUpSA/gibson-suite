@@ -60,6 +60,7 @@
   flex: 1;
   display: flex;
   min-height: 0;
+}
 
 /* Filter toggle icon (left edge) */
 .add-layer-filter-toggle {
@@ -118,40 +119,18 @@
 }
 
 .add-layer-filters-panel {
+  flex: 0 0 18%;
+  min-width: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  background: #1a1a1a
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  background: #1a1a1a;
 }
 
 .add-layer-nav {
   flex: 0 0 25%;
   min-width: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   padding: 8px 0 16px;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 8px 0 16px;
-  background: #1a1a1a
-  width: 6px;
-}
-
-.add-layer-nav::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.add-layer-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-
-.add-layer-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.add-layer-nav::-webkit-scrollbar-corner {
-  background: transparent;
+  background: #1a1a1a;
 }
 
 /* Filter accordion */
@@ -162,7 +141,29 @@
   padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
-  tursor: pointer;
+  top: 0;
+  background: #1a1a1a;
+  z-index: 1;
+}
+
+.add-layer-filters-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #4FC3D9;
+}
+
+.add-layer-filters-clear {
+  background: transparent;
+  border: none;
+  color: #4FC3D9;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
   padding: 2px 6px;
   border-radius: 4px;
   transition: background 0.15s ease;
@@ -230,32 +231,6 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 200px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-}
-
-.add-layer-filter-options::-webkit-scrollbar {
-  width: 6px;
-}
-
-.add-layer-filter-options::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.add-layer-filter-options::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-
-.add-layer-filter-options::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.add-layer-filter-options::-webkit-scrollbar-corner {
-  background: transparent;
 }
 
 .add-layer-filter-option {
@@ -278,6 +253,11 @@
 
 .add-layer-filter-check {
   width: 14px;
+  height: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
   justify-content: center;
   flex-shrink: 0;
   transition: all 0.15s ease;
@@ -285,7 +265,28 @@
 
 .add-layer-filter-option input[type="checkbox"]:checked + .add-layer-filter-check {
   background: #4FC3D9;
-  border-color: #4FC3D9;──────────────────────────────────── */
+  border-color: #4FC3D9;
+}
+
+.add-layer-filter-option input[type="checkbox"]:checked + .add-layer-filter-check::after {
+  content: '';
+  width: 6px;
+  height: 3px;
+  border-left: 2px solid #000;
+  border-bottom: 2px solid #000;
+  transform: rotate(-45deg) translateY(-1px);
+}
+
+.add-layer-filter-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.add-layer-filter-option input[type="checkbox"]:checked ~ .add-layer-filter-text {
+  color: #fff;
+}
+
+/* ── Accordion groups ───────────────────────────────────── */
 .add-layer-group {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -443,26 +444,7 @@
 .add-layer-details {
   flex: 1.3;
   min-width: 0;
-  overflow-y: auto;
   padding: 0 24px;
-}
-
-/* Custom scrollbar for details panel */
-.add-layer-details::-webkit-scrollbar {
-  width: 6px;
-}
-
-.add-layer-details::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.add-layer-details::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 3px;
-}
-
-.add-layer-details::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
 }
 
 .add-layer-details-head {
@@ -495,6 +477,25 @@
 .add-layer-add-btn {
   display: flex;
   align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  background: rgba(79, 195, 217, 0.15);
+  color: #4FC3D9;
+  border: 1px solid rgba(79, 195, 217, 0.45);
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.add-layer-add-btn:hover:not(:disabled) {
+  background: rgba(79, 195, 217, 0.25);
+  border-color: rgba(79, 195, 217, 0.7);
 }
 
 .add-layer-add-btn.added {
