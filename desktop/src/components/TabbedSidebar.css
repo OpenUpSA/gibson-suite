@@ -8,26 +8,13 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
-.tabbed-sidebar-tabs-scroll {
+.tabbed-sidebar-tabs-list {
   display: flex;
   align-items: center;
   gap: 2px;
   flex: 1 1 auto;
   min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  padding-bottom: 4px;
-}
-
-.tabbed-sidebar-tabs-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-
-.tabbed-sidebar-tabs-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 4px;
+  overflow: hidden;
 }
 
 .tabbed-sidebar-tab {
@@ -151,6 +138,91 @@
   background: rgba(227, 165, 32, 0.2);
   border-color: rgba(227, 165, 32, 0.4);
   color: #E3A520;
+}
+
+.tabbed-sidebar-overflow-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.tabbed-sidebar-overflow-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 5px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tabbed-sidebar-overflow-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.tabbed-sidebar-overflow-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 220px;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 30;
+  padding: 4px;
+}
+
+.tabbed-sidebar-overflow-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tabbed-sidebar-overflow-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  height: 28px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+.tabbed-sidebar-overflow-item-main span {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tabbed-sidebar-overflow-item-main:hover,
+.tabbed-sidebar-overflow-item-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.tabbed-sidebar-overflow-item-close {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 /* Layer selector styles for tabs */
