@@ -1,0 +1,6 @@
+# Netlify proxy rules — replicate the Vite dev/preview proxy for static hosting.
+# These are copied to the deploy root and let /wmts-capabilities and /colormaps
+# be fetched server-side from GIBS (bypassing browser CORS), exactly like the
+# local Vite proxy. Without them the deployed site 404s on these relative paths.
+/wmts-capabilities/*  https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/:splat  200
+/colormaps/*  https://gibs.earthdata.nasa.gov/colormaps/v1.3/:splat  200
