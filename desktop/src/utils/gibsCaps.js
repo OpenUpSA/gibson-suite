@@ -10,10 +10,23 @@ let capsDoc = null
 
 // Strip namespace prefixes so querySelector can match by local name
 // (same trick as the legacy app).
+//
+// The GIBS caps XML declares a *default* namespace (xmlns='...wmts/1.0') in
+// addition to several prefixed ones (xmlns:ows, xmlns:xlink, ...). After we
+// rename <ows:Identifier> -> <Identifier>, the elements still carry the
+// default namespace, so an XMLDocument parsed from this text puts <Layer> etc.
+// in the wmts/1.0 namespace. querySelector('Layer') on an XMLDocument does
+// namespace-exact matching and would then match NOTHING — which made every
+// layer appear to have no time dimension.
+//
+// Fix: strip the default namespace declaration (both quote styles) so the
+// unprefixed elements end up in the null namespace and the selectors work. The
+// prefixed xmlns declarations (xmlns:xlink, xmlns:ows, ...) are kept on purpose
+// so attributes like xlink:href stay valid after parsing.
 const stripNamespaces = (text) => text
   .replace(/<\/(\w+):(\w+)>/g, '</$2>')
   .replace(/<(\w+):(\w+)([\s>])/g, '<$2$3')
-  .replace(/\s+xmlns(?::\w+)?="[^"]*"/g, '')
+  .replace(/\s+xmlns=(?:"[^"]*"|'[^']*')/g, '')
 
 const ensureCaps = async () => {
   if (capsDoc) return capsDoc
