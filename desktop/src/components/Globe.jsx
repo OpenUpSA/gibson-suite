@@ -279,6 +279,17 @@ const QUALITY_MAXZOOM = {
 const INITIAL_CENTER = [17, 5] // [lng, lat]
 const INITIAL_ZOOM = 2.5
 
+// Historical base fallback. The default true-color base (VIIRS NOAA-21) only
+// starts 2023-02-10, so on older dates it renders as a blank void. When the
+// active base layer has no coverage for the selected date, substitute a base
+// that does (MODIS Terra true-color, available since 2000).
+const BASE_FALLBACK_ID = 'MODIS_Terra_CorrectedReflectance_TrueColor'
+const baseCoversDate = (layer, date) => {
+  if (!layer) return false
+  if (layer.startDate && date && date < layer.startDate) return false
+  return true
+}
+
 // Active layers grouped by section. New layers are added to the front (top)
 // of their section. Defaults: VIIRS imagery + coastlines reference overlay.
 const initialBySection = {
@@ -404,8 +415,15 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
 
     // Add/update active layers and reorder them
     for (const layerId of activeLayers) {
-      const layer = layerById.get(layerId)
+      let layer = layerById.get(layerId)
       if (!layer) continue
+
+      // Historical base fallback: if the active base layer has no coverage for
+      // the selected date, swap in a base that does (e.g. MODIS Terra).
+      if (layerSection(layer) === 'base' && !baseCoversDate(layer, tab.date)) {
+        const fb = layerById.get(BASE_FALLBACK_ID)
+        if (fb && baseCoversDate(fb, tab.date)) layer = fb
+      }
 
       const srcId = `layer-${layerId}`
       const settings = tab.layerSettings[layerId] ?? { quality: 'low', opacity: 1 }
@@ -439,18 +457,30 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         try {
           map.setPaintProperty(srcId, 'raster-opacity', targetOpacity)
         } catch {}
-        
-        // If date changed, update the tile source URLs
+
+        // If date changed, rebuild the source. We deliberately REMOVE and
+        // RE-ADD the source+layer rather than calling source.setTiles([url]):
+        // setTiles leaves the raster source mid-transition and maplibre's
+        // raster painter can throw "Cannot read properties of undefined
+        // (reading 'bind')" during the next render. Remove/re-add is the same
+        // safe pattern the add branch and Map.jsx use.
         if (dateChanged) {
           try {
-            const source = map.getSource(srcId)
-            if (source && typeof source.setTiles === 'function') {
-              const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
-              console.warn(`[MapInstance] Updating tiles for tab "${tab.label}": new URL =`, url)
-              source.setTiles([url])
-              // Trigger a repaint to immediately show the new tiles
-              map.triggerRepaint()
-            }
+            const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
+            if (map.getLayer(srcId)) map.removeLayer(srcId)
+            if (map.getSource(srcId)) map.removeSource(srcId)
+            const maxzoom = layer.tiles ? 19 : (layer.wms ? 12 : QUALITY_MAXZOOM[settings.quality])
+            map.addSource(srcId, rasterSource([url], maxzoom, layer))
+            map.addLayer({
+              id: srcId,
+              type: 'raster',
+              source: srcId,
+              paint: {
+                'raster-opacity': targetOpacity,
+                'raster-opacity-transition': { duration: 300, delay: 0 }
+              }
+            })
+            layerSrcMapRef.current[layerId] = srcId
           } catch (err) {
             console.warn('Failed to update source tiles for date change:', layerId, err)
           }
@@ -728,6 +758,51 @@ export default function Globe() {
     const section = layerSection(layerById.get(id) || {})
     setActiveBySectionTabbed(prev => ({ ...prev, [section]: prev[section].filter(x => x !== id) }))
   }
+
+  // Reusable "story" preset: opens a before/after Compare view for a layer
+  // that declares a `storyPreset` ({ before, after } each with date/center/zoom).
+  // Works for any layer — floods today, vegetation/drought tomorrow.
+  const applyStoryPreset = useCallback((layer) => {
+    const preset = layer?.storyPreset
+    if (!preset?.before || !preset?.after) return
+    const section = layerSection(layer)
+
+    // Make sure the layer is active in the active tab's section.
+    setActiveBySectionTabbed(prev => {
+      if (prev[section].includes(layer.id)) return prev
+      return { ...prev, [section]: [layer.id, ...prev[section]] }
+    })
+    setAddLayerOpen(false)
+
+    // Build two tabs: one for "before", one for "after". Reuse existing tabs
+    // when possible so we don't endlessly spawn them.
+    setTabs(prev => {
+      const next = [...prev]
+      const makeTab = (suffix, p) => ({
+        id: `preset-${layer.id}-${suffix}`,
+        label: `${layer.name} — ${suffix === 'before' ? 'Before' : 'After'}`,
+        activeBySection: {
+          base: prev[0]?.activeBySection?.base || [],
+          imagery: section === 'imagery' ? [layer.id] : (prev[0]?.activeBySection?.imagery || []),
+          reference: prev[0]?.activeBySection?.reference || ['Coastlines']
+        },
+        layerSettings: { [layer.id]: { quality: 'low', opacity: 1 } },
+        hiddenLayers: new Set(),
+        date: p.date,
+        mapPosition: p.center ? { center: p.center, zoom: p.zoom ?? 6 } : (prev[0]?.mapPosition || { center: INITIAL_CENTER, zoom: INITIAL_ZOOM })
+      })
+      const before = makeTab('before', preset.before)
+      const after = makeTab('after', preset.after)
+      // Replace any prior preset tabs, then ensure exactly these two exist.
+      const withoutPreset = next.filter(t => !t.id.startsWith(`preset-${layer.id}-`))
+      return [before, after, ...withoutPreset]
+    })
+
+    // Enter compare mode with the two preset tabs.
+    setCompareAId(`preset-${layer.id}-before`)
+    setCompareBId(`preset-${layer.id}-after`)
+    setActiveTool('compare')
+  }, [layerSection, setActiveBySectionTabbed, setTabs, setCompareAId, setCompareBId, setActiveTool])
 
   const reorderSection = (section, nextIds) => {
     setActiveBySectionTabbed(prev => ({ ...prev, [section]: nextIds }))
@@ -1857,6 +1932,8 @@ export default function Globe() {
         onRemove={removeLayer}
         open={addLayerOpen}
         onClose={() => setAddLayerOpen(false)}
+        selectedDate={activeTab.date}
+        onApplyStoryPreset={applyStoryPreset}
       />
 
       {/* Welcome / about — first load, or when the logo is clicked */}
