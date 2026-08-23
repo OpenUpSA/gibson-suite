@@ -173,6 +173,58 @@
             "spatialResolution": "375-750 m",
             "temporalResolution": "8-day"
           }
+        },
+        {
+          "id": "MODIS_Terra_CorrectedReflectance_Bands721",
+          "name": "Vegetation — False Color (7-2-1)",
+          "subtitle": "MODIS Terra 7-2-1",
+          "description": "Water absorbs near- and shortwave-infrared, so open water appears very dark while vegetation stays bright green in this 7-2-1 composite. Useful for vegetation-stress and wetland/flood monitoring. Daily since 2000.",
+          "role": "context",
+          "storyDefault": false,
+          "tileMatrixSet": "GoogleMapsCompatible_Level9",
+          "format": "image/jpeg",
+          "legendId": null,
+          "section": "imagery",
+          "category": "Vegetation",
+          "metadata": {
+            "mission": "Earth Observing System (EOS)",
+            "satellite": "Terra (EOS PM-1)",
+            "sensors": "MODIS",
+            "orbit": "Sun-synchronous, 705 km altitude",
+            "energySource": "Passive",
+            "spectralRange": "Optical & Infrared",
+            "spectralResolution": "36 bands",
+            "spatialCoverage": "Global",
+            "spatialResolution": "250 m – 1 km",
+            "temporalResolution": "Daily"
+          },
+          "startDate": "2000-02-24"
+        },
+        {
+          "id": "VIIRS_SNPP_CorrectedReflectance_BandsM11-I2-I1",
+          "name": "Vegetation — False Color (375m)",
+          "subtitle": "VIIRS M11-I2-I1",
+          "description": "Sharper 375 m false-color composite (M11-I2-I1). Water appears dark while vegetation is bright — useful for vegetation-stress and wetland monitoring. Daily since 2012.",
+          "role": "context",
+          "storyDefault": false,
+          "tileMatrixSet": "GoogleMapsCompatible_Level9",
+          "format": "image/jpeg",
+          "legendId": null,
+          "section": "imagery",
+          "category": "Vegetation",
+          "metadata": {
+            "mission": "Joint Polar Satellite System (JPSS)",
+            "satellite": "Suomi NPP (SNPP)",
+            "sensors": "VIIRS",
+            "orbit": "Sun-synchronous, 824 km altitude",
+            "energySource": "Passive",
+            "spectralRange": "Optical & Infrared",
+            "spectralResolution": "22 bands",
+            "spatialCoverage": "Global",
+            "spatialResolution": "375-750 m",
+            "temporalResolution": "Daily"
+          },
+          "startDate": "2012-01-19"
         }
       ]
     },
@@ -515,7 +567,7 @@
             "spatialResolution": "375 m",
             "temporalResolution": "Daily"
           },
-          "startDate": "2025-01-01"
+          "startDate": "2012-01-19"
         },
         {
           "id": "OPERA_L3_Dynamic_Surface_Water_Extent-Sentinel-1",
@@ -543,8 +595,22 @@
           },
           "storyPreset": {
             "label": "Recent African flood (SAR)",
-            "before": { "date": "2024-09-01", "center": [9.0, 7.5], "zoom": 10.5 },
-            "after": { "date": "2024-10-01", "center": [9.0, 7.5], "zoom": 10.5 }
+            "before": {
+              "date": "2024-09-01",
+              "center": [
+                9.0,
+                7.5
+              ],
+              "zoom": 10.5
+            },
+            "after": {
+              "date": "2024-10-01",
+              "center": [
+                9.0,
+                7.5
+              ],
+              "zoom": 10.5
+            }
           },
           "startDate": "2024-09-04"
         },
@@ -601,8 +667,22 @@
           },
           "storyPreset": {
             "label": "Dry season vs peak flood",
-            "before": { "date": "2022-02-15", "center": [6.0, 4.8], "zoom": 6.2 },
-            "after": { "date": "2022-11-23", "center": [6.0, 4.8], "zoom": 6.2 }
+            "before": {
+              "date": "2022-02-15",
+              "center": [
+                6.0,
+                4.8
+              ],
+              "zoom": 6.2
+            },
+            "after": {
+              "date": "2022-11-23",
+              "center": [
+                6.0,
+                4.8
+              ],
+              "zoom": 6.2
+            }
           },
           "startDate": "2000-02-24"
         },
@@ -630,7 +710,7 @@
             "spatialResolution": "375 m",
             "temporalResolution": "2-day"
           },
-          "startDate": "2025-01-01"
+          "startDate": "2012-01-19"
         },
         {
           "id": "VIIRS_Combined_Flood_3-Day",
@@ -656,7 +736,7 @@
             "spatialResolution": "375 m",
             "temporalResolution": "3-day"
           },
-          "startDate": "2025-01-01"
+          "startDate": "2012-01-19"
         },
         {
           "id": "NDH_Flood_Hazard_Frequency_Distribution_1985-2003",
@@ -683,6 +763,58 @@
             "temporalResolution": "Static (1985–2003)"
           },
           "startDate": "1985-01-01"
+        },
+        {
+          "id": "MODIS_Terra_CorrectedReflectance_Bands721",
+          "name": "Flood — False Color (7-2-1)",
+          "subtitle": "MODIS Terra 7-2-1",
+          "description": "Water absorbs near- and shortwave-infrared, so open water and flooded ground appear very dark in this 7-2-1 composite while vegetation stays bright green. Effective for mapping flood extent and tracking wetland change. Daily since 2000.",
+          "role": "context",
+          "storyDefault": false,
+          "tileMatrixSet": "GoogleMapsCompatible_Level9",
+          "format": "image/jpeg",
+          "legendId": null,
+          "section": "imagery",
+          "category": "Floods",
+          "metadata": {
+            "mission": "Earth Observing System (EOS)",
+            "satellite": "Terra (EOS PM-1)",
+            "sensors": "MODIS",
+            "orbit": "Sun-synchronous, 705 km altitude",
+            "energySource": "Passive",
+            "spectralRange": "Optical & Infrared",
+            "spectralResolution": "36 bands",
+            "spatialCoverage": "Global",
+            "spatialResolution": "250 m – 1 km",
+            "temporalResolution": "Daily"
+          },
+          "startDate": "2000-02-24"
+        },
+        {
+          "id": "VIIRS_SNPP_CorrectedReflectance_BandsM11-I2-I1",
+          "name": "Flood — False Color (375m)",
+          "subtitle": "VIIRS M11-I2-I1",
+          "description": "Sharper 375 m false-color composite (M11-I2-I1). Water and flooded ground appear dark while vegetation is bright — useful for delineating flood extent and vegetation stress. Daily since 2012.",
+          "role": "context",
+          "storyDefault": false,
+          "tileMatrixSet": "GoogleMapsCompatible_Level9",
+          "format": "image/jpeg",
+          "legendId": null,
+          "section": "imagery",
+          "category": "Floods",
+          "metadata": {
+            "mission": "Joint Polar Satellite System (JPSS)",
+            "satellite": "Suomi NPP (SNPP)",
+            "sensors": "VIIRS",
+            "orbit": "Sun-synchronous, 824 km altitude",
+            "energySource": "Passive",
+            "spectralRange": "Optical & Infrared",
+            "spectralResolution": "22 bands",
+            "spatialCoverage": "Global",
+            "spatialResolution": "375-750 m",
+            "temporalResolution": "Daily"
+          },
+          "startDate": "2012-01-19"
         }
       ]
     },
@@ -945,7 +1077,7 @@
           "spatialResolution": "375 m",
           "temporalResolution": "Daily"
         },
-        "startDate": "2025-01-01"
+        "startDate": "2012-01-19"
       },
       {
         "id": "OPERA_L3_Dynamic_Surface_Water_Extent-Sentinel-1",
@@ -973,8 +1105,22 @@
         },
         "storyPreset": {
           "label": "Recent African flood (SAR)",
-          "before": { "date": "2024-09-01", "center": [9.0, 7.5], "zoom": 10.5 },
-          "after": { "date": "2024-10-01", "center": [9.0, 7.5], "zoom": 10.5 }
+          "before": {
+            "date": "2024-09-01",
+            "center": [
+              9.0,
+              7.5
+            ],
+            "zoom": 10.5
+          },
+          "after": {
+            "date": "2024-10-01",
+            "center": [
+              9.0,
+              7.5
+            ],
+            "zoom": 10.5
+          }
         },
         "startDate": "2024-09-04"
       },
@@ -1031,8 +1177,22 @@
         },
         "storyPreset": {
           "label": "Dry season vs peak flood",
-          "before": { "date": "2022-02-15", "center": [6.0, 4.8], "zoom": 6.2 },
-          "after": { "date": "2022-11-23", "center": [6.0, 4.8], "zoom": 6.2 }
+          "before": {
+            "date": "2022-02-15",
+            "center": [
+              6.0,
+              4.8
+            ],
+            "zoom": 6.2
+          },
+          "after": {
+            "date": "2022-11-23",
+            "center": [
+              6.0,
+              4.8
+            ],
+            "zoom": 6.2
+          }
         },
         "startDate": "2000-02-24"
       },
@@ -1060,7 +1220,7 @@
           "spatialResolution": "375 m",
           "temporalResolution": "2-day"
         },
-        "startDate": "2025-01-01"
+        "startDate": "2012-01-19"
       },
       {
         "id": "VIIRS_Combined_Flood_3-Day",
@@ -1086,7 +1246,7 @@
           "spatialResolution": "375 m",
           "temporalResolution": "3-day"
         },
-        "startDate": "2025-01-01"
+        "startDate": "2012-01-19"
       },
       {
         "id": "NDH_Flood_Hazard_Frequency_Distribution_1985-2003",
@@ -1113,6 +1273,58 @@
           "temporalResolution": "Static (1985–2003)"
         },
         "startDate": "1985-01-01"
+      },
+      {
+        "id": "MODIS_Terra_CorrectedReflectance_Bands721",
+        "name": "Flood — False Color (7-2-1)",
+        "subtitle": "MODIS Terra 7-2-1",
+        "description": "Water absorbs near- and shortwave-infrared, so open water and flooded ground appear very dark in this 7-2-1 composite while vegetation stays bright green. Effective for mapping flood extent and tracking wetland change. Daily since 2000.",
+        "role": "context",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Floods",
+        "metadata": {
+          "mission": "Earth Observing System (EOS)",
+          "satellite": "Terra (EOS PM-1)",
+          "sensors": "MODIS",
+          "orbit": "Sun-synchronous, 705 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "36 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "250 m – 1 km",
+          "temporalResolution": "Daily"
+        },
+        "startDate": "2000-02-24"
+      },
+      {
+        "id": "VIIRS_SNPP_CorrectedReflectance_BandsM11-I2-I1",
+        "name": "Flood — False Color (375m)",
+        "subtitle": "VIIRS M11-I2-I1",
+        "description": "Sharper 375 m false-color composite (M11-I2-I1). Water and flooded ground appear dark while vegetation is bright — useful for delineating flood extent and vegetation stress. Daily since 2012.",
+        "role": "context",
+        "storyDefault": false,
+        "tileMatrixSet": "GoogleMapsCompatible_Level9",
+        "format": "image/jpeg",
+        "legendId": null,
+        "section": "imagery",
+        "category": "Floods",
+        "metadata": {
+          "mission": "Joint Polar Satellite System (JPSS)",
+          "satellite": "Suomi NPP (SNPP)",
+          "sensors": "VIIRS",
+          "orbit": "Sun-synchronous, 824 km altitude",
+          "energySource": "Passive",
+          "spectralRange": "Optical & Infrared",
+          "spectralResolution": "22 bands",
+          "spatialCoverage": "Global",
+          "spatialResolution": "375-750 m",
+          "temporalResolution": "Daily"
+        },
+        "startDate": "2012-01-19"
       },
       {
         "id": "GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI",
