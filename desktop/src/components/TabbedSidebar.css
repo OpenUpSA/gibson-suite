@@ -1,16 +1,39 @@
 /* Tabbed Sidebar - Tab bar styles */
 .tabbed-sidebar-tabs {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 2px;
   padding: 8px 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.2);
 }
 
+.tabbed-sidebar-tabs-scroll {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
+}
+
+.tabbed-sidebar-tabs-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tabbed-sidebar-tabs-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+}
+
 .tabbed-sidebar-tab {
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
   gap: 4px;
   padding: 6px 10px;
   background: rgba(255, 255, 255, 0.05);
@@ -111,6 +134,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   width: 24px;
   height: 24px;
   padding: 0;
