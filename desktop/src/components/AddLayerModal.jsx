@@ -70,7 +70,7 @@ const formatDate = (d) => {
   return dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove, open, onClose }) => {
+const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove, open, onClose, selectedDate, onApplyStoryPreset }) => {
   const groups = useMemo(() => buildGroups(categories), [categories])
   const activeSet = useMemo(() => new Set(activeLayers), [activeLayers])
   const filterOptions = useMemo(() => buildFilterOptions(catalog), [catalog])
@@ -253,7 +253,18 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
                 </div>
                 {expanded.has(group.key) && (
                   <div className="add-layer-group-list">
-                    {group.layers.map(layer => (
+                    {group.layers.map(layer => {
+                      // Availability: warn when the current map date falls outside
+                      // the layer's GIBS coverage window (so users don't add a
+                      // layer that will render empty for their chosen date).
+                      const noDataBefore = layer.startDate && selectedDate && selectedDate < layer.startDate
+                      const noDataAfter = layer.endDate && selectedDate && selectedDate > layer.endDate
+                      const availLabel = noDataBefore
+                        ? `No data before ${formatDate(layer.startDate)}`
+                        : noDataAfter
+                          ? `No data after ${formatDate(layer.endDate)}`
+                          : null
+                      return (
                       <button
                         key={layer.id}
                         type="button"
@@ -263,12 +274,14 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
                         <span className="add-layer-item-name">
                           <span className="add-layer-item-title">{layer.name}</span>
                           {layer.subtitle && <span className="add-layer-item-sub">{layer.subtitle}</span>}
+                          {availLabel && <span className="add-layer-item-avail" title={availLabel}>⚠ {availLabel}</span>}
                         </span>
                         {activeSet.has(layer.id) && (
                           <Icon icon="fluent:checkmark-circle-20-filled" width="16" height="16" />
                         )}
                       </button>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -302,6 +315,24 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
                     )}
                   </button>
                 </div>
+
+                {selected.storyPreset && onApplyStoryPreset && (
+                  <div className="add-layer-story-preset">
+                    <button
+                      type="button"
+                      className="add-layer-story-btn"
+                      onClick={() => onApplyStoryPreset(selected)}
+                      title="Open a before/after compare view using this layer's story dates"
+                    >
+                      <Icon icon="fluent:slide-compare-20-filled" width="16" height="16" />
+                      {selected.storyPreset.label || 'Show before / after'}
+                    </button>
+                    <p className="add-layer-story-hint">
+                      Sets up a compare view: <strong>{selected.storyPreset.before.date}</strong> (before) vs{' '}
+                      <strong>{selected.storyPreset.after.date}</strong> (after).
+                    </p>
+                  </div>
+                )}
 
                 {selected.description && (
                   <div className="add-layer-detail-block">
