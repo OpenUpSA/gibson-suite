@@ -165,29 +165,31 @@ const TabbedSidebar = ({
     <aside className={`sidebar${open ? ' sidebar-open' : ''}`} data-tour="sidebar">
       {/* Tab bar */}
       <div className="tabbed-sidebar-tabs">
-        {tabs.map((tab, idx) => (
-          <div
-            key={tab.id}
-            className={`tabbed-sidebar-tab${tab.id === activeTabId ? ' active' : ''}`}
-            onClick={() => onTabChange(tab.id)}
-          >
-            <EditableTabLabel
-              label={tab.label}
-              fallback={`View ${idx + 1}`}
-              onRename={(name) => onTabRename(tab.id, name)}
-            />
-            {tabs.length > 1 && (
-              <button
-                type="button"
-                className="tabbed-sidebar-tab-close"
-                onClick={(e) => { e.stopPropagation(); onTabRemove(tab.id) }}
-                title="Remove view"
-              >
-                <Icon icon="fluent:dismiss-12-regular" width="12" height="12" />
-              </button>
-            )}
-          </div>
-        ))}
+        <div className="tabbed-sidebar-tabs-scroll">
+          {tabs.map((tab, idx) => (
+            <div
+              key={tab.id}
+              className={`tabbed-sidebar-tab${tab.id === activeTabId ? ' active' : ''}`}
+              onClick={() => onTabChange(tab.id)}
+            >
+              <EditableTabLabel
+                label={tab.label}
+                fallback={`View ${idx + 1}`}
+                onRename={(name) => onTabRename(tab.id, name)}
+              />
+              {tabs.length > 1 && (
+                <button
+                  type="button"
+                  className="tabbed-sidebar-tab-close"
+                  onClick={(e) => { e.stopPropagation(); onTabRemove(tab.id) }}
+                  title="Remove view"
+                >
+                  <Icon icon="fluent:dismiss-12-regular" width="12" height="12" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
         <button
           type="button"
           className="tabbed-sidebar-tab-add"
