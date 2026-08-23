@@ -122,17 +122,23 @@
   flex: 0 0 18%;
   min-width: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   background: #1a1a1a;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 .add-layer-nav {
   flex: 0 0 25%;
   min-width: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   padding: 8px 0 16px;
   background: #1a1a1a;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 /* Custom scrollbar for filters panel */
@@ -153,6 +159,10 @@
   background: rgba(255, 255, 255, 0.25);
 }
 
+.add-layer-filters-panel::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* Custom scrollbar for nav panel */
 .add-layer-nav::-webkit-scrollbar {
   width: 6px;
@@ -169,6 +179,10 @@
 
 .add-layer-nav::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+.add-layer-nav::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Filter accordion */
@@ -271,6 +285,30 @@
   gap: 2px;
   max-height: 200px;
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.add-layer-filter-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.add-layer-filter-options::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.add-layer-filter-options::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.add-layer-filter-options::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.add-layer-filter-options::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .add-layer-filter-option {
