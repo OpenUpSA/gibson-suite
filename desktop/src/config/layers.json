@@ -567,7 +567,7 @@
             "spatialResolution": "375 m",
             "temporalResolution": "Daily"
           },
-          "startDate": "2025-01-01"
+          "startDate": "2012-01-19"
         },
         {
           "id": "OPERA_L3_Dynamic_Surface_Water_Extent-Sentinel-1",
@@ -595,8 +595,22 @@
           },
           "storyPreset": {
             "label": "Recent African flood (SAR)",
-            "before": { "date": "2024-09-01", "center": [9.0, 7.5], "zoom": 10.5 },
-            "after": { "date": "2024-10-01", "center": [9.0, 7.5], "zoom": 10.5 }
+            "before": {
+              "date": "2024-09-01",
+              "center": [
+                9.0,
+                7.5
+              ],
+              "zoom": 10.5
+            },
+            "after": {
+              "date": "2024-10-01",
+              "center": [
+                9.0,
+                7.5
+              ],
+              "zoom": 10.5
+            }
           },
           "startDate": "2024-09-04"
         },
@@ -653,8 +667,22 @@
           },
           "storyPreset": {
             "label": "Dry season vs peak flood",
-            "before": { "date": "2022-02-15", "center": [6.0, 4.8], "zoom": 6.2 },
-            "after": { "date": "2022-11-23", "center": [6.0, 4.8], "zoom": 6.2 }
+            "before": {
+              "date": "2022-02-15",
+              "center": [
+                6.0,
+                4.8
+              ],
+              "zoom": 6.2
+            },
+            "after": {
+              "date": "2022-11-23",
+              "center": [
+                6.0,
+                4.8
+              ],
+              "zoom": 6.2
+            }
           },
           "startDate": "2000-02-24"
         },
@@ -682,7 +710,7 @@
             "spatialResolution": "375 m",
             "temporalResolution": "2-day"
           },
-          "startDate": "2025-01-01"
+          "startDate": "2012-01-19"
         },
         {
           "id": "VIIRS_Combined_Flood_3-Day",
@@ -708,7 +736,7 @@
             "spatialResolution": "375 m",
             "temporalResolution": "3-day"
           },
-          "startDate": "2025-01-01"
+          "startDate": "2012-01-19"
         },
         {
           "id": "NDH_Flood_Hazard_Frequency_Distribution_1985-2003",
@@ -1049,7 +1077,7 @@
           "spatialResolution": "375 m",
           "temporalResolution": "Daily"
         },
-        "startDate": "2025-01-01"
+        "startDate": "2012-01-19"
       },
       {
         "id": "OPERA_L3_Dynamic_Surface_Water_Extent-Sentinel-1",
@@ -1077,8 +1105,22 @@
         },
         "storyPreset": {
           "label": "Recent African flood (SAR)",
-          "before": { "date": "2024-09-01", "center": [9.0, 7.5], "zoom": 10.5 },
-          "after": { "date": "2024-10-01", "center": [9.0, 7.5], "zoom": 10.5 }
+          "before": {
+            "date": "2024-09-01",
+            "center": [
+              9.0,
+              7.5
+            ],
+            "zoom": 10.5
+          },
+          "after": {
+            "date": "2024-10-01",
+            "center": [
+              9.0,
+              7.5
+            ],
+            "zoom": 10.5
+          }
         },
         "startDate": "2024-09-04"
       },
@@ -1135,8 +1177,22 @@
         },
         "storyPreset": {
           "label": "Dry season vs peak flood",
-          "before": { "date": "2022-02-15", "center": [6.0, 4.8], "zoom": 6.2 },
-          "after": { "date": "2022-11-23", "center": [6.0, 4.8], "zoom": 6.2 }
+          "before": {
+            "date": "2022-02-15",
+            "center": [
+              6.0,
+              4.8
+            ],
+            "zoom": 6.2
+          },
+          "after": {
+            "date": "2022-11-23",
+            "center": [
+              6.0,
+              4.8
+            ],
+            "zoom": 6.2
+          }
         },
         "startDate": "2000-02-24"
       },
@@ -1164,7 +1220,7 @@
           "spatialResolution": "375 m",
           "temporalResolution": "2-day"
         },
-        "startDate": "2025-01-01"
+        "startDate": "2012-01-19"
       },
       {
         "id": "VIIRS_Combined_Flood_3-Day",
@@ -1190,7 +1246,7 @@
           "spatialResolution": "375 m",
           "temporalResolution": "3-day"
         },
-        "startDate": "2025-01-01"
+        "startDate": "2012-01-19"
       },
       {
         "id": "NDH_Flood_Hazard_Frequency_Distribution_1985-2003",
