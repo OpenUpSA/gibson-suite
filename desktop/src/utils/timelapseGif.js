@@ -126,10 +126,15 @@ export const renderTimelapseGif = ({
         // `layers` is pre-ordered so the bottom layer draws first. TIME is
         // resolved per frame: imagery/base use the frame date, reference
         // overlays use the GIBS 'default' (static) time.
+        // Use PNG for non-bottom layers so their transparency composites over
+        // the layers beneath instead of painting opaque black on top (a JPEG
+        // overlay would erase everything below it — leaving only one layer).
         for (const l of layers) {
           try {
             const time = l.role === 'reference' ? 'default' : frame.time
-            const url = buildWmsUrl({ wmsBaseUrl }, l.layer, bbox3857, width, height, time)
+            const isBottom = l.role === 'imagery' || l.role === 'base'
+            const fmt = isBottom ? 'image/jpeg' : 'image/png'
+            const url = buildWmsUrl({ wmsBaseUrl }, l.layer, bbox3857, width, height, time, fmt)
             const img = await loadImage(url)
             ctx.drawImage(img, 0, 0, width, height)
           } catch (e) {
