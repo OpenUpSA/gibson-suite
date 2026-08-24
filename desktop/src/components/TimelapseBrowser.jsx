@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Icon } from '@iconify/react'
 import './TimelapseBrowser.css'
-import { buildWmsUrlMulti } from '../config/tileUrl'
+import { buildWmsUrl } from '../config/tileUrl'
 
 const PREVIEW_W = 128
 const PREVIEW_PAGE = 60
@@ -36,6 +36,7 @@ const TimelapseBrowser = ({
   onLoadMore,
   onConfirm,
   onBackToList,
+  onFetch,
   coverage,
 }) => {
   const visibleDates = dates.slice(0, limit)
@@ -50,19 +51,19 @@ const TimelapseBrowser = ({
 
   const previewH = Math.max(1, Math.round(PREVIEW_W / Math.max(0.1, aspect)))
 
-  // Composite preview: stack every active layer (imagery/base first, then
-  // reference overlays on top) for the given date, instead of a single layer.
-  // TIME is resolved per layer: imagery/base use the date, reference uses
-  // GIBS 'default'.
-  const previewUrl = (date) =>
-    layers?.length && bbox3857
-      ? buildWmsUrlMulti(
+  // Per-layer preview URL. Renders ONE layer for the given date (reference
+  // overlays use GIBS 'default' time). Rendering one layer per image — instead
+  // of compositing every active layer in a single request — reliably produces
+  // non-blank thumbnails (the multi-layer composite previously rendered empty).
+  const layerPreviewUrl = (layerEntry, date) =>
+    bbox3857
+      ? buildWmsUrl(
           { wmsBaseUrl },
-          layers.map(l => l.layer),
+          layerEntry.layer,
           bbox3857,
           PREVIEW_W,
           previewH,
-          layers.map(l => (l.role === 'reference' ? 'default' : date)),
+          layerEntry.role === 'reference' ? 'default' : date,
         )
       : ''
 
@@ -86,7 +87,17 @@ const TimelapseBrowser = ({
   const renderListMode = () => (
     <>
       <div className="tl-browser-toolbar">
-        <button type="button" className="tl-browser-btn" onClick={onSelectVisible}>
+        <button
+          type="button"
+          className="tl-browser-btn tl-browser-btn--primary"
+          onClick={onFetch}
+          disabled={fetching}
+        >
+          {fetching ? 'Fetching…' : 'Fetch available dates'}
+        </button>
+      </div>
+      <div className="tl-browser-toolbar">
+        <button type="button" className="tl-browser-btn" onClick={onSelectVisible} disabled={visibleDates.length === 0}>
           {allVisibleSelected ? 'Deselect shown' : 'Select shown'}
         </button>
         <button type="button" className="tl-browser-btn" onClick={onClearSelection} disabled={selectedCount === 0}>
@@ -185,59 +196,90 @@ const TimelapseBrowser = ({
           {empty > 0 && `${empty} no data`}
         </div>
       )}
-      <div className="tl-browser-grid">
+      <div className="tl-browser-groups">
         {selectedDates.map((date) => {
           const s = status?.get(date)
-          if (s === 'ok') {
+          const cov = coverageFor(date)
+          const groupClass = `tl-date-group${selected.has(date) ? ' selected' : ''}`
+          const header = (
+            <button
+              type="button"
+              className="tl-date-group-header"
+              onClick={() => onToggleSelect(date)}
+              title={date}
+            >
+              <span className="tl-date-group-check">
+                {selected.has(date) ? (
+                  <Icon icon="fluent:checkmark-20-filled" width="14" height="14" />
+                ) : null}
+              </span>
+              <span className="tl-date-group-date">{date}</span>
+            </button>
+          )
+
+          // Not yet probed / still loading → show a single pending placeholder.
+          if (s === 'loading' || (!s && busy)) {
             return (
-              <button
-                key={date}
-                type="button"
-                className={`tl-thumb${selected.has(date) ? ' selected' : ''}`}
-                onClick={() => onToggleSelect(date)}
-                title={date}
-              >
-                <img src={previewUrl(date)} alt={date} loading="lazy" />
-                <span className="tl-thumb-date">{date}</span>
-                {selected.has(date) && (
-                  <span className="tl-thumb-check">
-                    <Icon icon="fluent:checkmark-20-filled" width="14" height="14" />
-                  </span>
-                )}
-                {coverageFor(date) &&
-                  [...coverageFor(date).entries()].map(([layerId, has]) => (
-                    <span
-                      key={layerId}
-                      className={`tl-thumb-badge${has ? ' tl-badge-ok' : ' tl-badge-empty'}`}
-                      title={layerId}
-                    >
-                      {has ? layerId : `${layerId}: none`}
-                    </span>
-                  ))}
-              </button>
+              <div key={date} className={groupClass}>
+                {header}
+                <div className="tl-date-group-layers">
+                  <div className="tl-layer-thumb tl-thumb-placeholder tl-thumb--loading">
+                    <span className="tl-thumb-msg">Checking…</span>
+                  </div>
+                </div>
+              </div>
             )
           }
-          if (s === 'empty' || s === 'error' || !s) {
+          if (s === 'error') {
             return (
-              <button
-                key={date}
-                type="button"
-                className={`tl-thumb tl-thumb-placeholder${s === 'empty' ? ' tl-thumb--nodata' : ''}${s === 'error' ? ' tl-thumb--error' : ''}`}
-                onClick={() => onToggleSelect(date)}
-                title={date}
-              >
-                <span className="tl-thumb-msg">
-                  {s === 'empty' ? 'No data' : s === 'error' ? 'Failed' : 'Pending'}
-                </span>
-                <span className="tl-thumb-date">{date}</span>
-              </button>
+              <div key={date} className={groupClass}>
+                {header}
+                <div className="tl-date-group-layers">
+                  <div className="tl-layer-thumb tl-thumb-placeholder tl-thumb--error">
+                    <span className="tl-thumb-msg">Failed</span>
+                  </div>
+                </div>
+              </div>
             )
           }
-          // loading
+
+          // Probed (ok or empty): one thumbnail per active layer.
           return (
-            <div key={date} className="tl-thumb tl-thumb-placeholder tl-thumb--loading">
-              <span className="tl-thumb-msg">Checking…</span>
-              <span className="tl-thumb-date">{date}</span>
+            <div key={date} className={groupClass}>
+              {header}
+              <div className="tl-date-group-layers">
+                {layers.map((layerEntry) => {
+                  const isReference = layerEntry.role === 'reference'
+                  const has = isReference ? true : cov?.get(layerEntry.layer.id)
+                  const layerId = layerEntry.layer.id
+                  if (has) {
+                    return (
+                      <div
+                        key={layerId}
+                        className="tl-layer-thumb"
+                        title={`${layerId} · ${date}`}
+                      >
+                        <img
+                          src={layerPreviewUrl(layerEntry, date)}
+                          alt={`${layerId} ${date}`}
+                          loading="lazy"
+                        />
+                        <span className="tl-layer-thumb-badge tl-badge-ok">{layerId}</span>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div
+                      key={layerId}
+                      className="tl-layer-thumb tl-thumb-placeholder tl-thumb--nodata"
+                      title={`${layerId} · no data`}
+                    >
+                      <span className="tl-thumb-msg">No data</span>
+                      <span className="tl-layer-thumb-badge tl-badge-empty">{layerId}</span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )
         })}
@@ -270,7 +312,17 @@ const TimelapseBrowser = ({
       ) : fetching ? (
         <div className="tl-browser-state">Loading available dates…</div>
       ) : visibleDates.length === 0 ? (
-        <div className="tl-browser-state">No images found in this date range.</div>
+        <div className="tl-browser-state">
+          <p>No images loaded yet.</p>
+          <button
+            type="button"
+            className="tl-browser-btn tl-browser-btn--primary"
+            onClick={onFetch}
+            disabled={fetching}
+          >
+            {fetching ? 'Fetching…' : 'Fetch available dates'}
+          </button>
+        </div>
       ) : confirmed ? (
         renderPreviewMode()
       ) : (

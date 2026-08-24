@@ -890,35 +890,46 @@ export default function Globe() {
     setTlRect([[sw.lng, sw.lat], [ne.lng, ne.lat]])
   }, [])
 
-  // Fetch the union of available dates across all active imagery layers
-  // + range (debounced). A date is offered if ANY imagery layer has it.
+  // Clear the available-date list whenever the range, interval, or active
+  // imagery layers change, so stale dates from a previous range aren't shown.
+  // Deliberately does NOT fetch — the user triggers the fetch explicitly via
+  // the "Fetch" button (see handleTlFetch / onFetch below).
   useEffect(() => {
+    if (activeTool !== 'timelapse') return
+    setTlAvailableDates([])
+    setTlPreviewLimit(PREVIEW_PAGE)
+    setTlSelected(new Set())
+    setTlPreviewsConfirmed(false)
+    setTlPreviewStatus(new Map())
+    setTlCoverage(new Map())
+    setTlPreviewBusy(false)
+  }, [activeTool, tlImageryLayers, tlStartDate, tlEndDate, tlInterval])
+
+  // Explicit fetch of the union of available dates across all active imagery
+  // layers + range. A date is offered if ANY imagery layer has it. Triggered
+  // only by the "Fetch" button — never automatically on every date change.
+  const handleTlFetch = useCallback(async () => {
     if (activeTool !== 'timelapse' || tlImageryLayers.length === 0) return
-    let cancelled = false
     setTlFetching(true)
-    const timer = setTimeout(async () => {
-      try {
-        const perLayer = await Promise.all(
-          tlImageryLayers.map(l => availableDates(l.id, tlStartDate, tlEndDate, tlInterval)),
-        )
-        if (cancelled) return
-        const union = [...new Set(perLayer.flat())].sort()
-        setTlAvailableDates(union)
-        setTlPreviewLimit(PREVIEW_PAGE)
-        setTlSelected(new Set())
-        // New date range → back to list mode; no previews until confirmed.
-        setTlPreviewsConfirmed(false)
-        setTlPreviewStatus(new Map())
-        setTlCoverage(new Map())
-        setTlPreviewBusy(false)
-      } catch (err) {
-        console.warn('[Timelapse] Failed to load available dates:', err)
-        if (!cancelled) setTlAvailableDates([])
-      } finally {
-        if (!cancelled) setTlFetching(false)
-      }
-    }, 250)
-    return () => { cancelled = true; clearTimeout(timer) }
+    try {
+      const perLayer = await Promise.all(
+        tlImageryLayers.map(l => availableDates(l.id, tlStartDate, tlEndDate, tlInterval)),
+      )
+      const union = [...new Set(perLayer.flat())].sort()
+      setTlAvailableDates(union)
+      setTlPreviewLimit(PREVIEW_PAGE)
+      setTlSelected(new Set())
+      // New date range → back to list mode; no previews until confirmed.
+      setTlPreviewsConfirmed(false)
+      setTlPreviewStatus(new Map())
+      setTlCoverage(new Map())
+      setTlPreviewBusy(false)
+    } catch (err) {
+      console.warn('[Timelapse] Failed to load available dates:', err)
+      setTlAvailableDates([])
+    } finally {
+      setTlFetching(false)
+    }
   }, [activeTool, tlImageryLayers, tlStartDate, tlEndDate, tlInterval])
 
   // Autosave app state to localStorage (debounced)
@@ -1777,6 +1788,7 @@ export default function Globe() {
               onLoadMore={handleTlLoadMore}
               onConfirm={handleTlLoadPreviews}
               onBackToList={handleTlBackToList}
+              onFetch={handleTlFetch}
             />
           </div>
         </div>
