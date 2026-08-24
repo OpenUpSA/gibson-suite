@@ -441,8 +441,9 @@
 
 .tl-layer-thumb {
   position: relative;
-  flex: 1 1 96px;
-  max-width: 140px;
+  flex: 0 0 auto;
+  width: 128px;
+  max-width: none;
   background: #000;
   border: 2px solid transparent;
   border-radius: 4px;
@@ -484,7 +485,8 @@
 /* Per-layer thumbnails reuse the placeholder background for the no-data/error
    state but should not stretch full-width like the old grid cells. */
 .tl-date-group-layers .tl-thumb-placeholder {
-  flex: 1 1 96px;
-  max-width: 140px;
+  flex: 0 0 auto;
+  width: 128px;
+  max-width: none;
   min-height: 64px;
 }
