@@ -8,7 +8,6 @@ import EditableTabLabel from './EditableTabLabel'
 import PlaceSearch from './PlaceSearch'
 
 const QUALITY_ORDER = ['low', 'medium', 'high']
-const MAX_VISIBLE_TABS = 3
 
 const TabbedSidebar = ({
   sections,
@@ -172,95 +171,67 @@ const TabbedSidebar = ({
 
   // Get the active tab
   const activeTab = tabs.find(t => t.id === activeTabId)
-  const activeInTopWindow = tabs.slice(0, MAX_VISIBLE_TABS).some(t => t.id === activeTabId)
-  const visibleTabs = activeInTopWindow
-    ? tabs.slice(0, MAX_VISIBLE_TABS)
-    : [activeTab, ...tabs.filter(t => t.id !== activeTabId).slice(0, MAX_VISIBLE_TABS - 1)].filter(Boolean)
-  const hiddenTabIds = new Set(visibleTabs.map(t => t.id))
-  const overflowTabs = tabs.filter(t => !hiddenTabIds.has(t.id))
 
   return (
     <aside className={`sidebar${open ? ' sidebar-open' : ''}`} data-tour="sidebar">
-      {/* Tab bar */}
+      {/* Tab bar — all views shown in a single dropdown (same style as the
+          quick-add / reference-layer flyouts elsewhere in the sidebar) */}
       <div className="tabbed-sidebar-tabs" ref={tabBarRef}>
-        <div className="tabbed-sidebar-tabs-list">
-          {visibleTabs.map((tab) => {
-            const idx = tabs.findIndex(t => t.id === tab.id)
-            return (
-              <div
-                key={tab.id}
-                className={`tabbed-sidebar-tab${tab.id === activeTabId ? ' active' : ''}`}
-                onClick={() => { onTabChange(tab.id); setOverflowOpen(false) }}
-              >
-                <EditableTabLabel
-                  label={tab.label}
-                  fallback={`View ${idx + 1}`}
-                  onRename={(name) => onTabRename(tab.id, name)}
-                />
-                {tabs.length > 1 && (
+        <div className="tabbed-sidebar-tab-dropdown">
+          <button
+            type="button"
+            className="tabbed-sidebar-tab-dropdown-btn"
+            onClick={() => setOverflowOpen(v => !v)}
+            title="Switch view"
+          >
+            <Icon icon="fluent:board-16-regular" width="14" height="14" />
+            <span className="tabbed-sidebar-tab-dropdown-label">
+              {activeTab?.label || `View ${tabs.findIndex(t => t.id === activeTabId) + 1}`}
+            </span>
+            <Icon icon="fluent:chevron-down-16-filled" width="14" height="14" />
+          </button>
+          {overflowOpen && (
+            <div className="sidebar-flyout tabbed-sidebar-tab-flyout">
+              {tabs.map((tab, idx) => (
+                <div
+                  key={tab.id}
+                  className={`tabbed-sidebar-overflow-item${tab.id === activeTabId ? ' active' : ''}`}
+                >
                   <button
                     type="button"
-                    className="tabbed-sidebar-tab-close"
-                    onClick={(e) => { e.stopPropagation(); onTabRemove(tab.id) }}
-                    title="Remove view"
+                    className="tabbed-sidebar-overflow-item-main"
+                    onClick={() => { onTabChange(tab.id); setOverflowOpen(false) }}
+                    title={tab.label || `View ${idx + 1}`}
                   >
-                    <Icon icon="fluent:dismiss-12-regular" width="12" height="12" />
+                    <EditableTabLabel
+                      label={tab.label}
+                      fallback={`View ${idx + 1}`}
+                      onRename={(name) => onTabRename(tab.id, name)}
+                    />
                   </button>
-                )}
-              </div>
-            )
-          })}
+                  {tabs.length > 1 && (
+                    <button
+                      type="button"
+                      className="tabbed-sidebar-overflow-item-close"
+                      onClick={() => onTabRemove(tab.id)}
+                      title="Remove view"
+                    >
+                      <Icon icon="fluent:dismiss-12-regular" width="12" height="12" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                className="sidebar-flyout-item tabbed-sidebar-tab-add-item"
+                onClick={() => { onTabAdd(); setOverflowOpen(false) }}
+              >
+                <Icon icon="fluent:add-16-filled" width="14" height="14" />
+                <span>Add new view</span>
+              </button>
+            </div>
+          )}
         </div>
-        {overflowTabs.length > 0 && (
-          <div className="tabbed-sidebar-overflow-wrap">
-            <button
-              type="button"
-              className="tabbed-sidebar-overflow-btn"
-              onClick={() => setOverflowOpen(v => !v)}
-              title="More views"
-            >
-              <Icon icon="fluent:chevron-down-16-filled" width="14" height="14" />
-              <span>{overflowTabs.length}</span>
-            </button>
-            {overflowOpen && (
-              <div className="tabbed-sidebar-overflow-menu">
-                {overflowTabs.map((tab) => {
-                  const idx = tabs.findIndex(t => t.id === tab.id)
-                  return (
-                    <div key={tab.id} className="tabbed-sidebar-overflow-item">
-                      <button
-                        type="button"
-                        className="tabbed-sidebar-overflow-item-main"
-                        onClick={() => { onTabChange(tab.id); setOverflowOpen(false) }}
-                        title={tab.label || `View ${idx + 1}`}
-                      >
-                        <span>{tab.label || `View ${idx + 1}`}</span>
-                      </button>
-                      {tabs.length > 1 && (
-                        <button
-                          type="button"
-                          className="tabbed-sidebar-overflow-item-close"
-                          onClick={() => onTabRemove(tab.id)}
-                          title="Remove view"
-                        >
-                          <Icon icon="fluent:dismiss-12-regular" width="12" height="12" />
-                        </button>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )}
-        <button
-          type="button"
-          className="tabbed-sidebar-tab-add"
-          onClick={onTabAdd}
-          title="Add new view"
-        >
-          <Icon icon="fluent:add-16-filled" width="14" height="14" />
-        </button>
       </div>
 
       <div className="sidebar-header">

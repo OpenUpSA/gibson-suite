@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Icon } from '@iconify/react'
 import './TimelapseBrowser.css'
-import { buildWmsUrl } from '../config/tileUrl'
+import { buildWmsUrlMulti } from '../config/tileUrl'
 
 const PREVIEW_W = 128
 const PREVIEW_PAGE = 60
@@ -18,10 +18,10 @@ const PREVIEW_PAGE = 60
 // are skipped. Previews are low-res (128px) JPEGs.
 const TimelapseBrowser = ({
   layerName,
+  layers,
   hasRect,
   bbox3857,
   wmsBaseUrl,
-  layer,
   dates,
   limit,
   selected,
@@ -36,6 +36,7 @@ const TimelapseBrowser = ({
   onLoadMore,
   onConfirm,
   onBackToList,
+  coverage,
 }) => {
   const visibleDates = dates.slice(0, limit)
   const selectedDates = useMemo(() => [...selected].sort(), [selected])
@@ -49,10 +50,25 @@ const TimelapseBrowser = ({
 
   const previewH = Math.max(1, Math.round(PREVIEW_W / Math.max(0.1, aspect)))
 
+  // Composite preview: stack every active layer (imagery/base first, then
+  // reference overlays on top) for the given date, instead of a single layer.
+  // TIME is resolved per layer: imagery/base use the date, reference uses
+  // GIBS 'default'.
   const previewUrl = (date) =>
-    layer && bbox3857
-      ? buildWmsUrl({ wmsBaseUrl }, layer, bbox3857, PREVIEW_W, previewH, date)
+    layers?.length && bbox3857
+      ? buildWmsUrlMulti(
+          { wmsBaseUrl },
+          layers.map(l => l.layer),
+          bbox3857,
+          PREVIEW_W,
+          previewH,
+          layers.map(l => (l.role === 'reference' ? 'default' : date)),
+        )
       : ''
+
+  // Per-layer coverage for a date: which layers actually have imagery here.
+  // `coverage` is a Map<date, Map<layerId, boolean>> (true = has data).
+  const coverageFor = (date) => coverage?.get(date)
 
   const allVisibleSelected = visibleDates.length > 0 && visibleDates.every((d) => selected.has(d))
 
@@ -84,6 +100,7 @@ const TimelapseBrowser = ({
       <div className="tl-list">
         {visibleDates.map((date) => {
           const s = status?.get(date)
+          const cov = coverageFor(date)
           return (
             <button
               key={date}
@@ -98,7 +115,17 @@ const TimelapseBrowser = ({
                 ) : null}
               </span>
               <span className="tl-row-date">{date}</span>
-              {s === 'empty' && <span className="tl-row-badge">no data</span>}
+              {cov
+                ? [...cov.entries()].map(([layerId, has]) => (
+                    <span
+                      key={layerId}
+                      className={`tl-row-badge${has ? ' tl-badge-ok' : ' tl-badge-empty'}`}
+                      title={layerId}
+                    >
+                      {has ? layerId : `${layerId}: none`}
+                    </span>
+                  ))
+                : s === 'empty' && <span className="tl-row-badge tl-badge-empty">no data</span>}
             </button>
           )
         })}
@@ -177,6 +204,16 @@ const TimelapseBrowser = ({
                     <Icon icon="fluent:checkmark-20-filled" width="14" height="14" />
                   </span>
                 )}
+                {coverageFor(date) &&
+                  [...coverageFor(date).entries()].map(([layerId, has]) => (
+                    <span
+                      key={layerId}
+                      className={`tl-thumb-badge${has ? ' tl-badge-ok' : ' tl-badge-empty'}`}
+                      title={layerId}
+                    >
+                      {has ? layerId : `${layerId}: none`}
+                    </span>
+                  ))}
               </button>
             )
           }
@@ -222,7 +259,7 @@ const TimelapseBrowser = ({
     <div className="tl-browser">
       <div className="tl-browser-header">
         <div className="tl-browser-title">Timelapse Images</div>
-        <div className="tl-browser-layer">{layerName || 'No imagery layer'}</div>
+        <div className="tl-browser-layer">{layerName || 'No imagery layer active'}</div>
       </div>
 
       {!hasRect ? (

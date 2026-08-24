@@ -320,6 +320,114 @@
   transform: translateX(14px);
 }
 
+/* ── Tab dropdown (reuses .sidebar-flyout from Sidebar.css) ─────── */
+
+.tabbed-sidebar-tab-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.tabbed-sidebar-tab-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.tabbed-sidebar-tab-dropdown-btn:hover {
+  background: rgba(227, 165, 32, 0.15);
+  border-color: rgba(227, 165, 32, 0.35);
+  color: #E3A520;
+}
+
+.tabbed-sidebar-tab-dropdown-label {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabbed-sidebar-tab-flyout {
+  left: 0;
+  right: 0;
+  min-width: 0;
+}
+
+/* Each view row inside the dropdown */
+.tabbed-sidebar-overflow-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.tabbed-sidebar-overflow-item.active {
+  background: rgba(227, 165, 32, 0.15);
+}
+
+.tabbed-sidebar-overflow-item .tabbed-sidebar-overflow-item-main {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+}
+
+.tabbed-sidebar-overflow-item.active .tabbed-sidebar-overflow-item-main {
+  color: #E3A520;
+}
+
+.tabbed-sidebar-overflow-item .tabbed-sidebar-overflow-item-main:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Let the view name fill the dropdown row instead of the 100px chip cap */
+.tabbed-sidebar-tab-flyout .tabbed-sidebar-tab-label {
+  max-width: none;
+  flex: 1;
+}
+
+/* Surface the rename pencil on hover inside the dropdown */
+.tabbed-sidebar-overflow-item:hover .tabbed-sidebar-tab-rename,
+.tabbed-sidebar-overflow-item .tabbed-sidebar-tab-rename:focus-visible {
+  opacity: 0.7;
+}
+
+.tabbed-sidebar-overflow-item .tabbed-sidebar-tab-rename:hover {
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* "Add new view" row at the bottom of the dropdown */
+.tabbed-sidebar-tab-add-item {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-weight: 600;
+}
+
+.tabbed-sidebar-tab-add-item:hover {
+  background: rgba(227, 165, 32, 0.12) !important;
+  color: #E3A520 !important;
+}
+
 /* Grid editor panel */
 .sidebar-grid-editor {
   padding: 4px 14px 14px;

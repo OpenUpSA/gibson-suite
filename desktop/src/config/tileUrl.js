@@ -27,3 +27,17 @@ export const buildWmsUrl = (config, layer, bbox3857, width, height, time) => {
   const [minX, minY, maxX, maxY] = bbox3857
   return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=image%2Fjpeg&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=${Math.round(width)}&HEIGHT=${Math.round(height)}&BBOX=${minX},${minY},${maxX},${maxY}&TIME=${time}`
 }
+
+// Single-image WMS GetMap URL that stacks several layers in one request
+// (imagery/base first, reference overlays on top). `layers` is the same
+// ordered array consumed by renderTimelapseGif; `times[i]` is the resolved
+// WMS TIME for layers[i] (frame date, or 'default' for reference crops).
+// Used by the timelapse preview browser to composite all active layers.
+export const buildWmsUrlMulti = (config, layers, bbox3857, width, height, times) => {
+  const [minX, minY, maxX, maxY] = bbox3857
+  const ids = layers.map(l => l.id).join(',')
+  const timeList = times.join(',')
+  return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${ids}` +
+    `&STYLES=&FORMAT=image%2Fjpeg&TRANSPARENT=TRUE&CRS=EPSG:3857` +
+    `&WIDTH=${Math.round(width)}&HEIGHT=${Math.round(height)}&BBOX=${minX},${minY},${maxX},${maxY}&TIME=${timeList}`
+}
