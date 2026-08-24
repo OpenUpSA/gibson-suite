@@ -83,6 +83,13 @@
   background: rgba(227, 165, 32, 0.32);
 }
 
+/* Content-sized button: don't stretch to fill its flex row/column. */
+.tl-browser-btn--auto {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: auto;
+}
+
 .tl-browser-count {
   padding: 6px 14px;
   font-size: 11px;
@@ -173,7 +180,8 @@
   border-radius: 50%;
   width: 18px;
   height: 18px;
-  display: flex;
+  disp: 0 0 auto;
+  align-self: center
   align-items: center;
   justify-content: center;
 }
@@ -439,9 +447,6 @@
   border: 2px solid transparent;
   border-radius: 4px;
   overflow: hidden;
-  min-height: 64px;
-  display: flex;
-  flex-direction: column;
   justify-content: center;
 }
 
