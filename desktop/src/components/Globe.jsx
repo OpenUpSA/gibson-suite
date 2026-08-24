@@ -875,45 +875,19 @@ export default function Globe() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  // Seed a default crop box the first time the timelapse tool opens.
-  const seededTlRectRef = useRef(false)
-  const seedTlRectIfNeeded = useCallback((map) => {
-    if (seededTlRectRef.current || !map) return
-    seededTlRectRef.current = true
-    const canvas = map.getCanvas()
-    const w = canvas.clientWidth
-    const h = canvas.clientHeight
-    const cw = w * 0.7
-    const ch = cw * (9 / 16)
-    const sw = map.unproject([w / 2 - cw / 2, h / 2 + ch / 2])
-    const ne = map.unproject([w / 2 + cw / 2, h / 2 - ch / 2])
-    setTlRect([[sw.lng, sw.lat], [ne.lng, ne.lat]])
-  }, [])
-
-  // Clear the available-date list whenever the range, interval, or active
-  // imagery layers change, so stale dates from a previous range aren't shown.
-  // Deliberately does NOT fetch — the user triggers the fetch explicitly via
-  // the "Fetch" button (see handleTlFetch / onFetch below).
-  useEffect(() => {
-    if (activeTool !== 'timelapse') return
-    setTlAvailableDates([])
-    setTlPreviewLimit(PREVIEW_PAGE)
-    setTlSelected(new Set())
-    setTlPreviewsConfirmed(false)
-    setTlPreviewStatus(new Map())
-    setTlCoverage(new Map())
-    setTlPreviewBusy(false)
-  }, [activeTool, tlImageryLayers, tlStartDate, tlEndDate, tlInterval])
-
   // Explicit fetch of the union of available dates across all active imagery
   // layers + range. A date is offered if ANY imagery layer has it. Triggered
-  // only by the "Fetch" button — never automatically on every date change.
-  const handleTlFetch = useCallback(async () => {
+  // by the "Fetch" button, or with a one-off `range` override (e.g. the
+  // initial seed from the active view). When `range` is given it takes
+  // precedence over the current state values.
+  const handleTlFetch = useCallback(async (range) => {
+    const start = range?.startDate ?? tlStartDate
+    const end = range?.endDate ?? tlEndDate
     if (activeTool !== 'timelapse' || tlImageryLayers.length === 0) return
     setTlFetching(true)
     try {
       const perLayer = await Promise.all(
-        tlImageryLayers.map(l => availableDates(l.id, tlStartDate, tlEndDate, tlInterval)),
+        tlImageryLayers.map(l => availableDates(l.id, start, end, tlInterval)),
       )
       const union = [...new Set(perLayer.flat())].sort()
       setTlAvailableDates(union)
@@ -931,6 +905,49 @@ export default function Globe() {
       setTlFetching(false)
     }
   }, [activeTool, tlImageryLayers, tlStartDate, tlEndDate, tlInterval])
+
+  // Seed a default crop box the first time the timelapse tool opens, and
+  // populate it from the active view: layers are already derived from the
+  // active tab, so we also seed the date range from the view's date and
+  // auto-fetch the available dates so the panel opens ready to use.
+  const seededTlRectRef = useRef(false)
+  const seedTlRectIfNeeded = useCallback((map) => {
+    if (seededTlRectRef.current || !map) return
+    seededTlRectRef.current = true
+    const canvas = map.getCanvas()
+    const w = canvas.clientWidth
+    const h = canvas.clientHeight
+    const cw = w * 0.7
+    const ch = cw * (9 / 16)
+    const sw = map.unproject([w / 2 - cw / 2, h / 2 + ch / 2])
+    const ne = map.unproject([w / 2 + cw / 2, h / 2 - ch / 2])
+    setTlRect([[sw.lng, sw.lat], [ne.lng, ne.lat]])
+    if (activeTab?.date) {
+      const start = addDaysIso(activeTab.date, -30)
+      const end = activeTab.date
+      setTlStartDate(start)
+      setTlEndDate(end)
+      handleTlFetch({ startDate: start, endDate: end })
+    }
+  }, [activeTab, handleTlFetch])
+
+  // Clear the available-date list whenever the range, interval, or active
+  // imagery layers change, so stale dates from a previous range aren't shown.
+  // Resets the date list + previews whenever the inputs change, so stale
+  // data is never shown as valid after the crop box moves or the range
+  // changes. Deliberately does NOT fetch — the user triggers the fetch
+  // explicitly via the "Fetch" button (see handleTlFetch / onFetch below).
+  useEffect(() => {
+    if (activeTool !== 'timelapse') return
+    setTlAvailableDates([])
+    setTlPreviewLimit(PREVIEW_PAGE)
+    setTlSelected(new Set())
+    setTlPreviewsConfirmed(false)
+    setTlPreviewStatus(new Map())
+    setTlCoverage(new Map())
+    setTlPreviewBusy(false)
+  }, [activeTool, tlImageryLayers, tlStartDate, tlEndDate, tlInterval, tlRect])
+
 
   // Autosave app state to localStorage (debounced)
   useEffect(() => {
