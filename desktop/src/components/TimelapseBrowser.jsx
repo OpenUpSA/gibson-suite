@@ -49,7 +49,10 @@ const TimelapseBrowser = ({
     return (maxX - minX) / Math.max(1e-6, maxY - minY)
   }, [bbox3857])
 
-  const previewH = Math.max(1, Math.round(PREVIEW_W / Math.max(0.1, aspect)))
+  // Keep previews a sane, visible size. For wide crops (large aspect) the old
+  // formula collapsed the height toward 1px, leaving near-invisible thumbnails;
+  // clamp to [72, 200] so images always show.
+  const previewH = Math.min(200, Math.max(72, Math.round(PREVIEW_W / Math.max(0.1, aspect))))
 
   // Per-layer preview URL. Renders ONE layer for the given date (reference
   // overlays use GIBS 'default' time). Rendering one layer per image — instead
@@ -89,7 +92,7 @@ const TimelapseBrowser = ({
       <div className="tl-browser-toolbar">
         <button
           type="button"
-          className="tl-browser-btn tl-browser-btn--primary"
+          className="tl-browser-btn tl-browser-btn--primary tl-browser-btn--auto"
           onClick={onFetch}
           disabled={fetching}
         >
@@ -160,7 +163,7 @@ const TimelapseBrowser = ({
         </button>
       </div>
       {dates.length > visibleDates.length && (
-        <button type="button" className="tl-browser-btn tl-browser-loadmore" onClick={onLoadMore}>
+        <button type="button" className="tl-browser-btn tl-browser-loadmore tl-browser-btn--auto" onClick={onLoadMore}>
           Load more ({dates.length - visibleDates.length} remaining)
         </button>
       )}
@@ -250,7 +253,11 @@ const TimelapseBrowser = ({
               <div className="tl-date-group-layers">
                 {layers.map((layerEntry) => {
                   const isReference = layerEntry.role === 'reference'
-                  const has = isReference ? true : cov?.get(layerEntry.layer.id)
+                  const isBase = layerEntry.role === 'base'
+                  // Reference + base layers are always available (no per-date
+                  // coverage probe), so always render them. Imagery layers
+                  // only render when the probe found data for this date.
+                  const has = isReference || isBase ? true : cov?.get(layerEntry.layer.id)
                   const layerId = layerEntry.layer.id
                   if (has) {
                     return (
@@ -316,7 +323,7 @@ const TimelapseBrowser = ({
           <p>No images loaded yet.</p>
           <button
             type="button"
-            className="tl-browser-btn tl-browser-btn--primary"
+            className="tl-browser-btn tl-browser-btn--primary tl-browser-btn--auto"
             onClick={onFetch}
             disabled={fetching}
           >
