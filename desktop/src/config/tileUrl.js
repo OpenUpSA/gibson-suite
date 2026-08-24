@@ -23,9 +23,13 @@ export const buildTileUrlTemplate = (config, layer, time) => {
 // meters. Used by the timelapse preview browser (low-res thumbs) and the GIF
 // exporter (full-res frames). `time` may be a plain date (YYYY-MM-DD) or a
 // full ISO datetime for sub-daily layers.
-export const buildWmsUrl = (config, layer, bbox3857, width, height, time) => {
+// `format` defaults to JPEG (light, opaque imagery). Pass 'image/png' for
+// transparent overlays (reference/base) so their alpha survives compositing —
+// a JPEG overlay would come back opaque and paint over the layers beneath it.
+export const buildWmsUrl = (config, layer, bbox3857, width, height, time, format = 'image/jpeg') => {
   const [minX, minY, maxX, maxY] = bbox3857
-  return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=image%2Fjpeg&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=${Math.round(width)}&HEIGHT=${Math.round(height)}&BBOX=${minX},${minY},${maxX},${maxY}&TIME=${time}`
+  const fmt = encodeURIComponent(format)
+  return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=${fmt}&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=${Math.round(width)}&HEIGHT=${Math.round(height)}&BBOX=${minX},${minY},${maxX},${maxY}&TIME=${time}`
 }
 
 // Single-image WMS GetMap URL that stacks several layers in one request
