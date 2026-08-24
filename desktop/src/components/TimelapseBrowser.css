@@ -175,15 +175,14 @@
   position: absolute;
   top: 4px;
   right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #e3a520;
   color: #1a1a1a;
   border-radius: 50%;
   width: 18px;
   height: 18px;
-  disp: 0 0 auto;
-  align-self: center
-  align-items: center;
-  justify-content: center;
 }
 
 .tl-browser-loadmore {
@@ -448,6 +447,11 @@
   border: 2px solid transparent;
   border-radius: 4px;
   overflow: hidden;
+  /* Reserve height from width so a slow/missing image doesn't collapse the
+     box to just the badge. Uses the preview aspect ratio (128:72 ≈ 16:9). */
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 

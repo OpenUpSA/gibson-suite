@@ -43,6 +43,10 @@ const TimelapseBrowser = ({
   const selectedDates = useMemo(() => [...selected].sort(), [selected])
   const selectedCount = selectedDates.length
 
+  // Tracks per-thumbnail load failures so a broken image shows the error
+  // placeholder instead of silently collapsing to the badge.
+  const [thumbErrors, setThumbErrors] = useState({})
+
   const aspect = useMemo(() => {
     if (!bbox3857) return 1
     const [minX, minY, maxX, maxY] = bbox3857
@@ -259,18 +263,30 @@ const TimelapseBrowser = ({
                   // only render when the probe found data for this date.
                   const has = isReference || isBase ? true : cov?.get(layerEntry.layer.id)
                   const layerId = layerEntry.layer.id
+                  const thumbKey = `${layerId}__${date}`
                   if (has) {
                     return (
                       <div
                         key={layerId}
-                        className="tl-layer-thumb"
+                        className={
+                          thumbErrors[thumbKey]
+                            ? 'tl-layer-thumb tl-thumb-placeholder tl-thumb--error'
+                            : 'tl-layer-thumb'
+                        }
                         title={`${layerId} · ${date}`}
                       >
-                        <img
-                          src={layerPreviewUrl(layerEntry, date)}
-                          alt={`${layerId} ${date}`}
-                          loading="lazy"
-                        />
+                        {thumbErrors[thumbKey] ? (
+                          <span className="tl-thumb-msg">Preview unavailable</span>
+                        ) : (
+                          <img
+                            src={layerPreviewUrl(layerEntry, date)}
+                            alt={`${layerId} ${date}`}
+                            loading="lazy"
+                            onError={() =>
+                              setThumbErrors((prev) => ({ ...prev, [thumbKey]: true }))
+                            }
+                          />
+                        )}
                         <span className="tl-layer-thumb-badge tl-badge-ok">{layerId}</span>
                       </div>
                     )
