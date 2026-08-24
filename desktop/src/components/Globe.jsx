@@ -567,6 +567,8 @@ export default function Globe() {
   const [tlPreviewsConfirmed, setTlPreviewsConfirmed] = useState(false)
   const [tlPreviewStatus, setTlPreviewStatus] = useState(() => new Map())
   const [tlPreviewBusy, setTlPreviewBusy] = useState(false)
+  // Per-date, per-layer coverage: Map<date, Map<layerId, boolean>>.
+  const [tlCoverage, setTlCoverage] = useState(() => new Map())
 
   // Default per-frame delay (seconds) applied to newly added frames.
   const DEFAULT_FRAME_DELAY = 2
@@ -699,12 +701,30 @@ export default function Globe() {
     })
   }, [compareTabA, compareTabB, layerById])
 
-  // The timelapse tool exports the active tab's top imagery layer.
-  const tlLayerId = useMemo(() => {
-    const ids = flattenActive(activeTab.activeBySection)
-    return ids.find(id => layerSection(layerById.get(id) || {}) === 'imagery') || null
-  }, [activeTab])
-  const tlLayer = tlLayerId ? layerById.get(tlLayerId) : null
+  // The timelapse tool composites ALL active layers in the active tab, grouped
+  // by section. Imagery (dated) forms the bottom, then base (dated, often
+  // transparent), then reference overlays (static, TRANSPARENT=TRUE) on top.
+  const tlImageryLayers = useMemo(
+    () =>
+      (activeTab.activeBySection?.imagery || [])
+        .map(id => layerById.get(id))
+        .filter(Boolean),
+    [activeTab],
+  )
+  const tlBaseLayers = useMemo(
+    () =>
+      (activeTab.activeBySection?.base || [])
+        .map(id => layerById.get(id))
+        .filter(Boolean),
+    [activeTab],
+  )
+  const tlReferenceLayers = useMemo(
+    () =>
+      (activeTab.activeBySection?.reference || [])
+        .map(id => layerById.get(id))
+        .filter(Boolean),
+    [activeTab],
+  )
 
   const updateActiveTab = useCallback((updates) => {
     setTabs(prev => prev.map(tab =>
@@ -870,21 +890,26 @@ export default function Globe() {
     setTlRect([[sw.lng, sw.lat], [ne.lng, ne.lat]])
   }, [])
 
-  // Fetch the available dates for the timelapse layer + range (debounced).
+  // Fetch the union of available dates across all active imagery layers
+  // + range (debounced). A date is offered if ANY imagery layer has it.
   useEffect(() => {
-    if (activeTool !== 'timelapse' || !tlLayer) return
+    if (activeTool !== 'timelapse' || tlImageryLayers.length === 0) return
     let cancelled = false
     setTlFetching(true)
     const timer = setTimeout(async () => {
       try {
-        const dates = await availableDates(tlLayer.id, tlStartDate, tlEndDate, tlInterval)
+        const perLayer = await Promise.all(
+          tlImageryLayers.map(l => availableDates(l.id, tlStartDate, tlEndDate, tlInterval)),
+        )
         if (cancelled) return
-        setTlAvailableDates(dates)
+        const union = [...new Set(perLayer.flat())].sort()
+        setTlAvailableDates(union)
         setTlPreviewLimit(PREVIEW_PAGE)
         setTlSelected(new Set())
         // New date range → back to list mode; no previews until confirmed.
         setTlPreviewsConfirmed(false)
         setTlPreviewStatus(new Map())
+        setTlCoverage(new Map())
         setTlPreviewBusy(false)
       } catch (err) {
         console.warn('[Timelapse] Failed to load available dates:', err)
@@ -894,7 +919,7 @@ export default function Globe() {
       }
     }, 250)
     return () => { cancelled = true; clearTimeout(timer) }
-  }, [activeTool, tlLayer?.id, tlStartDate, tlEndDate, tlInterval])
+  }, [activeTool, tlImageryLayers, tlStartDate, tlEndDate, tlInterval])
 
   // Autosave app state to localStorage (debounced)
   useEffect(() => {
@@ -1218,29 +1243,40 @@ export default function Globe() {
   }, [])
 
   // Explicit confirmation: only now do we fetch anything. Each selected date
-  // is probed with a tiny 16×16 PNG (lightweight); dates with no imagery in
-  // the crop area are skipped and never downloaded. Probes run 4-at-a-time.
+  // is probed with a tiny 16×16 PNG (lightweight) for EVERY active imagery
+  // layer; dates where no imagery layer has data in the crop are skipped.
+  // Probes run 4-at-a-time. Per-layer coverage is recorded for the browser.
   const handleTlLoadPreviews = useCallback(async () => {
-    if (!tlLayer || !tlRect || tlPreviewBusy) return
+    if (tlImageryLayers.length === 0 || !tlRect || tlPreviewBusy) return
     const dates = [...tlSelected].sort()
     if (!dates.length) return
     const bbox = rectToBbox3857(tlRect)
     setTlPreviewsConfirmed(true)
     setTlPreviewBusy(true)
     setTlPreviewStatus(new Map(dates.map(d => [d, 'loading'])))
+    setTlCoverage(new Map(dates.map(d => [d, new Map(tlImageryLayers.map(l => [l.id, false]))])))
     try {
       await runPool(dates, async (date) => {
-        try {
-          const has = await probeHasData(wmsBaseUrl, tlLayer, bbox, date)
-          setTlPreviewStatus(prev => new Map(prev).set(date, has ? 'ok' : 'empty'))
-        } catch {
-          setTlPreviewStatus(prev => new Map(prev).set(date, 'error'))
-        }
+        const cov = new Map(tlImageryLayers.map(l => [l.id, false]))
+        let anyOk = false
+        await runPool(tlImageryLayers, async (layer) => {
+          try {
+            const has = await probeHasData(wmsBaseUrl, layer, bbox, date)
+            cov.set(layer.id, has)
+            if (has) anyOk = true
+          } catch {
+            cov.set(layer.id, false)
+          }
+        })
+        setTlCoverage(prev => new Map(prev).set(date, cov))
+        setTlPreviewStatus(prev =>
+          new Map(prev).set(date, anyOk ? 'ok' : 'empty'),
+        )
       })
     } finally {
       setTlPreviewBusy(false)
     }
-  }, [tlLayer, tlRect, tlSelected, tlPreviewBusy, wmsBaseUrl])
+  }, [tlImageryLayers, tlRect, tlSelected, tlPreviewBusy, wmsBaseUrl])
 
   const handleTlRemoveFrame = useCallback((index) => {
     const removed = tlFrames[index]
@@ -1286,7 +1322,7 @@ export default function Globe() {
   }, [])
 
   const handleTimelapseExport = useCallback(async () => {
-    if (!tlRect || tlFrames.length < 2 || !tlLayer || tlExporting) return
+    if (!tlRect || tlFrames.length < 2 || tlImageryLayers.length === 0 || tlExporting) return
     setTlExporting(true)
     setTlProgress(null)
     try {
@@ -1299,6 +1335,13 @@ export default function Globe() {
         width = GIF_MAX_WIDTH
         height = Math.max(1, Math.round(width / aspect))
       }
+      // Stack every active layer for the composite GIF: imagery + base first
+      // (dated), then reference overlays (static, drawn on top).
+      const exportLayers = [
+        ...tlImageryLayers,
+        ...tlBaseLayers,
+        ...tlReferenceLayers,
+      ].map(layer => ({ layer, role: layerSection(layer) }))
       const blob = await renderTimelapseGif({
         frames: tlFrames.map(f => ({
           time: f.time,
@@ -1306,7 +1349,7 @@ export default function Globe() {
           caption: f.caption,
           delayMs: (f.delay ?? DEFAULT_FRAME_DELAY) * 1000,
         })),
-        layer: tlLayer,
+        layers: exportLayers,
         bbox3857,
         width,
         height,
@@ -1327,7 +1370,7 @@ export default function Globe() {
       setTlExporting(false)
       setTlProgress(null)
     }
-  }, [tlRect, tlFrames, tlLayer, tlExporting, tlStampDates, wmsBaseUrl, tlStartDate, tlEndDate])
+  }, [tlRect, tlFrames, tlImageryLayers, tlBaseLayers, tlReferenceLayers, tlExporting, tlStampDates, wmsBaseUrl, tlStartDate, tlEndDate])
 
   const resolveTemplate = (text, date, layerName) =>
     text.replace(/%date%/g, date).replace(/%layer%/g, layerName)
@@ -1661,8 +1704,8 @@ export default function Globe() {
       {activeTool === 'timelapse' && activeTab && (
         <div className="timelapse-layout">
           <TimelapsePanel
-            layerName={tlLayer?.name || ''}
-            hasLayer={!!tlLayer}
+            layerSummary={tlImageryLayers.map(l => l.name).join(' + ') || ''}
+            hasLayers={tlImageryLayers.length > 0}
             startDate={tlStartDate}
             endDate={tlEndDate}
             onStartDateChange={setTlStartDate}
@@ -1710,15 +1753,20 @@ export default function Globe() {
               />
             </div>
             <TimelapseBrowser
-              layerName={tlLayer?.name || ''}
+              layerName={tlImageryLayers.map(l => l.name).join(' + ') || ''}
               hasRect={!!tlRect}
               bbox3857={tlRect ? rectToBbox3857(tlRect) : null}
               wmsBaseUrl={wmsBaseUrl}
-              layer={tlLayer}
+              layers={[
+                ...tlImageryLayers,
+                ...tlBaseLayers,
+                ...tlReferenceLayers,
+              ].map(layer => ({ layer, role: layerSection(layer) }))}
               dates={tlAvailableDates}
               limit={tlPreviewLimit}
               selected={tlSelected}
               status={tlPreviewStatus}
+              coverage={tlCoverage}
               busy={tlPreviewBusy}
               confirmed={tlPreviewsConfirmed}
               fetching={tlFetching}

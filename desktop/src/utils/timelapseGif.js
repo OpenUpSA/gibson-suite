@@ -70,7 +70,7 @@ const drawDateStamp = (ctx, text, width, height) => {
  *
  * @param {Object} opts
  * @param {Array<{time: string, label?: string, caption?: Object, delayMs?: number}>} opts.frames — one per GIF frame; caption (visible/text/position/overlayColor/overlayOpacity/textColor/fontSize) overrides the date stamp, delayMs overrides the default delay
- * @param {Object} opts.layer — layer object from layers.json
+ * @param {Array<{layer: Object, role?: string}>} opts.layers — every active layer, pre-ordered bottom→top (imagery/base first, reference on top). `layer` is the layers.json object, `role` is 'imagery'|'base'|'reference'. TIME is resolved per frame: imagery/base use the frame date, reference uses GIBS 'default'.
  * @param {Array<number>} opts.bbox3857 — [minX, minY, maxX, maxY] EPSG:3857
  * @param {number} opts.width — target GIF width (≤ GIF_MAX_WIDTH)
  * @param {number} opts.height — target GIF height
@@ -82,7 +82,7 @@ const drawDateStamp = (ctx, text, width, height) => {
  */
 export const renderTimelapseGif = ({
   frames,
-  layer,
+  layers,
   bbox3857,
   width,
   height,
@@ -113,8 +113,6 @@ export const renderTimelapseGif = ({
 
       const frame = frames[index]
       try {
-        const url = buildWmsUrl({ wmsBaseUrl }, layer, bbox3857, width, height, frame.time)
-        const img = await loadImage(url)
         const canvas = document.createElement('canvas')
         canvas.width = width
         canvas.height = height
@@ -123,10 +121,27 @@ export const renderTimelapseGif = ({
         // Black background — WMS transparent areas would otherwise be garbage.
         ctx.fillStyle = '#000'
         ctx.fillRect(0, 0, width, height)
-        ctx.drawImage(img, 0, 0, width, height)
 
+        // Composite every active layer for this frame, in stacking order.
+        // `layers` is pre-ordered so the bottom layer draws first. TIME is
+        // resolved per frame: imagery/base use the frame date, reference
+        // overlays use the GIBS 'default' (static) time.
+        for (const l of layers) {
+          try {
+            const time = l.role === 'reference' ? 'default' : frame.time
+            const url = buildWmsUrl({ wmsBaseUrl }, l.layer, bbox3857, width, height, time)
+            const img = await loadImage(url)
+            ctx.drawImage(img, 0, 0, width, height)
+          } catch (e) {
+            // A single failed layer shouldn't abort the whole GIF — skip it.
+            console.warn(`[Timelapse] layer ${l.layer?.id} failed for ${frame.time}:`, e)
+          }
+        }
+
+        const firstImagery = layers.find(l => l.role === 'imagery' || l.role === 'base')
+        const layerName = firstImagery?.layer.name || layers[0]?.layer.name || ''
         if (frame.caption?.visible && frame.caption?.text) {
-          drawCaption(ctx, frame.caption, frame.label, layer.name, width, height)
+          drawCaption(ctx, frame.caption, frame.label, layerName, width, height)
         } else if (stampDates && frame.label) {
           drawDateStamp(ctx, frame.label, width, height)
         }

@@ -25,8 +25,8 @@ const CAPTION_POSITIONS = [
 ]
 
 const TimelapsePanel = ({
-  layerName,
-  hasLayer,
+  layerSummary,
+  hasLayers,
   startDate,
   endDate,
   onStartDateChange,
@@ -57,7 +57,7 @@ const TimelapsePanel = ({
 }) => {
   const dragIndexRef = useRef(null)
 
-  const canExport = hasLayer && hasRect && frames.length >= 2 && !exporting
+  const canExport = hasLayers && hasRect && frames.length >= 2 && !exporting
   const selectedFrame = frames.find(f => f.time === selectedFrameTime) || null
 
   const handleDragStart = (i) => (e) => {
@@ -95,8 +95,8 @@ const TimelapsePanel = ({
         {/* Layer */}
         <div className="timelapse-section">
           <div className="timelapse-section-title">Layer</div>
-          <div className="timelapse-layer-name">{layerName || 'No imagery layer active'}</div>
-          {!hasLayer && (
+          <div className="timelapse-layer-name">{layerSummary || 'No imagery layer active'}</div>
+          {!hasLayers && (
             <div className="timelapse-hint">Add an imagery layer (e.g. True Color) via the Layers tool to export a timelapse.</div>
           )}
         </div>
