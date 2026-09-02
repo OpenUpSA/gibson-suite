@@ -56,10 +56,17 @@
   color: #fff;
 }
 
-/* Reset button — pinned to the bottom of the toolbar */
-.side-tool-reset {
+/* Save/Open project + Reset — pinned together at the bottom of the toolbar */
+.side-toolbar-bottom {
   margin-top: auto;
   margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.side-tool-reset {
   color: rgba(255, 255, 255, 0.35);
 }
 

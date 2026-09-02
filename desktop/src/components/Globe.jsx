@@ -1822,6 +1822,8 @@ export default function Globe() {
       <SideToolbar
         activeTool={activeTool}
         onToolClick={handleToolClick}
+        onSaveProject={handleSaveProject}
+        onLoadProject={handleLoadProject}
         onResetAll={handleResetAll}
         onLogoClick={() => setWelcomeOpen(true)}
       />
@@ -1872,8 +1874,6 @@ export default function Globe() {
         defaultCaption={DEFAULT_CAPTION}
         captionPositions={CAPTION_POSITIONS}
         onExportGrid={handleExportGrid}
-        onSaveProject={handleSaveProject}
-        onLoadProject={handleLoadProject}
       />
       )}
       <AddLayerModal

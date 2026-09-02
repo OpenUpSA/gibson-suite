@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '@iconify/react'
 import './Sidebar.css'
@@ -37,31 +37,9 @@ const LayoutSidebar = ({
   defaultCaption,
   captionPositions,
   onExportGrid,
-  // Project file props
-  onSaveProject,
-  onLoadProject,      // (jsonText) => boolean — true when the file loaded
 }) => {
   const [cellFlyout, setCellFlyout] = useState(null) // cellIndex of open flyout, or null
   const [flyoutPos, setFlyoutPos] = useState(null) // { x, y } for portal flyout position
-  const [loadError, setLoadError] = useState(false)
-  const projectInputRef = useRef(null)
-
-  const handleProjectFile = async (e) => {
-    const file = e.target.files?.[0]
-    e.target.value = '' // allow re-picking the same file
-    if (!file || !onLoadProject) return
-    try {
-      const text = await file.text()
-      if (!onLoadProject(text)) {
-        setLoadError(true)
-        setTimeout(() => setLoadError(false), 4000)
-      }
-    } catch (err) {
-      console.error('Failed to read project file:', err)
-      setLoadError(true)
-      setTimeout(() => setLoadError(false), 4000)
-    }
-  }
 
   useEffect(() => {
     if (cellFlyout === null) return
@@ -354,36 +332,6 @@ const LayoutSidebar = ({
             Export Image
           </button>
         )}
-
-        {/* Project file — the only save/share mechanism */}
-        <div className="layout-share-section">
-          <div className="layout-project-row">
-            <button type="button" className="sidebar-export-btn layout-project-btn" onClick={onSaveProject}>
-              <Icon icon="fluent:save-20-regular" width="14" height="14" />
-              Save project
-            </button>
-            <button
-              type="button"
-              className="sidebar-export-btn layout-project-btn"
-              onClick={() => projectInputRef.current?.click()}
-            >
-              <Icon icon="fluent:folder-open-20-regular" width="14" height="14" />
-              Open project
-            </button>
-          </div>
-          {loadError && (
-            <p className="layout-share-hint layout-share-hint--error">
-              Couldn't read that file — is it a Gibson project?
-            </p>
-          )}
-          <input
-            ref={projectInputRef}
-            type="file"
-            accept=".json,application/json"
-            hidden
-            onChange={handleProjectFile}
-          />
-        </div>
       </div>
 
       {/* Cell flyout portal — rendered outside overflow containers */}
