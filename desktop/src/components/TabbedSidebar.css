@@ -1,11 +1,57 @@
 /* Tabbed Sidebar - Tab bar styles */
 .tabbed-sidebar-tabs {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  padding: 8px 14px;
+  background: rgba(79, 195, 217, 0.08);
+  border-top: 1px solid rgba(79, 195, 217, 0.15);
+  border-bottom: 1px solid rgba(79, 195, 217, 0.15);
+}
+
+.tabbed-sidebar-view-selector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
   gap: 2px;
-  padding: 8px 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
+}
+
+.tabbed-sidebar-view-name {
+  min-width: 0;
+  flex: 1 1 auto;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tabbed-sidebar-view-name .tabbed-sidebar-tab-label-wrap {
+  max-width: 230px;
+}
+
+.tabbed-sidebar-view-name .tabbed-sidebar-tab-label {
+  max-width: 210px;
+}
+
+.tabbed-sidebar-view-dropdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.tabbed-sidebar-view-dropdown-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.tabbed-sidebar-view-selector .tabbed-sidebar-tab-add {
+  margin-left: 4px;
 }
 
 .tabbed-sidebar-tabs-list {
@@ -75,6 +121,31 @@
   border-radius: 3px;
   transition: opacity 0.15s ease;
   flex-shrink: 0;
+}
+
+.sidebar-title-editable {
+  min-width: 0;
+  flex: 1;
+}
+
+.sidebar-title-editable .tabbed-sidebar-tab-label-wrap {
+  width: 100%;
+}
+
+.sidebar-title-editable .tabbed-sidebar-tab-label {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.sidebar-title-editable .tabbed-sidebar-tab-rename {
+  width: 18px;
+  height: 18px;
+  opacity: 0.55;
+}
+
+.sidebar-title-editable:hover .tabbed-sidebar-tab-rename,
+.sidebar-title-editable .tabbed-sidebar-tab-rename:focus-visible {
+  opacity: 0.9;
 }
 
 .tabbed-sidebar-tab:hover .tabbed-sidebar-tab-rename,

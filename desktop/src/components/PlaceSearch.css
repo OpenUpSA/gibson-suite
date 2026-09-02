@@ -1,6 +1,6 @@
 /* Place search — lives at the top of the layers sidebar */
 .place-search {
-  padding: 10px 12px 0;
+  padding: 10px 12px 12px;
   position: relative;
 }
 

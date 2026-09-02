@@ -174,21 +174,43 @@ const TabbedSidebar = ({
 
   return (
     <aside className={`sidebar${open ? ' sidebar-open' : ''}`} data-tour="sidebar">
-      {/* Tab bar — all views shown in a single dropdown (same style as the
-          quick-add / reference-layer flyouts elsewhere in the sidebar) */}
+      <div className="sidebar-header">
+        <span className="sidebar-title">Views</span>
+        <button type="button" className="sidebar-close" onClick={onClose} title="Close">
+          <Icon icon="fluent:dismiss-20-filled" width="18" height="18" />
+        </button>
+      </div>
+
+      {/* Place search — flies the active view's map to the result */}
+      <PlaceSearch onSelect={onSearchSelect} />
+
+      {/* View selector and add action */}
       <div className="tabbed-sidebar-tabs" ref={tabBarRef}>
-        <div className="tabbed-sidebar-tab-dropdown">
+        <div className="tabbed-sidebar-view-selector">
+          <div className="tabbed-sidebar-view-name">
+            <EditableTabLabel
+              label={activeTab?.label}
+              fallback={`View ${tabs.findIndex(t => t.id === activeTabId) + 1}`}
+              onRename={(name) => onTabRename(activeTabId, name)}
+            />
+          </div>
           <button
             type="button"
-            className="tabbed-sidebar-tab-dropdown-btn"
+            className="tabbed-sidebar-view-dropdown-btn"
             onClick={() => setOverflowOpen(v => !v)}
             title="Switch view"
+            aria-label="Switch view"
           >
-            <Icon icon="fluent:board-16-regular" width="14" height="14" />
-            <span className="tabbed-sidebar-tab-dropdown-label">
-              {activeTab?.label || `View ${tabs.findIndex(t => t.id === activeTabId) + 1}`}
-            </span>
             <Icon icon="fluent:chevron-down-16-filled" width="14" height="14" />
+          </button>
+          <button
+            type="button"
+            className="tabbed-sidebar-tab-add"
+            onClick={onTabAdd}
+            title="Add new view"
+            aria-label="Add new view"
+          >
+            <Icon icon="fluent:add-16-filled" width="14" height="14" />
           </button>
           {overflowOpen && (
             <div className="sidebar-flyout tabbed-sidebar-tab-flyout">
@@ -203,11 +225,7 @@ const TabbedSidebar = ({
                     onClick={() => { onTabChange(tab.id); setOverflowOpen(false) }}
                     title={tab.label || `View ${idx + 1}`}
                   >
-                    <EditableTabLabel
-                      label={tab.label}
-                      fallback={`View ${idx + 1}`}
-                      onRename={(name) => onTabRename(tab.id, name)}
-                    />
+                    <span className="tabbed-sidebar-tab-label">{tab.label || `View ${idx + 1}`}</span>
                   </button>
                   {tabs.length > 1 && (
                     <button
@@ -233,18 +251,6 @@ const TabbedSidebar = ({
           )}
         </div>
       </div>
-
-      <div className="sidebar-header">
-        <span className="sidebar-title">
-          {activeTab?.label || `View ${tabs.findIndex(t => t.id === activeTabId) + 1}`}
-        </span>
-        <button type="button" className="sidebar-close" onClick={onClose} title="Close">
-          <Icon icon="fluent:dismiss-20-filled" width="18" height="18" />
-        </button>
-      </div>
-
-      {/* Place search — flies the active view's map to the result */}
-      <PlaceSearch onSelect={onSearchSelect} />
 
       {/* Date picker for current tab */}
       <div className="sidebar-date-picker">
