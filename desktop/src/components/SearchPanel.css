@@ -37,7 +37,7 @@
   background: none;
   border: none;
   color: #888;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
   padding: 4px;
   line-height: 1;
@@ -76,7 +76,7 @@
 }
 
 .search-result-name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: #ddd;
   line-height: 1.4;

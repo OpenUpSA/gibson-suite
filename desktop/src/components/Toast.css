@@ -13,7 +13,7 @@
   border-radius: 6px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   color: #eee;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .app-toast-icon {
@@ -33,7 +33,7 @@
   border: 1px solid rgba(227, 165, 32, 0.6);
   border-radius: 4px;
   color: #e3a520;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
 }
 

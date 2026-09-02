@@ -29,7 +29,7 @@
   border-radius: 6px 6px 0 0;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.7);
   user-select: none;
 }
@@ -94,7 +94,7 @@
   border: 1px solid rgba(227, 165, 32, 0.5);
   border-radius: 4px;
   color: #eee;
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
 }
 
@@ -338,7 +338,7 @@
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   transition: all 0.15s ease;
 }
@@ -430,10 +430,10 @@
 
 /* Grid editor panel */
 .sidebar-grid-editor {
-  padding: 4px 14px 14px;
+  padding: 8px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   overflow-y: auto;
   flex: 1;
   min-height: 120px;
@@ -497,7 +497,7 @@
 }
 
 .sidebar-grid-cell-label {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   color: #E3A520;
   text-align: center;
@@ -514,18 +514,18 @@
 .sidebar-grid-span-controls {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .sidebar-grid-span-controls {
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sidebar-grid-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .sidebar-grid-row label {
@@ -569,12 +569,12 @@
 .sidebar-grid-size-input {
   flex: 1;
   min-width: 0;
-  padding: 4px 6px;
+  padding: 6px 8px;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   color: #fff;
-  font-size: 11px;
+  font-size: 13px;
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
@@ -602,7 +602,7 @@
 .sidebar-grid-size-field label {
   flex: 0 0 auto;
   min-width: 0;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1px;
@@ -628,14 +628,14 @@
   flex: 1;
   min-width: 0;
   width: 100%;
-  padding: 4px 18px 4px 6px;
-  font-size: 10px;
+  padding: 6px 18px 6px 8px;
+  font-size: 13px;
 }
 
 .sidebar-grid-input-with-unit span {
   position: absolute;
   right: 5px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.4);
@@ -644,12 +644,12 @@
 
 .sidebar-grid-select {
   flex: 1;
-  padding: 4px 8px;
+  padding: 6px 8px;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   color: #fff;
-  font-size: 11px;
+  font-size: 13px;
   font-family: inherit;
   outline: none;
   cursor: pointer;
@@ -666,15 +666,15 @@
 .sidebar-grid-clear-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   width: 100%;
-  padding: 5px 8px;
+  padding: 7px 10px;
   margin-top: 4px;
   background: rgba(220, 60, 60, 0.1);
   border: 1px solid rgba(220, 60, 60, 0.25);
   border-radius: 3px;
   color: #e05555;
-  font-size: 10px;
+  font-size: 13px;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -693,7 +693,7 @@
 }
 
 .sidebar-grid-assign-title {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
@@ -704,7 +704,7 @@
 .sidebar-grid-views {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .sidebar-grid-view-btn {
@@ -712,12 +712,12 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 5px 8px;
+  padding: 7px 10px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 3px;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
+  font-size: 13px;
   font-family: inherit;
   cursor: pointer;
   text-align: left;
@@ -801,7 +801,7 @@
   cursor: pointer;
   text-align: left;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   transition: background 0.12s;
 }
 
@@ -815,7 +815,7 @@
 }
 
 .cell-flyout-sub {
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.4);
   line-height: 1.3;
 }
@@ -835,7 +835,7 @@
 
 .sidebar-grid-caption-header span {
   flex: 1;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
@@ -896,7 +896,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-family: monospace;
   outline: none;
   transition: border-color 0.15s;
@@ -910,7 +910,7 @@
 }
 
 .sidebar-grid-caption-hint {
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.35);
 }
 
@@ -918,7 +918,7 @@
   background: rgba(255, 255, 255, 0.08);
   padding: 1px 4px;
   border-radius: 2px;
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -965,7 +965,7 @@
 }
 
 .sidebar-grid-caption-color-item span {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.15px;
@@ -1023,7 +1023,7 @@
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.7);
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;

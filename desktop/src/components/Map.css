@@ -61,7 +61,7 @@
 }
 
 .map-info-chevron {
-  font-size: 14px;
+  font-size: 15px;
   color: rgba(255,255,255,0.4);
   transition: transform 0.2s;
   flex-shrink: 0;
@@ -93,13 +93,13 @@
 }
 
 .map-info-date {
-  font-size: 12px;
+  font-size: 13px;
   color: #ccc;
   font-family: 'Courier New', monospace;
 }
 
 .map-info-description {
-  font-size: 12px;
+  font-size: 13px;
   color: #ccc;
   line-height: 1.5;
 }
@@ -116,7 +116,7 @@
   background: rgba(34, 34, 34, 0.75);
   border-radius: 4px;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-family: 'Courier New', monospace;
   color: #ccc;
   pointer-events: none;
@@ -126,7 +126,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    font-size: 12px;
+    font-size: 13px;
     font-family: 'Courier New', monospace;
     font-weight: 600;
     padding: 4px 8px;

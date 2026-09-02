@@ -113,7 +113,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.25px;
   text-transform: uppercase;
@@ -129,7 +129,7 @@
 
 .sidebar-empty {
   padding: 18px 10px;
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.4);
   text-align: center;
 }
@@ -216,7 +216,7 @@
   cursor: pointer;
   text-align: left;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   transition: background 0.12s;
 }
 
@@ -230,7 +230,7 @@
 }
 
 .sidebar-flyout-sub {
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.4);
   line-height: 1.3;
 }
@@ -315,7 +315,7 @@
 
 /* Layer subtitle — smaller and dimmer */
 .layer-row-subtitle {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   line-height: 1.3;
   color: rgba(255, 255, 255, 0.5);
@@ -395,7 +395,7 @@
 }
 
 .layer-setting-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.25px;
@@ -420,7 +420,7 @@
   padding: 4px 0;
   cursor: pointer;
   font: inherit;
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.2px;
   transition: background 0.15s ease, color 0.15s ease;
@@ -477,7 +477,7 @@
 
 .confirm-modal p {
   margin: 0 0 18px;
-  font-size: 14px;
+  font-size: 15px;
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.4;
 }
@@ -585,7 +585,7 @@
 }
 
 .layer-info-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.25px;
@@ -668,7 +668,7 @@
 }
 
 .info-modal-layer-sub {
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.45);
   margin-bottom: 12px;
 }
@@ -715,7 +715,7 @@
 }
 
 .info-modal-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.2px;
@@ -724,14 +724,14 @@
 }
 
 .info-modal-value {
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.4;
 }
 
 .layer-info-dates {
   margin-top: 6px;
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.4);
 }
 

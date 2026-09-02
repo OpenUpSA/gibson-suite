@@ -6,7 +6,7 @@
   flex-direction: column;
   background: #202020;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 12px;
+  font-size: 13px;
   overflow: hidden;
 }
 
@@ -31,7 +31,7 @@
   border: none;
   color: #aaa;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -119,7 +119,7 @@
 
 .timelapse-hint {
   color: rgba(255, 255, 255, 0.45);
-  font-size: 10px;
+  font-size: 11px;
   margin-top: 6px;
   line-height: 1.4;
 }
@@ -141,7 +141,7 @@
 .timelapse-date-label {
   width: 56px;
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.15px;
@@ -167,7 +167,7 @@
   color: rgba(255, 255, 255, 0.85);
   border-radius: 4px;
   padding: 6px 0;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -188,7 +188,7 @@
   color: rgba(255, 255, 255, 0.7);
   border-radius: 4px;
   padding: 5px 0;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -266,11 +266,11 @@
 .timelapse-frame-date {
   flex: 1;
   font-family: monospace;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .timelapse-frame-delay-badge {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #E3A520;
   background: rgba(227, 165, 32, 0.15);
@@ -284,7 +284,7 @@
   border: none;
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   padding: 2px 4px;
   border-radius: 3px;
 }
@@ -322,7 +322,7 @@
   border: none;
   color: #aaa;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   padding: 0 4px;
   border-radius: 3px;
 }
@@ -339,7 +339,7 @@
   margin-bottom: 10px;
   color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .timelapse-check-row input {
