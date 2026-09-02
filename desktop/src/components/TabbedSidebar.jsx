@@ -254,7 +254,7 @@ const TabbedSidebar = ({
         />
       </div>
 
-      <div className="sidebar-top-panel">
+      <div className="sidebar-top-panel" ref={contentRef}>
 
         {totalActive === 0 && (
           <div className="sidebar-empty">No layers on the map yet.</div>
