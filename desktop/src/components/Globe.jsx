@@ -5,9 +5,9 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import './Globe.css'
 
 // ── Autosave utilities ────────────────────────────────────────────────
+// Only "views" (tabs) persist automatically; grid/compare/timelapse are
+// session-only and are saved/restored as a whole via project files.
 const AUTOSAVE_KEY = 'gibson-app-state'
-const PANE_SIZES_KEY = 'gibson-pane-sizes'
-const GRID_CONFIG_KEY = 'gibson-grid-config'
 
 // Grid layout presets: { rows, cols, name }
 const GRID_PRESETS = {
@@ -82,93 +82,9 @@ const computeGridPlacement = (cells, rows, cols) => {
   return placement
 }
 
-const saveGridConfig = (config) => {
-  try {
-    localStorage.setItem(GRID_CONFIG_KEY, JSON.stringify(config))
-  } catch (e) {
-    console.error('Failed to save grid config:', e)
-  }
-}
-
-const loadGridConfig = () => {
-  try {
-    const saved = localStorage.getItem(GRID_CONFIG_KEY)
-    if (saved) return normalizeGridConfig(JSON.parse(saved))
-  } catch (e) {
-    console.error('Failed to load grid config:', e)
-  }
-  return { ...DEFAULT_GRID_CONFIG }
-}
-
-// Normalize any raw grid config (localStorage, share link, project file)
-// into a shape the rest of the app can rely on.
-const normalizeGridConfig = (raw) => {
-  const config = raw || {}
-  // Migrate old viewAssignments format to new cells format
-  if (config.viewAssignments && !config.cells) {
-    config.cells = {}
-    for (const [cellIndex, tabId] of Object.entries(config.viewAssignments)) {
-      config.cells[cellIndex] = { tabId, rowSpan: 1, colSpan: 1 }
-    }
-    delete config.viewAssignments
-  }
-  // Ensure cells exists
-  if (!config.cells) config.cells = {}
-  // Ensure captions exists
-  if (!config.captions) config.captions = {}
-  // Ensure width/height are set
-  if (!Number.isFinite(Number(config.width))) config.width = 1600
-  if (!Number.isFinite(Number(config.height))) config.height = 900
-  config.width = Math.max(320, Math.round(Number(config.width)))
-  config.height = Math.max(240, Math.round(Number(config.height)))
-  // Ensure rows/cols are set
-  if (!config.rows) config.rows = 1
-  if (!config.cols) config.cols = 1
-  return config
-}
-
-// If the app was opened from a share link (?p=<payload>), that composition
-// wins over localStorage — same priority the compare share page uses.
-// Read lazily once and cached so the several state initializers agree.
-const readUrlProject = (() => {
-  let cached
-  return () => {
-    if (cached !== undefined) return cached
-    try {
-      const params = new URLSearchParams(window.location.search)
-      const payload = params.get('p') || params.get('project')
-      cached = payload ? decodeProjectUrl(payload) : null
-    } catch {
-      cached = null
-    }
-    return cached
-  }
-})()
-
-const savePaneSizes = (sizes) => {
-  try {
-    localStorage.setItem(PANE_SIZES_KEY, JSON.stringify(sizes))
-  } catch (e) {
-    console.error('Failed to save pane sizes:', e)
-  }
-}
-
-const loadPaneSizes = (tabCount) => {
-  try {
-    const saved = localStorage.getItem(PANE_SIZES_KEY)
-    if (saved) {
-      const sizes = JSON.parse(saved)
-      // Verify sizes array matches tab count
-      if (Array.isArray(sizes) && sizes.length === tabCount) {
-        return sizes
-      }
-    }
-  } catch (e) {
-    console.error('Failed to load pane sizes:', e)
-  }
-  // Default: equal widths
-  return Array(tabCount).fill(100 / Math.max(tabCount, 1))
-}
+// Grid layout and pane sizes are session-only — always start from defaults
+// (or from a loaded project file), never restored from localStorage.
+const equalPaneSizes = (tabCount) => Array(tabCount).fill(100 / Math.max(tabCount, 1))
 
 const saveAppState = (appState) => {
   try {
@@ -215,6 +131,7 @@ import ComparePanel from './ComparePanel'
 import CompareOverlay from './CompareOverlay'
 import WelcomeModal from './WelcomeModal'
 import TutorialTour from './TutorialTour'
+import Toast from './Toast'
 
 import layersConfig from '../config/layers.json'
 import { buildTileUrlTemplate } from '../config/tileUrl'
@@ -222,7 +139,6 @@ import { availableDates } from '../utils/gibsCaps'
 import { rectToBbox3857 } from '../utils/webMercator'
 import { renderTimelapseGif, GIF_MAX_WIDTH } from '../utils/timelapseGif'
 import { probeHasData, runPool } from '../utils/timelapseProbe'
-import { encodeProjectUrl, decodeProjectUrl, projectUrlFor, SHARE_LINK_LIMIT } from '../utils/shareProject'
 import { serializeProject, deserializeProject, downloadProjectFile } from '../utils/projectFile'
 
 // Layer catalogue — everything the user can add to the map, grouped by section
@@ -574,23 +490,12 @@ export default function Globe() {
   const DEFAULT_FRAME_DELAY = 2
 
   // ── Tab state management ──────────────────────────────────────────────
-  // Load saved state from localStorage (or a share link, which wins)
+  // Load saved views from localStorage — the only thing that auto-persists.
   const savedState = useRef(loadAppState())
+  // True when this mount's views came from localStorage, so the UI can
+  // tell the user their previous session was restored.
+  const restoredFromStorage = Boolean(savedState.current?.tabs?.length)
   const [tabs, setTabs] = useState(() => {
-    const fromUrl = readUrlProject()
-    if (fromUrl?.tabs?.length) {
-      return fromUrl.tabs.map(t => ({
-        ...t,
-        // Links carry no per-layer settings or hidden layers — use defaults
-        layerSettings: initialSettings,
-        hiddenLayers: new Set(),
-        activeBySection: {
-          imagery: (t.activeBySection?.imagery || []).filter(id => layerById.has(id)),
-          base: (t.activeBySection?.base || []).filter(id => layerById.has(id)),
-          reference: (t.activeBySection?.reference || []).filter(id => layerById.has(id))
-        }
-      }))
-    }
     if (savedState.current?.tabs) {
       return savedState.current.tabs
     }
@@ -606,24 +511,19 @@ export default function Globe() {
       }
     ]
   })
-  const [activeTabId, setActiveTabId] = useState(() => {
-    return readUrlProject()?.activeTabId || savedState.current?.activeTabId || 'tab-1'
-  })
+  const [activeTabId, setActiveTabId] = useState(() => savedState.current?.activeTabId || 'tab-1')
   const [isTabbedMode, setIsTabbedMode] = useState(true)
+  const [showRestoreToast, setShowRestoreToast] = useState(restoredFromStorage)
 
   // ── Pane resize state ──────────────────────────────────────────────
-  const [paneSizes, setPaneSizes] = useState(() => loadPaneSizes(tabs.length))
+  const [paneSizes, setPaneSizes] = useState(() => equalPaneSizes(tabs.length))
   const [isResizing, setIsResizing] = useState(false)
   const resizeIndexRef = useRef(null)
   const containerRef = useRef(null)
 
   // ── Grid layout state ──────────────────────────────────────────────
   const [gridViewActive, setGridViewActive] = useState(false) // Toggle grid view vs single view
-  const [gridConfig, setGridConfig] = useState(() => {
-    const fromUrl = readUrlProject()
-    if (fromUrl?.gridConfig) return normalizeGridConfig(fromUrl.gridConfig)
-    return loadGridConfig()
-  })
+  const [gridConfig, setGridConfig] = useState(() => ({ ...DEFAULT_GRID_CONFIG }))
   const [draggedTabId, setDraggedTabId] = useState(null) // For drag-drop in layout mode
   const [selectedCell, setSelectedCell] = useState(null) // For grid editor cell selection
   const [cellSpans, setCellSpans] = useState({}) // Temporary span state for editing
@@ -640,9 +540,7 @@ export default function Globe() {
   useEffect(() => {
     if (tabs.length > 0 && Object.keys(gridConfig.cells).length === 0) {
       const newCells = { 0: { tabId: tabs[0].id, rowSpan: 1, colSpan: 1 } }
-      const newConfig = { ...gridConfig, cells: newCells }
-      setGridConfig(newConfig)
-      saveGridConfig(newConfig)
+      setGridConfig({ ...gridConfig, cells: newCells })
     }
   }, []) // Only on mount
 
@@ -1002,7 +900,6 @@ export default function Globe() {
     const handleMouseUp = () => {
       if (isResizing) {
         setIsResizing(false)
-        savePaneSizes(paneSizes)
         resizeIndexRef.current = null
       }
     }
@@ -1020,7 +917,7 @@ export default function Globe() {
   // Update pane sizes when tab count changes
   useEffect(() => {
     if (paneSizes.length !== tabs.length) {
-      setPaneSizes(loadPaneSizes(tabs.length))
+      setPaneSizes(equalPaneSizes(tabs.length))
     }
   }, [tabs.length])
 
@@ -1074,7 +971,6 @@ export default function Globe() {
         captions: { ...gridConfig.captions }
       }
       setGridConfig(newConfig)
-      saveGridConfig(newConfig)
     }
   }, [gridConfig])
 
@@ -1088,7 +984,6 @@ export default function Globe() {
       captions: gridConfig.captions
     }
     setGridConfig(newConfig)
-    saveGridConfig(newConfig)
   }, [gridConfig])
 
   const handleGridSizeChange = useCallback((field, value) => {
@@ -1097,7 +992,6 @@ export default function Globe() {
       [field]: Math.max(field === 'width' ? 320 : 240, Math.round(Number(value) || 0))
     }
     setGridConfig(next)
-    saveGridConfig(next)
   }, [gridConfig])
 
   const handleAssignViewToCell = useCallback((cellIndex, tabId) => {
@@ -1113,7 +1007,6 @@ export default function Globe() {
     }
     const newConfig = { ...gridConfig, cells: newCells }
     setGridConfig(newConfig)
-    saveGridConfig(newConfig)
   }, [gridConfig])
 
   const handleCellSpanChange = useCallback((cellIndex, rowSpan, colSpan) => {
@@ -1122,7 +1015,6 @@ export default function Globe() {
       newCells[cellIndex] = { ...newCells[cellIndex], rowSpan, colSpan }
       const newConfig = { ...gridConfig, cells: newCells }
       setGridConfig(newConfig)
-      saveGridConfig(newConfig)
     }
   }, [gridConfig])
 
@@ -1131,7 +1023,6 @@ export default function Globe() {
     delete newCells[cellIndex]
     const newConfig = { ...gridConfig, cells: newCells }
     setGridConfig(newConfig)
-    saveGridConfig(newConfig)
     setSelectedCell(null)
   }, [gridConfig])
 
@@ -1141,7 +1032,6 @@ export default function Globe() {
     newCaptions[cellIndex] = { ...(newCaptions[cellIndex] || DEFAULT_CAPTION), [field]: value }
     const newConfig = { ...gridConfig, captions: newCaptions }
     setGridConfig(newConfig)
-    saveGridConfig(newConfig)
   }, [gridConfig])
 
   const handleCaptionToggleVisible = useCallback((cellIndex) => {
@@ -1164,7 +1054,6 @@ export default function Globe() {
         newCaptions[cellIndex] = { ...(newCaptions[cellIndex] || DEFAULT_CAPTION), text, visible: true }
         const newConfig = { ...gridConfig, captions: newCaptions }
         setGridConfig(newConfig)
-        saveGridConfig(newConfig)
         return
       }
     }
@@ -1560,28 +1449,12 @@ export default function Globe() {
     drawNext(0)
   }, [gridConfig, tabs, layerById])
 
-  // ── Share link + project file ────────────────────────────────────────
-  // Compact link for the current composition — null when the grid is empty
-  // (nothing meaningful to share). Computed on every change so the sidebar
-  // can warn when the setup outgrows a URL and needs a project file.
-  const shareLink = useMemo(() => {
-    if (Object.keys(gridConfig.cells || {}).length === 0) return null
-    try {
-      return projectUrlFor(encodeProjectUrl({ tabs, gridConfig, activeTabId }))
-    } catch {
-      return null
-    }
-  }, [tabs, gridConfig, activeTabId])
-
-  const shareLinkTooLong = useMemo(
-    () => Boolean(shareLink && shareLink.length > SHARE_LINK_LIMIT),
-    [shareLink]
-  )
-
+  // ── Project file (the only save/share mechanism) ────────────────────
   const handleSaveProject = useCallback(() => {
-    const project = serializeProject({ tabs, gridConfig, compareCaptions, activeTabId })
+    const timelapse = { tlStartDate, tlEndDate, tlInterval, tlAspect, tlRect, tlStampDates, tlFrames }
+    const project = serializeProject({ tabs, gridConfig, compareCaptions, activeTabId, timelapse })
     downloadProjectFile(project)
-  }, [tabs, gridConfig, compareCaptions, activeTabId])
+  }, [tabs, gridConfig, compareCaptions, activeTabId, tlStartDate, tlEndDate, tlInterval, tlAspect, tlRect, tlStampDates, tlFrames])
 
   // Load a project file into the app. Returns true on success so the
   // sidebar can surface a "couldn't read that file" message.
@@ -1591,16 +1464,24 @@ export default function Globe() {
     setTabs(state.tabs)
     setActiveTabId(state.activeTabId)
     setGridConfig(state.gridConfig)
-    saveGridConfig(state.gridConfig)
     if (state.compareCaptions) setCompareCaptions(state.compareCaptions)
+    if (state.timelapse) {
+      const tl = state.timelapse
+      if (tl.tlStartDate) setTlStartDate(tl.tlStartDate)
+      if (tl.tlEndDate) setTlEndDate(tl.tlEndDate)
+      if (tl.tlInterval) setTlInterval(tl.tlInterval)
+      if (tl.tlAspect !== undefined) setTlAspect(tl.tlAspect)
+      if (tl.tlRect) setTlRect(tl.tlRect)
+      if (tl.tlStampDates !== undefined) setTlStampDates(tl.tlStampDates)
+      if (tl.tlFrames) setTlFrames(tl.tlFrames)
+    }
     setSelectedCell(null)
     return true
   }, [])
 
   // ── Reset everything ──────────────────────────────────────────────────
-  // Flush every saved key (views, grid layout, pane sizes, compare state),
-  // strip any share-link query from the URL, then reload — the app boots
-  // back to fresh defaults with no stale map/timelapse state left behind.
+  // Flush the saved views, then reload — the app boots back to fresh
+  // defaults with no stale map/grid/timelapse state left behind.
   const handleResetAll = useCallback(() => {
     if (!window.confirm(
       'Reset everything?\n\n' +
@@ -1609,16 +1490,13 @@ export default function Globe() {
     )) return
     try {
       localStorage.removeItem(AUTOSAVE_KEY)      // gibson-app-state
-      localStorage.removeItem(GRID_CONFIG_KEY)   // gibson-grid-config
-      localStorage.removeItem(PANE_SIZES_KEY)    // gibson-pane-sizes
-      localStorage.removeItem('gibson-pane-layout') // legacy layout storage
-      localStorage.removeItem('gibson-project-url') // (reserved)
+      localStorage.removeItem('gibson-grid-config')  // legacy — no longer written
+      localStorage.removeItem('gibson-pane-sizes')   // legacy — no longer written
+      localStorage.removeItem('gibson-pane-layout')  // legacy layout storage
+      localStorage.removeItem('gibson-project-url')  // (reserved)
     } catch (e) {
       console.error('Failed to clear saved state:', e)
     }
-    // Drop ?p=… (and any other query) so a share link doesn't re-apply on reload
-    const cleanUrl = window.location.href.split('?')[0]
-    window.history.replaceState({}, '', cleanUrl)
     window.location.reload()
   }, [])
 
@@ -1665,7 +1543,6 @@ export default function Globe() {
           }
           const newConfig = { ...gridConfig, cells: newCells }
           setGridConfig(newConfig)
-          saveGridConfig(newConfig)
         }
         return null
       })
@@ -1995,8 +1872,6 @@ export default function Globe() {
         defaultCaption={DEFAULT_CAPTION}
         captionPositions={CAPTION_POSITIONS}
         onExportGrid={handleExportGrid}
-        shareLink={shareLink}
-        shareLinkTooLong={shareLinkTooLong}
         onSaveProject={handleSaveProject}
         onLoadProject={handleLoadProject}
       />
@@ -2025,6 +1900,15 @@ export default function Globe() {
         run={tourRunning}
         onFinish={() => setTourRunning(false)}
       />
+
+      {showRestoreToast && (
+        <Toast
+          message="Restored your previous session from this browser."
+          actionLabel="Reset"
+          onAction={handleResetAll}
+          onDismiss={() => setShowRestoreToast(false)}
+        />
+      )}
 
     </div>
   )

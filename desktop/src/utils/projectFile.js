@@ -1,14 +1,10 @@
-// Full-fidelity project export / import (JSON file).
-//
-// Where the share link (shareProject.js) carries just the composition, the
-// project file carries everything: per-layer quality/opacity settings,
-// caption text + styling, compare captions, grid spans, hidden layers,
-// map positions, etc. The schema is versioned so future releases can
-// migrate older files.
+// Full-fidelity project export / import (JSON file) — the single save and
+// share mechanism: everything (views, grid, compare, timelapse + captions)
+// travels together, so loading a project is all-or-nothing.
 
 export const PROJECT_VERSION = 1
 
-export const serializeProject = ({ tabs, gridConfig, compareCaptions, activeTabId }) => ({
+export const serializeProject = ({ tabs, gridConfig, compareCaptions, activeTabId, timelapse }) => ({
   version: PROJECT_VERSION,
   savedAt: new Date().toISOString(),
   activeTabId,
@@ -22,12 +18,13 @@ export const serializeProject = ({ tabs, gridConfig, compareCaptions, activeTabI
     mapPosition: tab.mapPosition
   })),
   grid: gridConfig,
-  compareCaptions
+  compareCaptions,
+  timelapse
 })
 
 /**
  * Parse + validate a project file.
- * @returns {{ tabs, gridConfig, compareCaptions, activeTabId } | null}
+ * @returns {{ tabs, gridConfig, compareCaptions, activeTabId, timelapse } | null}
  *          null when the file is not a valid project for this version.
  */
 export const deserializeProject = (jsonText) => {
@@ -76,7 +73,7 @@ export const deserializeProject = (jsonText) => {
       ? p.activeTabId
       : tabs[0].id
 
-    return { tabs, gridConfig, compareCaptions: p.compareCaptions, activeTabId }
+    return { tabs, gridConfig, compareCaptions: p.compareCaptions, activeTabId, timelapse: p.timelapse }
   } catch {
     return null
   }

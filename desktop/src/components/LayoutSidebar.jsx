@@ -37,28 +37,14 @@ const LayoutSidebar = ({
   defaultCaption,
   captionPositions,
   onExportGrid,
-  // Share + project file props
-  shareLink,          // string | null — compact URL for the composition
-  shareLinkTooLong,   // boolean — setup outgrew a URL, hint to use a project
+  // Project file props
   onSaveProject,
   onLoadProject,      // (jsonText) => boolean — true when the file loaded
 }) => {
   const [cellFlyout, setCellFlyout] = useState(null) // cellIndex of open flyout, or null
   const [flyoutPos, setFlyoutPos] = useState(null) // { x, y } for portal flyout position
-  const [copied, setCopied] = useState(false)
   const [loadError, setLoadError] = useState(false)
   const projectInputRef = useRef(null)
-
-  const handleCopyShareLink = async () => {
-    if (!shareLink) return
-    try {
-      await navigator.clipboard.writeText(shareLink)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (e) {
-      console.error('Failed to copy share link:', e)
-    }
-  }
 
   const handleProjectFile = async (e) => {
     const file = e.target.files?.[0]
@@ -369,27 +355,8 @@ const LayoutSidebar = ({
           </button>
         )}
 
-        {/* Share link + project file */}
+        {/* Project file — the only save/share mechanism */}
         <div className="layout-share-section">
-          <button
-            type="button"
-            className={`sidebar-export-btn layout-share-copy${copied ? ' copied' : ''}`}
-            onClick={handleCopyShareLink}
-            disabled={!shareLink}
-            title={shareLink ? 'Copy a compact link for this composition (dates, layers, grid)' : 'Assign at least one view to share a link'}
-          >
-            <Icon
-              icon={copied ? 'fluent:checkmark-20-filled' : 'fluent:link-20-regular'}
-              width="14"
-              height="14"
-            />
-            {copied ? 'Link copied!' : 'Copy share link'}
-          </button>
-          {shareLinkTooLong && (
-            <p className="layout-share-hint">
-              This setup is too complex for a link — save it as a project file instead.
-            </p>
-          )}
           <div className="layout-project-row">
             <button type="button" className="sidebar-export-btn layout-project-btn" onClick={onSaveProject}>
               <Icon icon="fluent:save-20-regular" width="14" height="14" />
