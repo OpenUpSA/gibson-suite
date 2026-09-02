@@ -17,7 +17,7 @@
   font-weight: 700;
   color: #888;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.03em;
 }
 
 .tileurl-url-block {
@@ -63,7 +63,7 @@
 }
 
 .tileurl-hint {
-  font-size: 12px;
+  font-size: 10px;
   color: #888;
   margin: 0;
   line-height: 1.5;

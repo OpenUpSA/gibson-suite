@@ -36,7 +36,7 @@
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.4px;
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -96,7 +96,7 @@
   transform: rotate(180deg);
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
 }
 
@@ -153,7 +153,7 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.3px;
   color: #4FC3D9;
 }
 
@@ -339,7 +339,7 @@
   font-weight: 700;
   text-align: left;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.3px;
   border-radius: 4px;
   transition: background 0.15s;
 }
@@ -489,7 +489,7 @@
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -532,7 +532,7 @@
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -543,7 +543,7 @@
 
 .add-layer-story-hint {
   margin: 8px 0 0;
-  font-size: 11.5px;
+  font-size: 10px;
   color: rgba(255, 255, 255, 0.6);
   line-height: 1.4;
 }
@@ -583,13 +583,13 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.4px;
   color: #E3A520;
   margin-bottom: 8px;
 }
 
 .add-layer-detail-html {
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.85);
 }
@@ -654,7 +654,7 @@
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   color: #E3A520;
   margin-bottom: 2px;
 }

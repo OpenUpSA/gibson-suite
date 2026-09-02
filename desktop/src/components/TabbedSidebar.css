@@ -532,7 +532,7 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   color: #4FC3D9;
   min-width: 0;
   flex-shrink: 0;
@@ -605,7 +605,7 @@
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
   color: #4FC3D9;
   white-space: nowrap;
 }
@@ -697,7 +697,7 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   margin-bottom: 6px;
 }
 
@@ -839,7 +839,7 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
 }
 
 .sidebar-grid-caption-toggle {
@@ -932,7 +932,7 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   color: #4FC3D9;
 }
 
@@ -968,7 +968,7 @@
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.15px;
   color: #4FC3D9;
 }
 

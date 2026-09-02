@@ -23,7 +23,7 @@
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.4px;
 }
 
 .timelapse-panel-close {
@@ -80,7 +80,7 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   color: #4FC3D9;
   margin-bottom: 8px;
 }
@@ -119,7 +119,7 @@
 
 .timelapse-hint {
   color: rgba(255, 255, 255, 0.45);
-  font-size: 11px;
+  font-size: 10px;
   margin-top: 6px;
   line-height: 1.4;
 }
@@ -144,7 +144,7 @@
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.15px;
   color: #4FC3D9;
 }
 
@@ -313,7 +313,7 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   color: rgba(255, 255, 255, 0.85);
 }
 
