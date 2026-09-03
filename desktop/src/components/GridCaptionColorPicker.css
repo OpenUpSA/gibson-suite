@@ -1,0 +1,48 @@
+.grid-caption-color-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+}
+
+.grid-caption-color-trigger {
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.grid-caption-color-trigger span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.grid-caption-color-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1001;
+  width: 200px;
+  padding: 10px;
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.grid-caption-color-popover .react-colorful {
+  width: 100%;
+  height: 160px;
+}
+
+.grid-caption-color-popover .react-colorful__hue,
+.grid-caption-color-popover .react-colorful__alpha {
+  height: 12px;
+  margin-top: 8px;
+}

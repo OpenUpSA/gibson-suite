@@ -1029,7 +1029,8 @@ export default function Globe() {
   // ── Caption handlers ──────────────────────────────────────────────────
   const handleCaptionChange = useCallback((cellIndex, field, value) => {
     const newCaptions = { ...gridConfig.captions }
-    newCaptions[cellIndex] = { ...(newCaptions[cellIndex] || DEFAULT_CAPTION), [field]: value }
+    const changes = typeof field === 'string' ? { [field]: value } : field
+    newCaptions[cellIndex] = { ...(newCaptions[cellIndex] || DEFAULT_CAPTION), ...changes }
     const newConfig = { ...gridConfig, captions: newCaptions }
     setGridConfig(newConfig)
   }, [gridConfig])
@@ -1310,8 +1311,9 @@ export default function Globe() {
       default: bx = x + pad; by = y + height - blockH - pad; break
     }
 
-    ctx.fillStyle = caption.overlayColor || '#000000'
-    ctx.globalAlpha = caption.overlayOpacity ?? 0.55
+    const overlayColor = caption.overlayColor || '#000000'
+    ctx.fillStyle = overlayColor
+    ctx.globalAlpha = overlayColor.length === 9 ? 1 : caption.overlayOpacity ?? 0.55
     ctx.fillRect(bx, by, blockW, blockH)
     ctx.globalAlpha = 1
     ctx.fillStyle = caption.textColor || '#ffffff'
@@ -1787,7 +1789,7 @@ export default function Globe() {
                         className="globe-grid-caption-bg"
                         style={{
                           backgroundColor: caption.overlayColor || '#000',
-                          opacity: caption.overlayOpacity ?? 0.55,
+                          opacity: caption.overlayColor?.length === 9 ? 1 : caption.overlayOpacity ?? 0.55,
                         }}
                       />
                       <div className="globe-grid-caption-text" style={{ color: caption.textColor || '#fff', fontSize: `${caption.fontSize || 12}px`, lineHeight: 1.3 }}>

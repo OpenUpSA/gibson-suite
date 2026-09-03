@@ -8,13 +8,15 @@
   color: rgba(255, 255, 255, 0.85);
   font-size: 13px;
   overflow: hidden;
+  box-shadow: 8px 0 20px rgba(0, 0, 0, 0.35);
 }
 
 .timelapse-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 10px 9px 10px 12px;
+  background: #202020;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
@@ -24,6 +26,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
+  color: #fff;
 }
 
 .timelapse-panel-close {
@@ -45,7 +48,8 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 14px 18px;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.25);
   /* Match the layers sidebar's subtle neutral scrollbar */
   scrollbar-width: thin;               /* Firefox */
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
@@ -73,7 +77,8 @@
 }
 
 .timelapse-section {
-  margin-bottom: 16px;
+  margin: 0;
+  padding: 0 12px 12px;
 }
 
 .timelapse-section-title {
@@ -81,19 +86,25 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.2px;
-  color: #4FC3D9;
-  margin-bottom: 8px;
+  color: #fff;
+  margin: 0 -12px 12px;
+  padding: 10px 9px 10px 12px;
+  background: rgba(79, 195, 217, 0.65);
 }
 
 .timelapse-section-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin: 0 -12px 12px;
+  padding: 10px 9px 10px 12px;
+  background: rgba(79, 195, 217, 0.65);
 }
 
 .timelapse-section-row .timelapse-section-title {
   margin-bottom: 0;
+  padding: 0;
+  background: transparent;
 }
 
 .timelapse-clear-all-btn {
@@ -207,11 +218,11 @@
 .timelapse-frames {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
   max-height: 220px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px;
+  padding-right: 0;
   /* Match the layers sidebar's subtle neutral scrollbar */
   scrollbar-width: thin;               /* Firefox */
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
@@ -243,8 +254,9 @@
   align-items: center;
   gap: 8px;
   background: #2a2a2a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
   padding: 6px 8px;
   cursor: grab;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -300,7 +312,7 @@
   padding: 10px 10px 12px;
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;

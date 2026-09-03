@@ -1,4 +1,17 @@
 /* Layout sidebar — own sidebar for the grid layout tool */
+.layout-sidebar {
+  box-shadow: 8px 0 20px rgba(0, 0, 0, 0.35);
+}
+
+.layout-sidebar .sidebar-header {
+  padding: 10px 9px 10px 12px;
+  background: #1c1c1e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.layout-sidebar .sidebar-title {
+  color: #fff;
+}
 
 /* Scrollable body holding the grid editor */
 .layout-sidebar-body {
@@ -6,10 +19,10 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 10px 14px 16px;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
   background: rgba(0, 0, 0, 0.25);
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
@@ -30,4 +43,288 @@
 
 .layout-sidebar-body::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+.layout-sidebar .sidebar-grid-preview {
+  margin: 12px 12px 16px;
+  padding: 10px;
+  width: calc(100% - 24px);
+  min-height: 0;
+  align-self: center;
+  flex: 0 0 auto;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.layout-sidebar .sidebar-grid-cell {
+  border-radius: 0;
+}
+
+.layout-sidebar .sidebar-grid-cell:hover,
+.layout-sidebar .sidebar-grid-cell.selected {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.layout-sidebar .sidebar-grid-cell.selected {
+  background: rgba(79, 195, 217, 0.12);
+}
+
+.layout-sidebar .sidebar-grid-control-pair {
+  gap: 0;
+}
+
+.layout-sidebar .sidebar-grid-size-field {
+  flex: 1 1 0;
+}
+
+.layout-sidebar .sidebar-grid-size-field--dimension {
+  flex-grow: 1.5;
+}
+
+.layout-sidebar .sidebar-grid-span-controls .sidebar-grid-size-field {
+  flex: 0 1 88px;
+}
+
+.layout-sidebar .sidebar-grid-span-controls .sidebar-grid-caption-toggle-control {
+  flex: 1 1 auto;
+  padding: 0 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.layout-sidebar .sidebar-grid-size-field + .sidebar-grid-size-field {
+  border-left: 0;
+}
+
+.layout-sidebar .sidebar-grid-size-field + .sidebar-grid-size-field .sidebar-grid-size-input {
+  border-left: 0;
+}
+
+.layout-sidebar .sidebar-grid-caption-toggle-control + .sidebar-grid-size-field .sidebar-grid-size-input {
+  border-left: 0;
+}
+
+.layout-sidebar .sidebar-grid-size-field label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.layout-sidebar .sidebar-grid-input-with-label span {
+  left: 8px;
+  right: auto;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.layout-sidebar .sidebar-grid-input-with-label svg {
+  position: absolute;
+  left: 7px;
+  color: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+.layout-sidebar .sidebar-grid-input-with-label .sidebar-grid-size-input {
+  padding-left: 24px;
+  padding-right: 8px;
+}
+
+.layout-sidebar .sidebar-grid-caption-toggle-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 92px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.layout-sidebar .sidebar-grid-caption-toggle-control span {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.layout-sidebar .grid-caption-compact-row {
+  display: flex;
+  width: 100%;
+}
+
+.layout-sidebar .sidebar-grid-caption-textarea-wrap {
+  position: relative;
+}
+
+.layout-sidebar .sidebar-grid-caption-fields {
+  gap: 0;
+}
+
+.layout-sidebar .sidebar-grid-caption-textarea {
+  padding: 14px 36px 14px 16px;
+  border: 0;
+  font-size: 12px;
+}
+
+.layout-sidebar .grid-caption-help-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.layout-sidebar .grid-caption-compact-control,
+.layout-sidebar .grid-caption-color-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.layout-sidebar .grid-caption-compact-row > * + * {
+  border-left: 0;
+}
+
+.layout-sidebar .grid-caption-compact-control--position {
+  flex: 1.5;
+}
+
+.layout-sidebar .grid-caption-compact-control:not(.grid-caption-compact-control--position) {
+  flex: 1;
+}
+
+.layout-sidebar .grid-caption-compact-control .sidebar-grid-select,
+.layout-sidebar .grid-caption-compact-control .sidebar-grid-size-input {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+}
+
+.layout-sidebar .grid-caption-color-control {
+  flex: 1;
+  justify-content: flex-start;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.layout-sidebar .grid-caption-color-control .sidebar-grid-caption-color {
+  width: 28px;
+  height: 22px;
+  border-radius: 0;
+}
+
+.layout-sidebar .grid-caption-color-reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.layout-sidebar .grid-caption-color-reset:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.layout-sidebar .sidebar-grid-cell-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.layout-sidebar .sidebar-grid-cell-delete-btn:hover {
+  background: rgba(255, 80, 80, 0.14);
+  color: #ff6b6b;
+}
+
+.layout-sidebar .sidebar-grid-size-input,
+.layout-sidebar .sidebar-grid-select {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+}
+
+.grid-preset-menu-wrap {
+  position: relative;
+  display: flex;
+  flex: 0 0 32px;
+}
+
+.grid-preset-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+
+.grid-preset-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.grid-preset-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 1000;
+  min-width: 170px;
+  padding: 4px;
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.grid-preset-menu-item {
+  display: block;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+}
+
+.grid-preset-menu-item:hover {
+  background: rgba(227, 165, 32, 0.12);
+}
+
+.layout-sidebar .sidebar-cell-add-btn {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.layout-sidebar .sidebar-grid-controls,
+.layout-sidebar .sidebar-grid-span-controls,
+.layout-sidebar .sidebar-grid-caption-controls {
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }

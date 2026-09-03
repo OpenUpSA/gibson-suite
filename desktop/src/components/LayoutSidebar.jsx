@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 import './Sidebar.css'
 import './TabbedSidebar.css'
 import './LayoutSidebar.css'
+import GridCaptionColorPicker from './GridCaptionColorPicker'
 
 // Grid layout presets
 const GRID_PRESETS = {
@@ -40,6 +41,7 @@ const LayoutSidebar = ({
 }) => {
   const [cellFlyout, setCellFlyout] = useState(null) // cellIndex of open flyout, or null
   const [flyoutPos, setFlyoutPos] = useState(null) // { x, y } for portal flyout position
+  const [presetMenuOpen, setPresetMenuOpen] = useState(false)
 
   useEffect(() => {
     if (cellFlyout === null) return
@@ -49,6 +51,15 @@ const LayoutSidebar = ({
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [cellFlyout])
+
+  useEffect(() => {
+    if (!presetMenuOpen) return
+    const handleClick = (e) => {
+      if (!e.target.closest('.grid-preset-menu-wrap')) setPresetMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [presetMenuOpen])
 
   return (
     <aside className={`sidebar layout-sidebar${open ? ' sidebar-open' : ''}`}>
@@ -60,10 +71,97 @@ const LayoutSidebar = ({
       </div>
 
       <div className="layout-sidebar-body">
+        {/* Controls */}
+        <div className="sidebar-grid-controls">
+          <div className="sidebar-grid-control-pair">
+            <div className="sidebar-grid-size-field sidebar-grid-size-field--dimension">
+              <div className="sidebar-grid-input-with-unit sidebar-grid-input-with-label">
+                <Icon icon="fluent:auto-fit-width-20-regular" width="14" height="14" title="Width" />
+                <input
+                  type="number"
+                  className="sidebar-grid-size-input"
+                  min="320"
+                  step="10"
+                  value={gridConfig.width}
+                  onChange={e => onGridSizeChange('width', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="sidebar-grid-size-field sidebar-grid-size-field--dimension">
+              <div className="sidebar-grid-input-with-unit sidebar-grid-input-with-label">
+                <Icon icon="fluent:auto-fit-height-28-regular" width="14" height="14" title="Height" />
+                <input
+                  type="number"
+                  className="sidebar-grid-size-input"
+                  min="240"
+                  step="10"
+                  value={gridConfig.height}
+                  onChange={e => onGridSizeChange('height', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="sidebar-grid-size-field">
+              <div className="sidebar-grid-input-with-unit sidebar-grid-input-with-label">
+                <Icon icon="fluent:row-triple-20-filled" width="14" height="14" title="Rows" />
+                <input
+                  type="number"
+                  className="sidebar-grid-size-input"
+                  min="1"
+                  max="5"
+                  step="1"
+                  value={gridConfig.rows}
+                  onChange={e => onDimensionChange(parseInt(e.target.value) || 1, gridConfig.cols)}
+                />
+              </div>
+            </div>
+            <div className="sidebar-grid-size-field">
+              <div className="sidebar-grid-input-with-unit sidebar-grid-input-with-label">
+                <Icon icon="fluent:column-triple-20-filled" width="14" height="14" title="Columns" />
+                <input
+                  type="number"
+                  className="sidebar-grid-size-input"
+                  min="1"
+                  max="5"
+                  step="1"
+                  value={gridConfig.cols}
+                  onChange={e => onDimensionChange(gridConfig.rows, parseInt(e.target.value) || 1)}
+                />
+              </div>
+            </div>
+            <div className="grid-preset-menu-wrap">
+              <button
+                type="button"
+                className="grid-preset-menu-btn"
+                onClick={() => setPresetMenuOpen(open => !open)}
+                title="Choose grid preset"
+                aria-label="Choose grid preset"
+                aria-expanded={presetMenuOpen}
+              >
+                <Icon icon="fluent:chevron-down-16-filled" width="16" height="16" />
+              </button>
+              {presetMenuOpen && (
+                <div className="grid-preset-menu">
+                  {Object.entries(GRID_PRESETS).map(([key, preset]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className="grid-preset-menu-item"
+                      onClick={() => { onPresetSelect(key); setPresetMenuOpen(false) }}
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Grid Preview */}
         <div className="sidebar-grid-preview" style={{
           gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
           gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
+          aspectRatio: `${gridConfig.width} / ${gridConfig.height}`,
         }}>
           {Array.from({ length: gridConfig.rows * gridConfig.cols }).map((_, cellIndex) => {
             const cellData = gridConfig.cells[cellIndex]
@@ -112,125 +210,67 @@ const LayoutSidebar = ({
           })}
         </div>
 
-        {/* Controls */}
-        <div className="sidebar-grid-controls">
-          <div className="sidebar-grid-control-pair">
-            <div className="sidebar-grid-size-field">
-              <label>Width</label>
-              <div className="sidebar-grid-input-with-unit">
-                <input
-                  type="number"
-                  className="sidebar-grid-size-input"
-                  min="320"
-                  step="10"
-                  value={gridConfig.width}
-                  onChange={e => onGridSizeChange('width', e.target.value)}
-                />
-                <span>px</span>
-              </div>
-            </div>
-            <div className="sidebar-grid-size-field">
-              <label>Height</label>
-              <div className="sidebar-grid-input-with-unit">
-                <input
-                  type="number"
-                  className="sidebar-grid-size-input"
-                  min="240"
-                  step="10"
-                  value={gridConfig.height}
-                  onChange={e => onGridSizeChange('height', e.target.value)}
-                />
-                <span>px</span>
-              </div>
-            </div>
-          </div>
-          <div className="sidebar-grid-control-pair">
-            <div className="sidebar-grid-size-field">
-              <label>Rows</label>
-              <input
-                type="number"
-                className="sidebar-grid-size-input"
-                min="1"
-                max="5"
-                step="1"
-                value={gridConfig.rows}
-                onChange={e => onDimensionChange(parseInt(e.target.value) || 1, gridConfig.cols)}
-              />
-            </div>
-            <div className="sidebar-grid-size-field">
-              <label>Cols</label>
-              <input
-                type="number"
-                className="sidebar-grid-size-input"
-                min="1"
-                max="5"
-                step="1"
-                value={gridConfig.cols}
-                onChange={e => onDimensionChange(gridConfig.rows, parseInt(e.target.value) || 1)}
-              />
-            </div>
-          </div>
-          <div className="sidebar-grid-row">
-            <label>Preset</label>
-            <select className="sidebar-grid-select" value=""
-              onChange={e => { if (e.target.value) { onPresetSelect(e.target.value); e.target.value = '' } }}>
-              <option value="" disabled>Choose…</option>
-              {Object.entries(GRID_PRESETS).map(([key, preset]) => (
-                <option key={key} value={key}>{preset.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
         {/* Span controls for selected cell */}
         {selectedCell !== null && gridConfig.cells[selectedCell] && (
           <div className="sidebar-grid-span-controls">
             <div className="sidebar-grid-control-pair">
-              <div className="sidebar-grid-size-field">
-                <label>Row span</label>
-                <input
-                  type="number"
-                  className="sidebar-grid-size-input"
-                  min="1"
-                  max="5"
-                  step="1"
-                  value={gridConfig.cells[selectedCell]?.rowSpan || 1}
-                  onChange={e => onCellSpanChange(selectedCell, Math.max(1, Math.min(5, parseInt(e.target.value) || 1)), gridConfig.cells[selectedCell]?.colSpan || 1)}
-                />
+              <div className="sidebar-grid-caption-toggle-control">
+                <Icon icon="fluent:text-caption-20-filled" width="14" height="14" title="Caption" />
+                <span>Caption</span>
+                <div
+                  className={`sidebar-grid-caption-toggle${gridConfig.captions?.[selectedCell]?.visible ? ' active' : ''}`}
+                  onClick={() => onCaptionToggleVisible(selectedCell)}
+                  role="switch"
+                  aria-checked={Boolean(gridConfig.captions?.[selectedCell]?.visible)}
+                  aria-label="Show caption"
+                >
+                  <div className="sidebar-grid-caption-toggle-knob" />
+                </div>
               </div>
               <div className="sidebar-grid-size-field">
-                <label>Col span</label>
-                <input
-                  type="number"
-                  className="sidebar-grid-size-input"
-                  min="1"
-                  max="5"
-                  step="1"
-                  value={gridConfig.cells[selectedCell]?.colSpan || 1}
-                  onChange={e => onCellSpanChange(selectedCell, gridConfig.cells[selectedCell]?.rowSpan || 1, Math.max(1, Math.min(5, parseInt(e.target.value) || 1)))}
-                />
+                <div className="sidebar-grid-input-with-unit sidebar-grid-input-with-label">
+                  <Icon icon="fluent:row-triple-20-filled" width="14" height="14" title="Row span" />
+                  <input
+                    type="number"
+                    className="sidebar-grid-size-input"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={gridConfig.cells[selectedCell]?.rowSpan || 1}
+                    onChange={e => onCellSpanChange(selectedCell, Math.max(1, Math.min(5, parseInt(e.target.value) || 1)), gridConfig.cells[selectedCell]?.colSpan || 1)}
+                  />
+                </div>
               </div>
+              <div className="sidebar-grid-size-field">
+                <div className="sidebar-grid-input-with-unit sidebar-grid-input-with-label">
+                  <Icon icon="fluent:column-triple-20-filled" width="14" height="14" title="Column span" />
+                  <input
+                    type="number"
+                    className="sidebar-grid-size-input"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={gridConfig.cells[selectedCell]?.colSpan || 1}
+                    onChange={e => onCellSpanChange(selectedCell, gridConfig.cells[selectedCell]?.rowSpan || 1, Math.max(1, Math.min(5, parseInt(e.target.value) || 1)))}
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                className="sidebar-grid-cell-delete-btn"
+                onClick={() => onClearCell(selectedCell)}
+                title="Remove from cell"
+                aria-label="Remove from cell"
+              >
+                <Icon icon="fluent:dismiss-16-regular" width="16" height="16" />
+              </button>
             </div>
-            <button className="sidebar-grid-clear-btn" onClick={() => onClearCell(selectedCell)}>
-              <Icon icon="fluent:delete-16-regular" width="12" height="12" />
-              Remove from cell
-            </button>
           </div>
         )}
 
         {/* Caption controls for selected cell */}
         {selectedCell !== null && gridConfig.cells[selectedCell] && (
           <div className="sidebar-grid-caption-controls">
-            <div className="sidebar-grid-caption-header">
-              <Icon icon="fluent:text-caption-20-filled" width="14" height="14" />
-              <span>Caption</span>
-              <div
-                className={`sidebar-grid-caption-toggle${gridConfig.captions?.[selectedCell]?.visible ? ' active' : ''}`}
-                onClick={() => onCaptionToggleVisible(selectedCell)}
-              >
-                <div className="sidebar-grid-caption-toggle-knob" />
-              </div>
-            </div>
             {gridConfig.captions?.[selectedCell]?.visible && (
               <div className="sidebar-grid-caption-fields">
                 <div className="sidebar-grid-caption-textarea-wrap">
@@ -241,27 +281,31 @@ const LayoutSidebar = ({
                     rows={3}
                     placeholder="%date%  %layer%"
                   />
-                  <div className="sidebar-grid-caption-hint">
-                    Shown as-is — each line renders on its own row. <code>%date%</code> / <code>%layer%</code> still work if you want them.
+                  <Icon
+                    icon="fluent:question-circle-20-filled"
+                    width="14"
+                    height="14"
+                    className="grid-caption-help-icon"
+                    title="Shown as-is: each line renders on its own row. %date% and %layer% remain available."
+                  />
+                </div>
+
+                <div className="grid-caption-compact-row">
+                  <div className="grid-caption-compact-control grid-caption-compact-control--position">
+                    <Icon icon="fluent:text-align-left-20-filled" width="14" height="14" title="Caption position" />
+                    <select
+                      className="sidebar-grid-select"
+                      value={gridConfig.captions?.[selectedCell]?.position || defaultCaption?.position || 'bottom-left'}
+                      onChange={e => onCaptionChange(selectedCell, 'position', e.target.value)}
+                      aria-label="Caption position"
+                    >
+                      {(captionPositions || []).map(pos => (
+                        <option key={pos.value} value={pos.value}>{pos.label}</option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-
-                <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                  <label>Position</label>
-                  <select
-                    className="sidebar-grid-select"
-                    value={gridConfig.captions?.[selectedCell]?.position || defaultCaption?.position || 'bottom-left'}
-                    onChange={e => onCaptionChange(selectedCell, 'position', e.target.value)}
-                  >
-                    {(captionPositions || []).map(pos => (
-                      <option key={pos.value} value={pos.value}>{pos.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                  <label>Font size</label>
-                  <div className="sidebar-grid-input-with-unit">
+                  <div className="grid-caption-compact-control">
+                    <Icon icon="fluent:text-font-size-20-filled" width="14" height="14" title="Caption font size" />
                     <input
                       type="number"
                       className="sidebar-grid-size-input"
@@ -273,52 +317,43 @@ const LayoutSidebar = ({
                         const v = Math.max(8, Math.min(72, parseInt(e.target.value) || 11))
                         onCaptionChange(selectedCell, 'fontSize', v)
                       }}
+                      aria-label="Caption font size"
                     />
-                    <span>px</span>
                   </div>
                 </div>
 
-                <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                  <label>Colors</label>
-                  <div className="sidebar-grid-caption-color-row">
-                    <div className="sidebar-grid-caption-color-item">
-                      <span>Overlay</span>
-                      <input
-                        type="color"
-                        className="sidebar-grid-caption-color"
-                        value={gridConfig.captions?.[selectedCell]?.overlayColor || defaultCaption?.overlayColor || '#000000'}
-                        onChange={e => onCaptionChange(selectedCell, 'overlayColor', e.target.value)}
-                      />
-                    </div>
-                    <div className="sidebar-grid-caption-color-item">
-                      <span>Text</span>
-                      <input
-                        type="color"
-                        className="sidebar-grid-caption-color"
-                        value={gridConfig.captions?.[selectedCell]?.textColor || defaultCaption?.textColor || '#ffffff'}
-                        onChange={e => onCaptionChange(selectedCell, 'textColor', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                  <label>Opacity</label>
-                  <div className="sidebar-grid-caption-opacity-row">
-                    <input
-                      type="number"
-                      className="sidebar-grid-size-input sidebar-grid-caption-opacity-input"
-                      min="0"
-                      max="100"
-                      step="5"
-                      value={Math.round((gridConfig.captions?.[selectedCell]?.overlayOpacity ?? defaultCaption?.overlayOpacity ?? 0.55) * 100)}
-                      onChange={e => {
-                        const v = Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
-                        onCaptionChange(selectedCell, 'overlayOpacity', v / 100)
-                      }}
+                <div className="grid-caption-compact-row">
+                  <div className="grid-caption-color-control">
+                    <GridCaptionColorPicker
+                      color={gridConfig.captions?.[selectedCell]?.overlayColor || defaultCaption?.overlayColor || '#000000'}
+                      opacity={gridConfig.captions?.[selectedCell]?.overlayOpacity ?? defaultCaption?.overlayOpacity ?? 0.55}
+                      icon="fluent:paint-brush-20-filled"
+                      title="Choose caption overlay color and alpha"
+                      withAlpha
+                      onChange={(overlayColor) => onCaptionChange(selectedCell, { overlayColor, overlayOpacity: 1 })}
                     />
-                    <span>%</span>
                   </div>
+                  <div className="grid-caption-color-control">
+                    <GridCaptionColorPicker
+                      color={gridConfig.captions?.[selectedCell]?.textColor || defaultCaption?.textColor || '#ffffff'}
+                      icon="fluent:text-color-20-filled"
+                      title="Choose caption text color"
+                      onChange={(textColor) => onCaptionChange(selectedCell, 'textColor', textColor)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="grid-caption-color-reset"
+                    onClick={() => onCaptionChange(selectedCell, {
+                      overlayColor: '#000000',
+                      overlayOpacity: 0.55,
+                      textColor: '#ffffff',
+                    })}
+                    title="Reset colors to black and white"
+                    aria-label="Reset colors to black and white"
+                  >
+                    <Icon icon="fluent:arrow-reset-20-regular" width="16" height="16" />
+                  </button>
                 </div>
               </div>
             )}
