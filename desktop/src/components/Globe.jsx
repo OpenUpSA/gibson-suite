@@ -529,12 +529,33 @@ export default function Globe() {
   const [cellSpans, setCellSpans] = useState({}) // Temporary span state for editing
   const [gridDrag, setGridDrag] = useState(null) // { fromCell, toCell } for drag-to-reassign
   const [gridResize, setGridResize] = useState(null) // { cellIndex, edge, startMouse, startRowSpan, startColSpan }
+  const gridViewWrapRef = useRef(null) // .globe-grid-view — measured to compute letterbox scale
+  const gridContainerRef = useRef(null) // .globe-grid-container — measured for export geometry
+  const [gridScale, setGridScale] = useState(1) // uniform scale so on-screen box keeps configured aspect ratio
 
   // Placement map replicating CSS grid auto-placement (shared with export)
   const gridPlacement = useMemo(
     () => computeGridPlacement(gridConfig.cells, gridConfig.rows, gridConfig.cols),
     [gridConfig.cells, gridConfig.rows, gridConfig.cols]
   )
+
+  // Keep the grid box's on-screen aspect ratio locked to gridConfig.width/height (letterboxed to
+  // fit) instead of letting width/height clamp independently and distort the composition — a
+  // distorted on-screen box otherwise causes the exported image to stretch (see handleExportGrid).
+  useEffect(() => {
+    const wrap = gridViewWrapRef.current
+    if (!wrap || !gridViewActive) return
+    const computeScale = () => {
+      const availW = wrap.clientWidth
+      const availH = wrap.clientHeight
+      if (!availW || !availH) return
+      setGridScale(Math.min(availW / gridConfig.width, availH / gridConfig.height, 1))
+    }
+    computeScale()
+    const observer = new ResizeObserver(computeScale)
+    observer.observe(wrap)
+    return () => observer.disconnect()
+  }, [gridViewActive, gridConfig.width, gridConfig.height])
 
   // Auto-assign first tab to cell 0 when grid has no cells
   useEffect(() => {
@@ -544,10 +565,11 @@ export default function Globe() {
     }
   }, []) // Only on mount
 
-  // Entering layout mode always shows the grid view; leaving it (e.g. back
-  // to the layer view) cancels it.
+  // Entering layout mode shows the grid view. Closing the panel (or switching
+  // to another tool) should NOT revert to the single view — grid view stays
+  // active until the layout tool is reopened and grid view is explicitly left.
   useEffect(() => {
-    setGridViewActive(activeTool === 'layout')
+    if (activeTool === 'layout') setGridViewActive(true)
   }, [activeTool])
 
   // Get active tab's state
@@ -1389,10 +1411,9 @@ export default function Globe() {
   const handleExportGrid = useCallback(() => {
     const cells = gridConfig.cells
     if (!cells || Object.keys(cells).length === 0) return
+    const containerEl = gridContainerRef.current
+    if (!containerEl) return
 
-    const totalRows = gridConfig.rows
-    const totalCols = gridConfig.cols
-    const cellSize = 800
     const exportCanvas = document.createElement('canvas')
     exportCanvas.width = gridConfig.width
     exportCanvas.height = gridConfig.height
@@ -1401,21 +1422,24 @@ export default function Globe() {
     ctx.fillStyle = '#000000'
     ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height)
 
+    // Derive each cell's target rect from the actual rendered DOM geometry (not naive fractions)
+    // so gaps/padding/borders and row/col spans are captured exactly as shown on screen.
+    const containerRect = containerEl.getBoundingClientRect()
+    const scaleX = exportCanvas.width / containerRect.width
+    const scaleY = exportCanvas.height / containerRect.height
+
     const drawOps = []
     Object.entries(cells).forEach(([cellIndex, cellData]) => {
-      const idx = parseInt(cellIndex)
-      const pos = gridPlacement[idx]
-      if (!pos) return // skip cells outside the grid
-      const colSpan = cellData.colSpan || 1
-      const rowSpan = cellData.rowSpan || 1
-
       const map = mapInstancesRef.current[cellData.tabId]
       if (!map) return
+      const cellEl = containerEl.querySelector(`[data-cell-index="${cellIndex}"]`)
+      if (!cellEl) return // not currently placed in the grid
 
-      const x = pos.col * (gridConfig.width / totalCols)
-      const y = pos.row * (gridConfig.height / totalRows)
-      const w = colSpan * (gridConfig.width / totalCols)
-      const h = rowSpan * (gridConfig.height / totalRows)
+      const cellRect = cellEl.getBoundingClientRect()
+      const x = (cellRect.left - containerRect.left) * scaleX
+      const y = (cellRect.top - containerRect.top) * scaleY
+      const w = cellRect.width * scaleX
+      const h = cellRect.height * scaleY
 
       drawOps.push({ map, x, y, w, h, cellIndex, cellData })
     })
@@ -1726,16 +1750,14 @@ export default function Globe() {
 
       {/* Main view — grid layout or single active tab */}
       {activeTool !== 'timelapse' && activeTool !== 'compare' && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
-        <div className="globe-grid-view">
-          <div className="globe-grid-container" style={{
+        <div className="globe-grid-view" ref={gridViewWrapRef}>
+          <div className="globe-grid-container" ref={gridContainerRef} style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
             gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
             gap: '3px',
-            width: `${gridConfig.width}px`,
-            height: `${gridConfig.height}px`,
-            maxWidth: '100%',
-            maxHeight: '100%',
+            width: `${gridConfig.width * gridScale}px`,
+            height: `${gridConfig.height * gridScale}px`,
             overflow: 'hidden',
             background: '#000'
           }}>
@@ -1748,7 +1770,7 @@ export default function Globe() {
               const colSpan = cellData?.colSpan || 1
               if (!cellData) {
                 return (
-                  <div key={cellIndex} className="globe-grid-cell globe-grid-cell--empty" style={{
+                  <div key={cellIndex} className="globe-grid-cell globe-grid-cell--empty" data-cell-index={cellIndex} style={{
                     gridRow: `${pos.row + 1} / span ${rowSpan}`,
                     gridColumn: `${pos.col + 1} / span ${colSpan}`,
                   }}>
@@ -1766,7 +1788,7 @@ export default function Globe() {
               const captionLines = resolvedText ? resolvedText.split('\n') : []
               const posClass = caption?.position || 'bottom-left'
               return (
-                <div key={cellIndex} className="globe-grid-cell" style={{
+                <div key={cellIndex} className="globe-grid-cell" data-cell-index={cellIndex} style={{
                   gridRow: `${pos.row + 1} / span ${rowSpan}`,
                   gridColumn: `${pos.col + 1} / span ${colSpan}`,
                 }}>

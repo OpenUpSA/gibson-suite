@@ -16,6 +16,10 @@ const GRID_PRESETS = {
   '3x3': { rows: 3, cols: 3, name: '3×3 (9 views)' }
 }
 
+// Sensible defaults for the width/height reset buttons (matches Globe.jsx's DEFAULT_GRID_CONFIG)
+const DEFAULT_GRID_WIDTH = 1600
+const DEFAULT_GRID_HEIGHT = 900
+
 const LayoutSidebar = ({
   open,
   onClose,
@@ -158,6 +162,17 @@ const LayoutSidebar = ({
                       {preset.name}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    className="grid-preset-menu-item"
+                    onClick={() => {
+                      onGridSizeChange('width', DEFAULT_GRID_WIDTH)
+                      onGridSizeChange('height', DEFAULT_GRID_HEIGHT)
+                      setPresetMenuOpen(false)
+                    }}
+                  >
+                    Reset width/height
+                  </button>
                 </div>
               )}
             </div>
