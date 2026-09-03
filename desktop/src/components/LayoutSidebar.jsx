@@ -61,6 +61,13 @@ const LayoutSidebar = ({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [presetMenuOpen])
 
+  const cycleCaptionPosition = () => {
+    const positions = ['top-left', 'top-right', 'bottom-right', 'bottom-left']
+    const current = gridConfig.captions?.[selectedCell]?.position || defaultCaption?.position || 'bottom-left'
+    const next = positions[(positions.indexOf(current) + 1) % positions.length]
+    onCaptionChange(selectedCell, 'position', next)
+  }
+
   return (
     <aside className={`sidebar layout-sidebar${open ? ' sidebar-open' : ''}`}>
       <div className="sidebar-header">
@@ -290,20 +297,25 @@ const LayoutSidebar = ({
                   />
                 </div>
 
-                <div className="grid-caption-compact-row">
-                  <div className="grid-caption-compact-control grid-caption-compact-control--position">
-                    <Icon icon="fluent:text-align-left-20-filled" width="14" height="14" title="Caption position" />
-                    <select
-                      className="sidebar-grid-select"
-                      value={gridConfig.captions?.[selectedCell]?.position || defaultCaption?.position || 'bottom-left'}
-                      onChange={e => onCaptionChange(selectedCell, 'position', e.target.value)}
-                      aria-label="Caption position"
-                    >
-                      {(captionPositions || []).map(pos => (
-                        <option key={pos.value} value={pos.value}>{pos.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="grid-caption-compact-row grid-caption-control-row">
+                  <button
+                    type="button"
+                    className="grid-caption-position-cycle"
+                    onClick={cycleCaptionPosition}
+                    title="Move caption to the next corner"
+                    aria-label="Move caption to the next corner"
+                  >
+                    {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(position => (
+                      <span
+                        key={position}
+                        className={
+                          (gridConfig.captions?.[selectedCell]?.position || defaultCaption?.position || 'bottom-left') === position
+                            ? 'active'
+                            : ''
+                        }
+                      />
+                    ))}
+                  </button>
                   <div className="grid-caption-compact-control">
                     <Icon icon="fluent:text-font-size-20-filled" width="14" height="14" title="Caption font size" />
                     <input
@@ -320,9 +332,6 @@ const LayoutSidebar = ({
                       aria-label="Caption font size"
                     />
                   </div>
-                </div>
-
-                <div className="grid-caption-compact-row">
                   <div className="grid-caption-color-control">
                     <GridCaptionColorPicker
                       color={gridConfig.captions?.[selectedCell]?.overlayColor || defaultCaption?.overlayColor || '#000000'}
