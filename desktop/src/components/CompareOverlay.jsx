@@ -187,18 +187,6 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
         <div className="compare-divider-line" />
         <div className="compare-divider-handle" />
       </div>
-      <div className="compare-labels">
-        <div className="compare-label compare-label-left">
-          <div className="compare-label-title">{tabA?.label || ''}</div>
-          <div className="compare-label-date">{tabA?.date}</div>
-          <div className="compare-label-name">{layerNames(tabA)}</div>
-        </div>
-        <div className="compare-label compare-label-right">
-          <div className="compare-label-title">{tabB?.label || ''}</div>
-          <div className="compare-label-date">{tabB?.date}</div>
-          <div className="compare-label-name">{layerNames(tabB)}</div>
-        </div>
-      </div>
       {renderCaption('before')}
       {renderCaption('after')}
     </div>

@@ -78,59 +78,6 @@
   border-radius: 1px;
 }
 
-.compare-labels {
-  position: absolute;
-  bottom: 16px;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-  padding: 0 16px;
-}
-
-.compare-label {
-  padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  color: #fff;
-  font-size: 13px;
-  border-radius: 4px;
-  max-width: 40%;
-  overflow: hidden;
-}
-
-.compare-label-title {
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.compare-label-date {
-  font-size: 11px;
-  color: #aaa;
-  font-family: monospace;
-  margin-bottom: 2px;
-}
-
-.compare-label-name {
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.compare-label-left {
-  text-align: left;
-}
-
-.compare-label-right {
-  text-align: right;
-}
-
 /* ── Per-side caption zones ───────────────────────────────── */
 /* Before captions live in the left half, after captions in the right half.
    Inside each zone the caption is placed by the shared .globe-grid-caption

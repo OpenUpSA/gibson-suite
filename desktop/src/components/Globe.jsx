@@ -475,6 +475,8 @@ export default function Globe() {
   const [compareBId, setCompareBId] = useState(null)
   // Per-side date overrides — only affect the compare view, never the shared tabs.
   const [compareDateOverrides, setCompareDateOverrides] = useState({ before: null, after: null })
+  // Compare overlay stays visible when the sidebar is hidden (like grid view).
+  const [compareViewActive, setCompareViewActive] = useState(false)
 
   // ── Timelapse tool state ────────────────────────────────────────────
   const [tlRect, setTlRect] = useState(null)              // [[swLng,swLat],[neLng,neLat]]
@@ -583,6 +585,11 @@ export default function Globe() {
   // active until the layout tool is reopened and grid view is explicitly left.
   useEffect(() => {
     if (activeTool === 'layout') setGridViewActive(true)
+  }, [activeTool])
+
+  // Entering compare mode shows the overlay; closing the panel keeps it.
+  useEffect(() => {
+    if (activeTool === 'compare') setCompareViewActive(true)
   }, [activeTool])
 
   // Get active tab's state
@@ -776,7 +783,8 @@ export default function Globe() {
     setCompareAId(`preset-${layer.id}-before`)
     setCompareBId(`preset-${layer.id}-after`)
     setActiveTool('compare')
-  }, [layerSection, setActiveBySectionTabbed, setTabs, setCompareAId, setCompareBId, setActiveTool])
+    setCompareViewActive(true)
+  }, [layerSection, setActiveBySectionTabbed, setTabs, setCompareAId, setCompareBId, setActiveTool, setCompareViewActive])
 
   const reorderSection = (section, nextIds) => {
     setActiveBySectionTabbed(prev => ({ ...prev, [section]: nextIds }))
@@ -796,9 +804,13 @@ export default function Globe() {
   }, [setHiddenLayersTabbed])
 
   // Toolbar: clicking the active tool closes its panel; clicking another
-  // switches to it. Opening one panel closes the other.
+  // switches to it. Opening one panel closes the other. The compare overlay
+  // stays when its panel is closed (like the grid view) and only leaves when
+  // another tool is opened.
   const handleToolClick = (tool) => {
     setActiveTool(prev => (prev === tool ? null : tool))
+    if (tool === 'compare') setCompareViewActive(true)
+    else setCompareViewActive(false)
   }
 
   // Keyboard shortcuts
@@ -807,21 +819,25 @@ export default function Globe() {
       // Ctrl+Shift+1 — toggle layers sidebar
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit1') {
         e.preventDefault()
+        setCompareViewActive(false)
         setActiveTool(prev => (prev === 'layers' ? null : 'layers'))
       }
       // Ctrl+Shift+2 — toggle timelapse tool
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit2') {
         e.preventDefault()
+        setCompareViewActive(false)
         setActiveTool(prev => (prev === 'timelapse' ? null : 'timelapse'))
       }
       // Ctrl+Shift+3 — toggle compare tool
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit3') {
         e.preventDefault()
+        setCompareViewActive(true)
         setActiveTool(prev => (prev === 'compare' ? null : 'compare'))
       }
       // Ctrl+Shift+4 — toggle layout tool
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit4') {
         e.preventDefault()
+        setCompareViewActive(false)
         setActiveTool(prev => (prev === 'layout' ? null : 'layout'))
       }
     }
@@ -1749,8 +1765,9 @@ export default function Globe() {
       )}
 
       {/* Compare workbench — two views overlaid with a draggable slider */}
-      {activeTool === 'compare' && compareTabA && compareTabB && (
+      {compareViewActive && compareTabA && compareTabB && (
         <div className="compare-layout">
+          {activeTool === 'compare' && (
           <ComparePanel
             tabs={tabs}
             compareAId={compareTabA.id}
@@ -1771,6 +1788,7 @@ export default function Globe() {
             onDateChange={handleCompareDateChange}
             layerById={layerById}
           />
+          )}
           <div className="compare-workbench">
             <CompareOverlay
               tabA={effectiveCompareTabA}
@@ -1789,7 +1807,7 @@ export default function Globe() {
       )}
 
       {/* Main view — grid layout or single active tab */}
-      {activeTool !== 'timelapse' && activeTool !== 'compare' && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
+      {activeTool !== 'timelapse' && !compareViewActive && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
         <div className="globe-grid-view" ref={gridViewWrapRef}>
           <div className="globe-grid-container" ref={gridContainerRef} style={{
             display: 'grid',
@@ -1878,7 +1896,7 @@ export default function Globe() {
       )}
 
       {/* Single view */}
-      {activeTool !== 'timelapse' && activeTool !== 'compare' && !gridViewActive && activeTab && (
+      {activeTool !== 'timelapse' && !compareViewActive && !gridViewActive && activeTab && (
         <div className="globe-single-view" data-tour="map-single">
           <MapInstance
             tab={activeTab}

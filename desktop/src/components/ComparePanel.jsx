@@ -119,7 +119,7 @@ const ComparePanel = ({
           {tab ? (
             <>
               <span className="compare-cell-label">{tab.label}</span>
-              <span className="compare-cell-meta">{tab.date}</span>
+              <span className="compare-cell-meta">{dateOverrides?.[side] || tab.date}</span>
               <button
                 type="button"
                 className="compare-cell-info"
@@ -156,8 +156,8 @@ const ComparePanel = ({
     const cap = captions?.[side] || defaultCaption || {}
     return (
       <div className="sidebar-grid-caption-controls">
-        <div className="sidebar-grid-caption-header">
-          <Icon icon="fluent:text-caption-20-filled" width="14" height="14" />
+        <div className="sidebar-grid-caption-toggle-control">
+          <Icon icon="fluent:text-caption-20-filled" width="14" height="14" title="Caption" />
           <span>Caption</span>
           <div
             className={`sidebar-grid-caption-toggle${cap.visible ? ' active' : ''}`}
