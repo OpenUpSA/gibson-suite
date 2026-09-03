@@ -2,7 +2,7 @@
 .tabbed-sidebar-tabs {
   display: flex;
   align-items: center;
-  padding: 8px 14px;
+  padding: 10px 9px 10px 12px;
   background: rgba(79, 195, 217, 0.08);
   border-top: 1px solid rgba(79, 195, 217, 0.15);
   border-bottom: 1px solid rgba(79, 195, 217, 0.15);
@@ -193,12 +193,12 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   border-radius: 4px;
   margin-left: 4px;

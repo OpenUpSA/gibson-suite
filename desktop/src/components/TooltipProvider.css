@@ -1,0 +1,23 @@
+.app-tooltip {
+  position: fixed;
+  z-index: 10000;
+  max-width: 260px;
+  padding: 6px 8px;
+  background: #171717;
+  border: 0;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  color: #f2f2f2;
+  font-size: 12px;
+  line-height: 1.3;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.app-tooltip--right {
+  transform: none;
+}
+
+.app-tooltip--left {
+  transform: translateX(-100%);
+}

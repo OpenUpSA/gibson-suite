@@ -1,6 +1,6 @@
 /* Place search — lives at the top of the layers sidebar */
 .place-search {
-  padding: 10px 12px 12px;
+  padding: 0;
   position: relative;
 }
 
@@ -13,16 +13,16 @@
 .place-search-icon {
   position: absolute;
   left: 8px;
-  color: #888;
+  color: #c4c4c4;
   pointer-events: none;
 }
 
 .place-search-input {
   width: 100%;
-  padding: 7px 30px 7px 28px;
+  padding: 10px 30px 10px 28px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border-radius: 0;
   color: #eee;
   font-size: 13px;
   outline: none;
@@ -30,7 +30,7 @@
 }
 
 .place-search-input::placeholder {
-  color: #666;
+  color: #b5b5b5;
 }
 
 .place-search-input:focus {

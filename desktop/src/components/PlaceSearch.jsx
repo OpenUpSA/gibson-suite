@@ -52,7 +52,7 @@ const PlaceSearch = ({ onSelect }) => {
   return (
     <div className="place-search">
       <div className="place-search-input-wrap">
-        <Icon icon="fluent:search-20-regular" width="14" height="14" className="place-search-icon" />
+        <Icon icon="fluent:search-20-filled" width="14" height="14" className="place-search-icon" />
         <input
           className="place-search-input"
           type="text"

@@ -11,17 +11,21 @@
 .datepicker-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   flex: 1;
+}
+
+.datepicker-controls > * + * {
+  border-left: 0;
 }
 
 .datepicker-nav-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 38px;
+  height: 38px;
+  border-radius: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -43,11 +47,11 @@
 }
 
 .datepicker-select {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  padding: 4px 6px;
-  border-radius: 6px;
+  padding: 9px 8px;
+  border-radius: 0;
   font-size: 13px;
   font-family: 'Courier New', monospace;
   cursor: pointer;
@@ -57,7 +61,7 @@
 }
 
 .datepicker-select:hover {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.25);
 }
 

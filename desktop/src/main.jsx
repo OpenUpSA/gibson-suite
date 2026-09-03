@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Globe from './components/Globe'
 import CompareShare from './components/CompareShare'
+import TooltipProvider from './components/TooltipProvider'
 import './index.css'
 
 // Lazy-loaded so the legacy app's CSS (App.css) only loads when visiting
@@ -26,6 +27,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="*" element={<Globe />} />
         </Routes>
       </Suspense>
+      <TooltipProvider />
     </BrowserRouter>
   </React.StrictMode>,
 )

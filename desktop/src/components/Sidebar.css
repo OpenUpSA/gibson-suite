@@ -8,6 +8,7 @@
   max-width: calc(85vw - 44px);
   background: #1c1c1e;
   border-right: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 8px 0 20px rgba(0, 0, 0, 0.35);
   z-index: 35;
   transform: translateX(-100%);
   transition: transform 0.25s ease;
@@ -60,7 +61,7 @@
 .sidebar-top-panel {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 10px 16px;
+  padding: 0;
   min-height: 0;
   background: rgba(0, 0, 0, 0.25);
   scrollbar-width: thin;
@@ -97,8 +98,8 @@
 
 /* Add Layer button */
 .sidebar-add-layer-row {
-  padding: 0 0 4px;
-  margin-bottom: 4px;
+  padding: 0;
+  margin: 0;
 }
 
 .add-layer-btn {
@@ -111,7 +112,7 @@
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
+  border-radius: 0;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -136,8 +137,7 @@
 
 /* Section headers (Base layers / Imagery layers / Reference layers) */
 .sidebar-section {
-  margin-bottom: 14px;
-  margin-top: 14px;
+  margin: 0;
   position: relative;
 }
 
@@ -145,16 +145,15 @@
   display: flex;
   align-items: center;
   padding: 10px 9px 10px 12px;
-  margin: 0 -10px 12px;
-  background: rgba(79, 195, 217, 0.08);
-  border-top: 1px solid rgba(79, 195, 217, 0.15);
-  border-bottom: 1px solid rgba(79, 195, 217, 0.15);
+  margin: 0;
+  background: rgba(79, 195, 217, 0.65);
+  border: 0;
 }
 
 .sidebar-section-title {
   font-size: 11px;
   font-weight: 700;
-  color: #4FC3D9;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   flex: 1;
@@ -237,20 +236,22 @@
 
 /* Layer row — top bar + expandable settings */
 .layer-row {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  margin-bottom: 8px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
+  margin: 0;
   background: rgba(255, 255, 255, 0.04);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .layer-row:hover {
-  border-color: rgba(255, 255, 255, 0.28);
+  border-bottom-color: rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.06);
 }
 
 .layer-row.dragging {
   opacity: 0.3;
+  border: 1px solid rgba(255, 201, 60, 0.25);
   border-style: dashed;
   border-color: rgba(255, 201, 60, 0.25);
   background: rgba(255, 201, 60, 0.03);
@@ -281,7 +282,7 @@
   /* Background covers the whole collapsed row (drag handle + name + buttons);
      the expanded settings panel below stays plain. */
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .layer-drag-handle {
@@ -360,8 +361,8 @@
   gap: 8px;
   /* Fainter background than the top bar so the accordion reads as recessed */
   background: rgba(255, 255, 255, 0.05);
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .layer-remove-btn {
@@ -737,7 +738,7 @@
 
 /* Date picker in sidebar */
 .sidebar-date-picker {
-  padding: 18px 10px;
+  padding: 0;
   background: transparent;
   border: none;
   width: 100%;
