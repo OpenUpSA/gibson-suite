@@ -148,6 +148,17 @@ const BASE_LAYERS = SECTIONS_CFG.imagery || [] // imagery section holds the dail
 const OVERLAY_LAYERS = SECTIONS_CFG.reference || [] // reference section holds the static overlays
 const layerCatalog = Object.values(SECTIONS_CFG).flat()
 const layerById = new Map(layerCatalog.map(l => [l.id, l]))
+
+// All active layer names for a tab, for the grid-cell info tooltip.
+const cellLayerNames = (tab) => {
+  if (!tab) return ''
+  const ids = [
+    ...(tab.activeBySection?.imagery || []),
+    ...(tab.activeBySection?.base || []),
+    ...(tab.activeBySection?.reference || [])
+  ]
+  return ids.map(id => layerById.get(id)?.name).filter(Boolean).join(', ') || tab.label || ''
+}
 const { mapSettings, wmtsBaseUrl, wmsBaseUrl } = layersConfig
 
 // Section config — drives both the sidebar sections and the map stacking.
@@ -462,6 +473,8 @@ export default function Globe() {
   // the effective values below fall back to the first two tabs.
   const [compareAId, setCompareAId] = useState(null)
   const [compareBId, setCompareBId] = useState(null)
+  // Per-side date overrides — only affect the compare view, never the shared tabs.
+  const [compareDateOverrides, setCompareDateOverrides] = useState({ before: null, after: null })
 
   // ── Timelapse tool state ────────────────────────────────────────────
   const [tlRect, setTlRect] = useState(null)              // [[swLng,swLat],[neLng,neLat]]
@@ -582,6 +595,24 @@ export default function Globe() {
   const compareTabA = tabs.find(t => t.id === compareAId) || tabs[0]
   const compareTabB = tabs.find(t => t.id === compareBId) || tabs[1] || tabs[0]
 
+  // Date overrides shallow-copy the tab so only the compare view sees the new date.
+  const effectiveCompareTabA = compareDateOverrides.before
+    ? { ...compareTabA, date: compareDateOverrides.before }
+    : compareTabA
+  const effectiveCompareTabB = compareDateOverrides.after
+    ? { ...compareTabB, date: compareDateOverrides.after }
+    : compareTabB
+
+  const handleCompareDateChange = useCallback((side, date) => {
+    setCompareDateOverrides(prev => ({ ...prev, [side]: date }))
+  }, [])
+
+  const handleCompareAssign = useCallback((side, tabId) => {
+    if (side === 'before') setCompareAId(tabId)
+    else setCompareBId(tabId)
+    setCompareDateOverrides(prev => ({ ...prev, [side]: null }))
+  }, [])
+
   // In compare mode each map writes its camera back to its own tab.
   const handleCompareMapPositionChange = useCallback((index) => (pos) => {
     const id = index === 0 ? compareTabA?.id : compareTabB?.id
@@ -596,10 +627,13 @@ export default function Globe() {
   })
 
   const handleCompareCaptionChange = useCallback((side, field, value) => {
-    setCompareCaptions(prev => ({
-      ...prev,
-      [side]: { ...(prev[side] || DEFAULT_CAPTION), [field]: value }
-    }))
+    setCompareCaptions(prev => {
+      const changes = typeof field === 'string' ? { [field]: value } : field
+      return {
+        ...prev,
+        [side]: { ...(prev[side] || DEFAULT_CAPTION), ...changes }
+      }
+    })
   }, [])
 
   const handleCompareCaptionToggleVisible = useCallback((side) => {
@@ -610,7 +644,7 @@ export default function Globe() {
       }
       // Pre-fill with the side's actual date + layer names so the user can
       // edit directly (same behaviour as the grid captions).
-      const tab = side === 'before' ? compareTabA : compareTabB
+      const tab = side === 'before' ? effectiveCompareTabA : effectiveCompareTabB
       const date = tab?.date || ''
       const layerNames = (tab?.activeBySection?.imagery || [])
         .map(id => layerById.get(id)?.name)
@@ -619,7 +653,7 @@ export default function Globe() {
       const text = `${date}\n${layerNames || tab?.label || ''}`
       return { ...prev, [side]: { ...current, text, visible: true } }
     })
-  }, [compareTabA, compareTabB, layerById])
+  }, [effectiveCompareTabA, effectiveCompareTabB, layerById])
 
   // The timelapse tool composites ALL active layers in the active tab, grouped
   // by section. Imagery (dated) forms the bottom, then base (dated, often
@@ -720,7 +754,7 @@ export default function Globe() {
       const next = [...prev]
       const makeTab = (suffix, p) => ({
         id: `preset-${layer.id}-${suffix}`,
-        label: `${layer.name} — ${suffix === 'before' ? 'Before' : 'After'}`,
+        label: `${layer.name} — ${p.date}`,
         activeBySection: {
           base: prev[0]?.activeBySection?.base || [],
           imagery: section === 'imagery' ? [layer.id] : (prev[0]?.activeBySection?.imagery || []),
@@ -1721,20 +1755,26 @@ export default function Globe() {
             tabs={tabs}
             compareAId={compareTabA.id}
             compareBId={compareTabB.id}
-            onCompareAChange={setCompareAId}
-            onCompareBChange={setCompareBId}
-            onSwap={() => { setCompareAId(compareTabB.id); setCompareBId(compareTabA.id) }}
+            onCompareAChange={(id) => handleCompareAssign('before', id)}
+            onCompareBChange={(id) => handleCompareAssign('after', id)}
+            onSwap={() => {
+              setCompareAId(compareTabB.id)
+              setCompareBId(compareTabA.id)
+              setCompareDateOverrides(prev => ({ before: prev.after, after: prev.before }))
+            }}
             onClose={() => setActiveTool(null)}
             captions={compareCaptions}
             onCaptionChange={handleCompareCaptionChange}
             onCaptionToggleVisible={handleCompareCaptionToggleVisible}
             defaultCaption={DEFAULT_CAPTION}
-            captionPositions={CAPTION_POSITIONS}
+            dateOverrides={compareDateOverrides}
+            onDateChange={handleCompareDateChange}
+            layerById={layerById}
           />
           <div className="compare-workbench">
             <CompareOverlay
-              tabA={compareTabA}
-              tabB={compareTabB}
+              tabA={effectiveCompareTabA}
+              tabB={effectiveCompareTabB}
               layerById={layerById}
               layerCatalog={layerCatalog}
               wmtsBaseUrl={wmtsBaseUrl}
@@ -1820,6 +1860,15 @@ export default function Globe() {
                         ))}
                       </div>
                     </div>
+                  )}
+                  {tab && (
+                    <button
+                      type="button"
+                      className="globe-grid-cell-info"
+                      title={cellLayerNames(tab)}
+                    >
+                      <Icon icon="fluent:info-16-regular" width="12" height="12" />
+                    </button>
                   )}
                 </div>
               )

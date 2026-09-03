@@ -39,8 +39,8 @@ const CompareShare = () => {
     )
   }
 
-  const tabA = buildTab(decoded.tabs[0], 'share-before', 'Before')
-  const tabB = buildTab(decoded.tabs[1], 'share-after', 'After')
+  const tabA = buildTab(decoded.tabs[0], 'share-a', 'View A')
+  const tabB = buildTab(decoded.tabs[1], 'share-b', 'View B')
 
   return (
     <div className="compare-share">

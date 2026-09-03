@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '@iconify/react'
 import { encodeCompareShare, shareUrlFor } from '../utils/shareCompare'
+import DatePicker from './DatePicker'
+import GridCaptionColorPicker from './GridCaptionColorPicker'
 import './ComparePanel.css'
 
 /**
  * Sidebar panel for the Compare tool — two assignable cells (like the grid
- * view) for the before/after views, each with its own caption options
+ * view) for the two views, each with its own caption options
  * (same editor as the grid layout + GIF views).
  */
 const ComparePanel = ({
@@ -21,7 +23,9 @@ const ComparePanel = ({
   onCaptionChange,
   onCaptionToggleVisible,
   defaultCaption,
-  captionPositions
+  dateOverrides,
+  onDateChange,
+  layerById
 }) => {
   const [cellFlyout, setCellFlyout] = useState(null) // 'before' | 'after' | null
   const [flyoutPos, setFlyoutPos] = useState(null) // { x, y } for portal flyout
@@ -31,6 +35,17 @@ const ComparePanel = ({
   const sideTab = (side) => {
     const id = side === 'before' ? compareAId : compareBId
     return tabs.find(t => t.id === id)
+  }
+
+  // All active layer names for a side, for the info tooltip.
+  const layerNames = (tab) => {
+    if (!tab) return ''
+    const ids = [
+      ...(tab.activeBySection?.imagery || []),
+      ...(tab.activeBySection?.base || []),
+      ...(tab.activeBySection?.reference || [])
+    ]
+    return ids.map(id => layerById.get(id)?.name).filter(Boolean).join(', ') || tab.label || ''
   }
 
   // Build a minimalist share link for the current before/after views and
@@ -74,6 +89,14 @@ const ComparePanel = ({
     setCellFlyout(null)
   }
 
+  const cycleCaptionPosition = (side) => {
+    const positions = ['top-left', 'top-right', 'bottom-right', 'bottom-left']
+    const cap = captions?.[side] || defaultCaption || {}
+    const current = cap.position || 'bottom-left'
+    const next = positions[(positions.indexOf(current) + 1) % positions.length]
+    onCaptionChange(side, 'position', next)
+  }
+
   // Clicking outside the flyout closes it
   useEffect(() => {
     if (!cellFlyout) return
@@ -84,12 +107,10 @@ const ComparePanel = ({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [cellFlyout])
 
-  const renderCell = (side, title) => {
+  const renderCell = (side) => {
     const tab = sideTab(side)
-    const layerCount = tab?.activeBySection?.imagery?.length || 0
     return (
       <div className="compare-cell-wrap">
-        <div className="compare-cell-title">{title}</div>
         <div
           className={`compare-cell${tab ? ' has-view' : ''}${selectedSide === side ? ' selected' : ''}${cellFlyout === side ? ' flyout-open' : ''}`}
           onClick={(e) => { if (tab) toggleSelect(side) }}
@@ -101,11 +122,19 @@ const ComparePanel = ({
               <span className="compare-cell-meta">{tab.date}</span>
               <button
                 type="button"
+                className="compare-cell-info"
+                onClick={(e) => e.stopPropagation()}
+                title={layerNames(tab)}
+              >
+                <Icon icon="fluent:info-16-regular" width="11" height="11" />
+              </button>
+              <button
+                type="button"
                 className="compare-cell-edit"
                 onClick={(e) => openFlyout(side, e)}
                 title="Assign another view (right-click also works)"
               >
-                <Icon icon="fluent:arrow-swap-16-regular" width="11" height="11" />
+                <Icon icon="fluent:chevron-down-16-regular" width="11" height="11" />
               </button>
             </>
           ) : (
@@ -119,155 +148,149 @@ const ComparePanel = ({
             </button>
           )}
         </div>
-        {tab && (
-          <div className="compare-cell-layers">
-            {layerCount
-              ? `${layerCount} imagery layer${layerCount > 1 ? 's' : ''}`
-              : 'No imagery layers'}
+      </div>
+    )
+  }
+
+  const renderCaptionEditor = (side) => {
+    const cap = captions?.[side] || defaultCaption || {}
+    return (
+      <div className="sidebar-grid-caption-controls">
+        <div className="sidebar-grid-caption-header">
+          <Icon icon="fluent:text-caption-20-filled" width="14" height="14" />
+          <span>Caption</span>
+          <div
+            className={`sidebar-grid-caption-toggle${cap.visible ? ' active' : ''}`}
+            onClick={() => onCaptionToggleVisible(side)}
+            role="switch"
+            aria-checked={Boolean(cap.visible)}
+            aria-label="Show caption"
+          >
+            <div className="sidebar-grid-caption-toggle-knob" />
+          </div>
+        </div>
+        {cap.visible && (
+          <div className="sidebar-grid-caption-fields">
+            <div className="sidebar-grid-caption-textarea-wrap">
+              <textarea
+                className="sidebar-grid-caption-textarea"
+                value={cap.text || ''}
+                onChange={(e) => onCaptionChange(side, 'text', e.target.value)}
+                rows={3}
+                placeholder="%date%  %layer%"
+              />
+              <Icon
+                icon="fluent:question-circle-20-filled"
+                width="14"
+                height="14"
+                className="grid-caption-help-icon"
+                title="Shown as-is: each line renders on its own row. %date% and %layer% remain available."
+              />
+            </div>
+
+            <div className="grid-caption-compact-row grid-caption-control-row">
+              <button
+                type="button"
+                className="grid-caption-position-cycle"
+                onClick={() => cycleCaptionPosition(side)}
+                title="Move caption to the next corner"
+                aria-label="Move caption to the next corner"
+              >
+                {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(position => (
+                  <span
+                    key={position}
+                    className={cap.position === position ? 'active' : ''}
+                  />
+                ))}
+              </button>
+              <div className="grid-caption-compact-control">
+                <Icon icon="fluent:text-font-size-20-filled" width="14" height="14" title="Caption font size" />
+                <input
+                  type="number"
+                  className="sidebar-grid-size-input"
+                  min="8"
+                  max="72"
+                  step="1"
+                  value={cap.fontSize ?? 11}
+                  onChange={(e) => {
+                    const v = Math.max(8, Math.min(72, parseInt(e.target.value) || 11))
+                    onCaptionChange(side, 'fontSize', v)
+                  }}
+                  aria-label="Caption font size"
+                />
+              </div>
+              <div className="grid-caption-color-control">
+                <GridCaptionColorPicker
+                  color={cap.overlayColor || '#000000'}
+                  opacity={cap.overlayOpacity ?? 0.55}
+                  icon="fluent:paint-brush-20-filled"
+                  title="Choose caption overlay color and alpha"
+                  withAlpha
+                  onChange={(overlayColor) => onCaptionChange(side, { overlayColor, overlayOpacity: 1 })}
+                />
+              </div>
+              <div className="grid-caption-color-control">
+                <GridCaptionColorPicker
+                  color={cap.textColor || '#ffffff'}
+                  icon="fluent:text-color-20-filled"
+                  title="Choose caption text color"
+                  onChange={(textColor) => onCaptionChange(side, 'textColor', textColor)}
+                />
+              </div>
+              <button
+                type="button"
+                className="grid-caption-color-reset"
+                onClick={() => onCaptionChange(side, {
+                  overlayColor: '#000000',
+                  overlayOpacity: 0.55,
+                  textColor: '#ffffff',
+                })}
+                title="Reset colors to black and white"
+                aria-label="Reset colors to black and white"
+              >
+                <Icon icon="fluent:arrow-reset-20-regular" width="16" height="16" />
+              </button>
+            </div>
           </div>
         )}
       </div>
     )
   }
 
-  const renderCaptionEditor = (side, title) => {
-    const cap = captions?.[side] || defaultCaption || {}
-    return (
-      <div className="compare-caption-editor">
-        <div className="compare-caption-editor-title">{title}</div>
-        <div className="sidebar-grid-caption-controls">
-          <div className="sidebar-grid-caption-header">
-            <Icon icon="fluent:text-caption-20-filled" width="14" height="14" />
-            <span>Caption</span>
-            <div
-              className={`sidebar-grid-caption-toggle${cap.visible ? ' active' : ''}`}
-              onClick={() => onCaptionToggleVisible(side)}
-            >
-              <div className="sidebar-grid-caption-toggle-knob" />
-            </div>
-          </div>
-          {cap.visible && (
-            <div className="sidebar-grid-caption-fields">
-              <div className="sidebar-grid-caption-textarea-wrap">
-                <textarea
-                  className="sidebar-grid-caption-textarea"
-                  value={cap.text || ''}
-                  onChange={(e) => onCaptionChange(side, 'text', e.target.value)}
-                  rows={3}
-                  placeholder="%date%  %layer%"
-                />
-                <div className="sidebar-grid-caption-hint">
-                  Shown as-is — each line renders on its own row. <code>%date%</code> / <code>%layer%</code> still work if you want them.
-                </div>
-              </div>
-
-              <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                <label>Position</label>
-                <select
-                  className="sidebar-grid-select"
-                  value={cap.position || 'bottom-left'}
-                  onChange={(e) => onCaptionChange(side, 'position', e.target.value)}
-                >
-                  {(captionPositions || []).map(pos => (
-                    <option key={pos.value} value={pos.value}>{pos.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                <label>Font size</label>
-                <div className="sidebar-grid-input-with-unit">
-                  <input
-                    type="number"
-                    className="sidebar-grid-size-input"
-                    min="8"
-                    max="72"
-                    step="1"
-                    value={cap.fontSize ?? 11}
-                    onChange={(e) => {
-                      const v = Math.max(8, Math.min(72, parseInt(e.target.value) || 11))
-                      onCaptionChange(side, 'fontSize', v)
-                    }}
-                  />
-                  <span>px</span>
-                </div>
-              </div>
-
-              <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                <label>Colors</label>
-                <div className="sidebar-grid-caption-color-row">
-                  <div className="sidebar-grid-caption-color-item">
-                    <span>Overlay</span>
-                    <input
-                      type="color"
-                      className="sidebar-grid-caption-color"
-                      value={cap.overlayColor || '#000000'}
-                      onChange={(e) => onCaptionChange(side, 'overlayColor', e.target.value)}
-                    />
-                  </div>
-                  <div className="sidebar-grid-caption-color-item">
-                    <span>Text</span>
-                    <input
-                      type="color"
-                      className="sidebar-grid-caption-color"
-                      value={cap.textColor || '#ffffff'}
-                      onChange={(e) => onCaptionChange(side, 'textColor', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                <label>Opacity</label>
-                <div className="sidebar-grid-caption-opacity-row">
-                  <input
-                    type="number"
-                    className="sidebar-grid-size-input sidebar-grid-caption-opacity-input"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={Math.round((cap.overlayOpacity ?? 0.55) * 100)}
-                    onChange={(e) => {
-                      const v = Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
-                      onCaptionChange(side, 'overlayOpacity', v / 100)
-                    }}
-                  />
-                  <span>%</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <aside className="compare-panel">
-      <div className="compare-panel-header">
-        <span className="compare-panel-title">Compare views</span>
-        <button type="button" className="compare-panel-close" onClick={onClose} title="Close">
+    <aside className="sidebar compare-panel sidebar-open">
+      <div className="sidebar-header">
+        <span className="sidebar-title">Compare views</span>
+        <button type="button" className="sidebar-close" onClick={onClose} title="Close">
           <Icon icon="fluent:dismiss-20-filled" width="18" height="18" />
         </button>
       </div>
       <div className="compare-panel-scroll">
-        <p className="compare-panel-hint">
-          Two views overlaid on the map — drag the slider to reveal one side or the other. Click a box to edit its caption, or right-click to assign a view.
-        </p>
-
-        <div className="compare-cells">
-          {renderCell('before', 'Before')}
-          {renderCell('after', 'After')}
-        </div>
-
-        <div className="compare-panel-swap-row">
-          <button type="button" className="compare-panel-swap" onClick={onSwap}>
+        <div className="compare-cells-wrap">
+          <div className="compare-cells">
+            {renderCell('before')}
+            {renderCell('after')}
+          </div>
+          <button
+            type="button"
+            className="compare-cell-swap"
+            onClick={onSwap}
+            title="Swap the two views"
+            aria-label="Swap the two views"
+          >
             <Icon icon="fluent:arrow-swap-20-regular" width="14" height="14" />
-            Swap sides
           </button>
         </div>
 
-        {selectedSide && renderCaptionEditor(selectedSide, selectedSide === 'before' ? 'Before caption' : 'After caption')}
+        {selectedSide && (
+          <div className="compare-side-editor">
+            <DatePicker
+              selectedDate={dateOverrides?.[selectedSide] || sideTab(selectedSide)?.date}
+              onDateChange={(d) => onDateChange(selectedSide, d)}
+            />
+            {renderCaptionEditor(selectedSide)}
+          </div>
+        )}
 
         <div className="compare-panel-share-row">
           <button
@@ -283,9 +306,6 @@ const ComparePanel = ({
             />
             {copied ? 'Link copied!' : 'Share compare'}
           </button>
-          <p className="compare-panel-share-hint">
-            Opens a clean, embeddable view of just this comparison — no toolbars.
-          </p>
         </div>
       </div>
 

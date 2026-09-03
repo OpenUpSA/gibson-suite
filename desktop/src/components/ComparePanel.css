@@ -1,48 +1,7 @@
-.compare-panel {
-  width: 320px;
-  flex-shrink: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: #202020;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 13px;
-  overflow: hidden;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 8px 0 20px rgba(0, 0, 0, 0.35);
-}
-
-.compare-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* Compare panel — reuses the shared .sidebar shell (Sidebar.css) */
+.compare-panel.sidebar .sidebar-header {
   padding: 10px 9px 10px 12px;
-  background: #202020;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  flex-shrink: 0;
-}
-
-.compare-panel-title {
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #fff;
-}
-
-.compare-panel-close {
-  background: transparent;
-  border: none;
-  color: #aaa;
-  cursor: pointer;
-  font-size: 15px;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.compare-panel-close:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.08);
+  background: #1c1c1e;
 }
 
 .compare-panel-scroll {
@@ -72,33 +31,47 @@
   background: rgba(255, 255, 255, 0.25);
 }
 
-.compare-panel-hint {
-  margin: 0;
-  padding: 12px;
-  font-size: 11px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.5);
+/* ── Before / After cells (grid style) ────────────────────── */
+.compare-cells-wrap {
+  position: relative;
 }
 
-/* ── Before / After cells (grid style) ────────────────────── */
 .compare-cells {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0;
-  margin: 0;
+  gap: 8px;
+  margin: 12px;
+}
+
+/* Tiny swap button hovering between the two cells */
+.compare-cell-swap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: #1c1c1e;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.compare-cell-swap:hover {
+  background: rgba(79, 195, 217, 0.2);
+  border-color: rgba(79, 195, 217, 0.5);
+  color: #4FC3D9;
 }
 
 .compare-cell-wrap {
   min-width: 0;
-}
-
-.compare-cell-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 5px;
 }
 
 .compare-cell {
@@ -108,7 +81,7 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  min-height: 58px;
+  min-height: 84px;
   border: 1.5px solid rgba(255, 255, 255, 0.12);
   border-radius: 0;
   background: rgba(255, 255, 255, 0.03);
@@ -118,31 +91,28 @@
   overflow: hidden;
 }
 
-.compare-cell-wrap + .compare-cell-wrap .compare-cell {
-  border-left: 0;
+.compare-cell.has-view {
+  background: rgba(79, 195, 217, 0.08);
 }
 
 .compare-cell:hover {
-  border-color: rgba(227, 165, 32, 0.4);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(79, 195, 217, 0.12);
 }
 
 .compare-cell.selected {
-  border-color: #E3A520;
-  background: rgba(227, 165, 32, 0.15);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(79, 195, 217, 0.2);
 }
 
 .compare-cell.flyout-open {
-  border-color: rgba(227, 165, 32, 0.6);
-}
-
-.compare-cell.has-view {
-  background: rgba(227, 165, 32, 0.08);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .compare-cell-label {
   font-size: 11px;
   font-weight: 700;
-  color: #E3A520;
+  color: #4FC3D9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -181,53 +151,34 @@
   height: 20px;
 }
 
-.compare-cell-add:hover,
-.compare-cell-edit:hover {
-  background: rgba(227, 165, 32, 0.2);
-  border-color: rgba(227, 165, 32, 0.4);
-  color: #E3A520;
-}
-
-.compare-cell-layers {
-  margin-top: 4px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.compare-panel-swap-row {
-  margin: 0;
-}
-
-.compare-panel-swap {
+.compare-cell-info {
+  position: absolute;
+  top: 4px;
+  right: 26px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 100%;
-  padding: 7px 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
   border-radius: 0;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.15s ease;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: help;
+  transition: all 0.15s ease;
 }
 
-.compare-panel-swap:hover {
-  background: rgba(255, 255, 255, 0.14);
+.compare-cell-add:hover,
+.compare-cell-edit:hover,
+.compare-cell-info:hover {
+  background: rgba(79, 195, 217, 0.2);
+  border-color: rgba(79, 195, 217, 0.4);
+  color: #4FC3D9;
 }
 
-/* ── Share button (pinned at the bottom of the panel) ─────── */
 .compare-panel-share-row {
   margin-top: 16px;
-  padding-top: 14px;
+  padding: 14px 12px 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -240,7 +191,7 @@
   padding: 8px 12px;
   background: #E3A520;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
   color: #1a1a1a;
   font-size: 13px;
   font-weight: 700;
@@ -262,24 +213,131 @@
   color: #fff;
 }
 
-.compare-panel-share-hint {
-  margin: 6px 2px 0;
-  font-size: 11px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.35);
-  text-align: center;
+/* ── Per-side editor (date + caption) ────────────────────── */
+.compare-side-editor {
+  margin-top: 14px;
+  padding: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* ── Per-side caption editor ─────────────────────────────── */
-.compare-caption-editor {
-  margin-bottom: 14px;
+.compare-panel .sidebar-grid-caption-controls {
+  padding: 0;
+  border: 0;
 }
 
-.compare-caption-editor-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 4px;
+/* Compact caption controls — same look as the grid/layout sidebar */
+.compare-panel .sidebar-grid-caption-textarea-wrap {
+  position: relative;
+}
+
+.compare-panel .sidebar-grid-caption-fields {
+  gap: 0;
+}
+
+.compare-panel .sidebar-grid-caption-textarea {
+  padding: 14px 36px 14px 16px;
+  border: 0;
+  font-size: 12px;
+}
+
+.compare-panel .grid-caption-help-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.compare-panel .grid-caption-compact-row {
+  display: flex;
+  width: 100%;
+}
+
+.compare-panel .grid-caption-position-cycle {
+  display: grid;
+  grid-template-columns: repeat(2, 6px);
+  grid-template-rows: repeat(2, 6px);
+  gap: 2px;
+  place-content: center;
+  flex: 0 0 38px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.compare-panel .grid-caption-position-cycle span {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.compare-panel .grid-caption-position-cycle span.active {
+  background: #4FC3D9;
+}
+
+.compare-panel .grid-caption-position-cycle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.compare-panel .grid-caption-compact-control,
+.compare-panel .grid-caption-color-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.compare-panel .grid-caption-compact-row > * + * {
+  border-left: 0;
+}
+
+.compare-panel .grid-caption-compact-control:not(.grid-caption-compact-control--position) {
+  flex: 1;
+}
+
+.compare-panel .grid-caption-compact-control .sidebar-grid-select,
+.compare-panel .grid-caption-compact-control .sidebar-grid-size-input {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+}
+
+.compare-panel .grid-caption-color-control {
+  flex: 1;
+  justify-content: flex-start;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.compare-panel .grid-caption-color-reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.compare-panel .grid-caption-color-reset:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.compare-panel .sidebar-grid-size-input,
+.compare-panel .sidebar-grid-select {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  border-radius: 0;
 }

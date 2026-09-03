@@ -373,7 +373,7 @@
 }
 
 .sidebar-grid-toggle.active {
-  background: rgba(227, 165, 32, 0.5);
+  background: rgba(79, 195, 217, 0.5);
 }
 
 .sidebar-grid-toggle-knob {
@@ -543,7 +543,7 @@
   align-items: center;
   justify-content: center;
   border: 1.5px solid rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  border-radius: 0;
   background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -554,23 +554,22 @@
   z-index: 1;
 }
 
+.sidebar-grid-cell.has-view {
+  background: rgba(79, 195, 217, 0.08);
+}
+
 .sidebar-grid-cell:hover {
-  border-color: rgba(227, 165, 32, 0.4);
+  background: rgba(79, 195, 217, 0.12);
 }
 
 .sidebar-grid-cell.selected {
-  border-color: #E3A520;
-  background: rgba(227, 165, 32, 0.15);
-}
-
-.sidebar-grid-cell.has-view {
-  background: rgba(227, 165, 32, 0.08);
+  background: rgba(79, 195, 217, 0.22);
 }
 
 .sidebar-grid-cell-label {
   font-size: 11px;
   font-weight: 700;
-  color: #E3A520;
+  color: #4FC3D9;
   text-align: center;
   pointer-events: none;
   white-space: nowrap;
@@ -624,7 +623,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #E3A520;
+  background: #4FC3D9;
   cursor: pointer;
   border: 2px solid #1a1a1a;
 }
@@ -632,7 +631,7 @@
 .sidebar-grid-row span {
   font-size: 11px;
   font-weight: 700;
-  color: #E3A520;
+  color: #4FC3D9;
   min-width: 14px;
   text-align: right;
 }
@@ -652,7 +651,7 @@
 }
 
 .sidebar-grid-size-input:focus {
-  border-color: rgba(227, 165, 32, 0.5);
+  border-color: rgba(79, 195, 217, 0.5);
 }
 
 .sidebar-grid-control-pair {
@@ -796,8 +795,8 @@
 }
 
 .sidebar-grid-view-btn:hover {
-  background: rgba(227, 165, 32, 0.1);
-  border-color: rgba(227, 165, 32, 0.3);
+  background: rgba(79, 195, 217, 0.1);
+  border-color: rgba(79, 195, 217, 0.3);
 }
 
 .sidebar-grid-view-btn.is-assigned {
@@ -806,7 +805,7 @@
 
 .sidebar-grid-view-btn svg {
   margin-left: auto;
-  color: #E3A520;
+  color: #4FC3D9;
 }
 
 /* ── Cell add button + flyout ──────────────────────────────── */
@@ -835,9 +834,9 @@
 }
 
 .sidebar-cell-add-btn:hover {
-  background: rgba(227, 165, 32, 0.2);
-  border-color: rgba(227, 165, 32, 0.4);
-  color: #E3A520;
+  background: rgba(79, 195, 217, 0.2);
+  border-color: rgba(79, 195, 217, 0.4);
+  color: #4FC3D9;
 }
 
 .cell-flyout {
@@ -877,7 +876,7 @@
 }
 
 .cell-flyout-item:hover {
-  background: rgba(227, 165, 32, 0.12);
+  background: rgba(79, 195, 217, 0.12);
 }
 
 .cell-flyout-name {
@@ -924,7 +923,7 @@
 }
 
 .sidebar-grid-caption-toggle.active {
-  background: rgba(227, 165, 32, 0.5);
+  background: rgba(79, 195, 217, 0.5);
 }
 
 .sidebar-grid-caption-toggle-knob {
@@ -1068,7 +1067,7 @@
 .sidebar-grid-caption-opacity-row span {
   font-size: 11px;
   font-weight: 700;
-  color: #E3A520;
+  color: #4FC3D9;
   min-width: 20px;
   text-align: right;
 }
@@ -1076,7 +1075,7 @@
 .sidebar-grid-caption-opacity-val {
   font-size: 11px;
   font-weight: 700;
-  color: #E3A520;
+  color: #4FC3D9;
   min-width: 28px;
   text-align: right;
 }
