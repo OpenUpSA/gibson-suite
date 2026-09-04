@@ -1340,12 +1340,14 @@ export default function Globe() {
         width = GIF_MAX_WIDTH
         height = Math.max(1, Math.round(width / aspect))
       }
-      // Stack every active layer for the composite GIF: imagery + base first
-      // (dated), then reference overlays (static, drawn on top).
+      // Stack every active layer for the composite GIF, bottom→top, matching
+      // the map's stacking (map index 0 = top; the GIF draws the first layer
+      // first = bottom). Base at the bottom, imagery above, reference on top,
+      // each section reversed so the map's top layer is drawn last.
       const exportLayers = [
-        ...tlImageryLayers,
-        ...tlBaseLayers,
-        ...tlReferenceLayers,
+        ...[...tlBaseLayers].reverse(),
+        ...[...tlImageryLayers].reverse(),
+        ...[...tlReferenceLayers].reverse(),
       ].map(layer => ({ layer, role: layerSection(layer) }))
       const blob = await renderTimelapseGif({
         frames: tlFrames.map(f => ({

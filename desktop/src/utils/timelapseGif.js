@@ -70,7 +70,7 @@ const drawDateStamp = (ctx, text, width, height) => {
  *
  * @param {Object} opts
  * @param {Array<{time: string, label?: string, caption?: Object, delayMs?: number}>} opts.frames — one per GIF frame; caption (visible/text/position/overlayColor/overlayOpacity/textColor/fontSize) overrides the date stamp, delayMs overrides the default delay
- * @param {Array<{layer: Object, role?: string}>} opts.layers — every active layer, pre-ordered bottom→top (imagery/base first, reference on top). `layer` is the layers.json object, `role` is 'imagery'|'base'|'reference'. TIME is resolved per frame: imagery/base use the frame date, reference uses GIBS 'default'.
+ * @param {Array<{layer: Object, role?: string}>} opts.layers — every active layer, pre-ordered bottom→top (base first, imagery above, reference on top — matching the map's stacking). `layer` is the layers.json object, `role` is 'imagery'|'base'|'reference'. TIME is resolved per frame: imagery/base use the frame date, reference uses GIBS 'default'.
  * @param {Array<number>} opts.bbox3857 — [minX, minY, maxX, maxY] EPSG:3857
  * @param {number} opts.width — target GIF width (≤ GIF_MAX_WIDTH)
  * @param {number} opts.height — target GIF height
@@ -126,14 +126,15 @@ export const renderTimelapseGif = ({
         // `layers` is pre-ordered so the bottom layer draws first. TIME is
         // resolved per frame: imagery/base use the frame date, reference
         // overlays use the GIBS 'default' (static) time.
-        // Use PNG for non-bottom layers so their transparency composites over
-        // the layers beneath instead of painting opaque black on top (a JPEG
-        // overlay would erase everything below it — leaving only one layer).
-        for (const l of layers) {
+        // Only the bottom-most layer is opaque JPEG; every layer above it is
+        // PNG so its transparency composites over the layers beneath. A JPEG
+        // overlay is opaque and would paint over (erase) everything below it —
+        // with multiple imagery layers that left only the top layer visible.
+        for (let i = 0; i < layers.length; i++) {
+          const l = layers[i]
           try {
             const time = l.role === 'reference' ? 'default' : frame.time
-            const isBottom = l.role === 'imagery' || l.role === 'base'
-            const fmt = isBottom ? 'image/jpeg' : 'image/png'
+            const fmt = i === 0 ? 'image/jpeg' : 'image/png'
             const url = buildWmsUrl({ wmsBaseUrl }, l.layer, bbox3857, width, height, time, fmt)
             const img = await loadImage(url)
             ctx.drawImage(img, 0, 0, width, height)
