@@ -1,9 +1,4 @@
 /* Compare panel — reuses the shared .sidebar shell (Sidebar.css) */
-.compare-panel.sidebar .sidebar-header {
-  padding: 10px 9px 10px 12px;
-  background: #1c1c1e;
-}
-
 .compare-panel-scroll {
   flex: 1;
   overflow-y: auto;

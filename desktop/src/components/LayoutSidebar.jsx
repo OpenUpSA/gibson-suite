@@ -5,6 +5,7 @@ import './Sidebar.css'
 import './TabbedSidebar.css'
 import './LayoutSidebar.css'
 import GridCaptionColorPicker from './GridCaptionColorPicker'
+import { layerNamesForTab } from '../utils/layerNames'
 
 // Grid layout presets
 const GRID_PRESETS = {
@@ -25,6 +26,7 @@ const LayoutSidebar = ({
   onClose,
   // Tab props (only the tab list itself — the tab bar is not shown in layout mode)
   tabs,
+  layerById,
   // Grid editor props
   gridConfig,
   selectedCell,
@@ -50,7 +52,7 @@ const LayoutSidebar = ({
   useEffect(() => {
     if (cellFlyout === null) return
     const handleClick = (e) => {
-      if (!e.target.closest('.cell-flyout') && !e.target.closest('.sidebar-cell-add-btn')) setCellFlyout(null)
+      if (!e.target.closest('.cell-flyout') && !e.target.closest('.sidebar-cell-add-btn') && !e.target.closest('.sidebar-grid-cell-edit')) setCellFlyout(null)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -209,7 +211,32 @@ const LayoutSidebar = ({
                 }}
               >
                 {tab ? (
-                  <span className="sidebar-grid-cell-label">{tab.label}</span>
+                  <>
+                    <span className="sidebar-grid-cell-label">{tab.label}</span>
+                    <button
+                      type="button"
+                      className="sidebar-grid-cell-info"
+                      onClick={(e) => e.stopPropagation()}
+                      title={layerNamesForTab(tab, layerById)}
+                    >
+                      <Icon icon="fluent:info-16-regular" width="10" height="10" />
+                    </button>
+                    <button
+                      type="button"
+                      className="sidebar-grid-cell-edit"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setFlyoutPos({ x: rect.left + rect.width / 2, y: rect.top })
+                        setCellFlyout(cellFlyout === cellIndex ? null : cellIndex)
+                        onCellSelect(cellIndex)
+                      }}
+                      title="Assign another view"
+                      aria-label="Assign another view"
+                    >
+                      <Icon icon="fluent:chevron-down-16-regular" width="10" height="10" />
+                    </button>
+                  </>
                 ) : (
                   <div className="sidebar-cell-add-wrap">
                     <button

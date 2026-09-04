@@ -17,7 +17,7 @@
   justify-content: space-between;
   padding: 10px 9px 10px 12px;
   background: #202020;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
@@ -34,8 +34,9 @@
   border: none;
   color: #aaa;
   cursor: pointer;
-  font-size: 15px;
-  padding: 2px 6px;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px;
   border-radius: 4px;
 }
 

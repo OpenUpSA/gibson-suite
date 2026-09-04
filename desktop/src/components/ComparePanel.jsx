@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '@iconify/react'
 import { encodeCompareShare, shareUrlFor } from '../utils/shareCompare'
+import { layerNamesForTab } from '../utils/layerNames'
 import DateBox from './DateBox'
 import GridCaptionColorPicker from './GridCaptionColorPicker'
 import './ComparePanel.css'
@@ -37,16 +38,9 @@ const ComparePanel = ({
     return tabs.find(t => t.id === id)
   }
 
-  // All active layer names for a side, for the info tooltip.
-  const layerNames = (tab) => {
-    if (!tab) return ''
-    const ids = [
-      ...(tab.activeBySection?.imagery || []),
-      ...(tab.activeBySection?.base || []),
-      ...(tab.activeBySection?.reference || [])
-    ]
-    return ids.map(id => layerById.get(id)?.name).filter(Boolean).join(', ') || tab.label || ''
-  }
+  // All active layer names for a side, one per line with a separator between
+  // them — used for the info tooltip.
+  const layerNames = (tab) => layerNamesForTab(tab, layerById)
 
   // Build a minimalist share link for the current before/after views and
   // copy it to the clipboard. Falls back to the first two tabs the same way

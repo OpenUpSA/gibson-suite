@@ -3,16 +3,6 @@
   box-shadow: 8px 0 20px rgba(0, 0, 0, 0.35);
 }
 
-.layout-sidebar .sidebar-header {
-  padding: 10px 9px 10px 12px;
-  background: #1c1c1e;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.layout-sidebar .sidebar-title {
-  color: #fff;
-}
-
 /* Scrollable body holding the grid editor */
 .layout-sidebar-body {
   flex: 1;
@@ -58,6 +48,46 @@
 
 .layout-sidebar .sidebar-grid-cell {
   border-radius: 0;
+}
+
+/* Info + assign-view buttons on the preview cells (same pattern as the
+   compare/timelapse cells and the canvas grid cells) */
+.layout-sidebar .sidebar-grid-cell-info,
+.layout-sidebar .sidebar-grid-cell-edit {
+  position: absolute;
+  top: 2px;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.layout-sidebar .sidebar-grid-cell-info {
+  right: 18px;
+}
+
+.layout-sidebar .sidebar-grid-cell-edit {
+  right: 2px;
+}
+
+.layout-sidebar .sidebar-grid-cell-info:hover,
+.layout-sidebar .sidebar-grid-cell-edit:hover {
+  background: rgba(79, 195, 217, 0.2);
+  border-color: rgba(79, 195, 217, 0.4);
+  color: #4FC3D9;
+}
+
+/* Keep the centered label clear of the corner buttons */
+.layout-sidebar .sidebar-grid-cell-label {
+  padding: 0 22px;
 }
 
 .layout-sidebar .sidebar-grid-cell:hover,
@@ -311,18 +341,18 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  border: 1px solid rgba(79, 195, 217, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-left: 0;
   border-radius: 0;
-  background: rgba(79, 195, 217, 0.22);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .grid-preset-menu-btn:hover {
-  background: rgba(79, 195, 217, 0.32);
-  border-color: rgba(79, 195, 217, 0.7);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
 

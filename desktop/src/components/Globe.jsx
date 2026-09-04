@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, Fragment, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { Icon } from '@iconify/react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -141,6 +142,7 @@ import { rectToBbox3857 } from '../utils/webMercator'
 import { renderTimelapseGif, GIF_MAX_WIDTH } from '../utils/timelapseGif'
 import { probeHasData, runPool } from '../utils/timelapseProbe'
 import { serializeProject, deserializeProject, downloadProjectFile } from '../utils/projectFile'
+import { layerNamesForTab } from '../utils/layerNames'
 
 // Layer catalogue — everything the user can add to the map, grouped by section
 // in layers.json: sections.base / sections.imagery / sections.reference.
@@ -150,16 +152,9 @@ const OVERLAY_LAYERS = SECTIONS_CFG.reference || [] // reference section holds t
 const layerCatalog = Object.values(SECTIONS_CFG).flat()
 const layerById = new Map(layerCatalog.map(l => [l.id, l]))
 
-// All active layer names for a tab, for the grid-cell info tooltip.
-const cellLayerNames = (tab) => {
-  if (!tab) return ''
-  const ids = [
-    ...(tab.activeBySection?.imagery || []),
-    ...(tab.activeBySection?.base || []),
-    ...(tab.activeBySection?.reference || [])
-  ]
-  return ids.map(id => layerById.get(id)?.name).filter(Boolean).join(', ') || tab.label || ''
-}
+// All active layer names for a tab, one per line with a separator between
+// them — used for the grid-cell info tooltip.
+const cellLayerNames = (tab) => layerNamesForTab(tab, layerById)
 const { mapSettings, wmtsBaseUrl, wmsBaseUrl } = layersConfig
 
 // Section config — drives both the sidebar sections and the map stacking.
@@ -546,9 +541,21 @@ export default function Globe() {
   const [cellSpans, setCellSpans] = useState({}) // Temporary span state for editing
   const [gridDrag, setGridDrag] = useState(null) // { fromCell, toCell } for drag-to-reassign
   const [gridResize, setGridResize] = useState(null) // { cellIndex, edge, startMouse, startRowSpan, startColSpan }
+  const [gridCellFlyout, setGridCellFlyout] = useState(null) // cellIndex of open assign-view flyout, or null
+  const [gridFlyoutPos, setGridFlyoutPos] = useState(null) // { x, y } for the portal flyout position
   const gridViewWrapRef = useRef(null) // .globe-grid-view — measured to compute letterbox scale
   const gridContainerRef = useRef(null) // .globe-grid-container — measured for export geometry
   const [gridScale, setGridScale] = useState(1) // uniform scale so on-screen box keeps configured aspect ratio
+
+  // Close the grid-cell assign flyout when clicking outside it.
+  useEffect(() => {
+    if (gridCellFlyout === null) return
+    const handleClick = (e) => {
+      if (!e.target.closest('.globe-grid-cell-edit') && !e.target.closest('.cell-flyout')) setGridCellFlyout(null)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [gridCellFlyout])
 
   // Placement map replicating CSS grid auto-placement (shared with export)
   const gridPlacement = useMemo(
@@ -1100,6 +1107,25 @@ export default function Globe() {
     setGridConfig(newConfig)
     setSelectedCell(null)
   }, [gridConfig])
+
+  // Open the assign-view flyout for a grid cell (same pattern as the compare
+  // and timelapse view cells — chevron-down button + portal listing all tabs).
+  const openGridCellFlyout = useCallback((e, cellIndex) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    setGridFlyoutPos({ x: rect.left + rect.width / 2, y: rect.bottom })
+    setGridCellFlyout(prev => (prev === cellIndex ? null : cellIndex))
+  }, [])
+
+  // Assign a view to a grid cell from the flyout. Clicking the cell's current
+  // view just closes the flyout (same as the compare cells).
+  const assignGridCellView = useCallback((cellIndex, tabId) => {
+    if (gridConfig.cells[cellIndex]?.tabId !== tabId) {
+      handleAssignViewToCell(cellIndex, tabId)
+    }
+    setGridCellFlyout(null)
+  }, [gridConfig.cells, handleAssignViewToCell])
 
   // ── Caption handlers ──────────────────────────────────────────────────
   const handleCaptionChange = useCallback((cellIndex, field, value) => {
@@ -1705,7 +1731,7 @@ export default function Globe() {
             tabs={tabs}
             viewTab={tlTab}
             onViewTabChange={handleTlViewChange}
-            layerSummary={tlImageryLayers.map(l => l.name).join(' + ') || ''}
+            layerSummary={layerNamesForTab(tlTab, layerById) || 'No imagery layer active'}
             hasLayers={tlImageryLayers.length > 0}
             startDate={tlStartDate}
             endDate={tlEndDate}
@@ -1906,19 +1932,60 @@ export default function Globe() {
                     </div>
                   )}
                   {tab && (
-                    <button
-                      type="button"
-                      className="globe-grid-cell-info"
-                      title={cellLayerNames(tab)}
-                    >
-                      <Icon icon="fluent:info-16-regular" width="12" height="12" />
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className="globe-grid-cell-info"
+                        title={cellLayerNames(tab)}
+                      >
+                        <Icon icon="fluent:info-16-regular" width="12" height="12" />
+                      </button>
+                      <button
+                        type="button"
+                        className="globe-grid-cell-edit"
+                        onClick={(e) => openGridCellFlyout(e, cellIndex)}
+                        title="Assign another view"
+                        aria-label="Assign another view"
+                      >
+                        <Icon icon="fluent:chevron-down-16-regular" width="12" height="12" />
+                      </button>
+                    </>
                   )}
                 </div>
               )
             })}
           </div>
         </div>
+      )}
+
+      {/* Grid-cell assign-view flyout portal — rendered outside overflow containers */}
+      {gridCellFlyout !== null && gridFlyoutPos && createPortal(
+        <div
+          className="cell-flyout"
+          style={{
+            position: 'fixed',
+            left: gridFlyoutPos.x,
+            top: gridFlyoutPos.y,
+            transform: 'translate(-50%, 6px)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {tabs.map(tab => {
+            const isSelf = gridConfig.cells[gridCellFlyout]?.tabId === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className="cell-flyout-item"
+                onClick={() => assignGridCellView(gridCellFlyout, tab.id)}
+              >
+                <span className="cell-flyout-name">{tab.label}</span>
+                <span className="cell-flyout-sub">{tab.date}{isSelf ? ' · current' : ''}</span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
       )}
 
       {/* Single view */}
@@ -1975,6 +2042,7 @@ export default function Globe() {
         open
         onClose={() => setActiveTool(null)}
         tabs={tabs}
+        layerById={layerById}
         gridConfig={gridConfig}
         selectedCell={selectedCell}
         onCellSelect={setSelectedCell}
