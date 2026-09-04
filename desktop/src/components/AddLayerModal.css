@@ -349,7 +349,7 @@
 }
 
 .add-layer-group-icon {
-  color: #E3A520;
+  color: #4FC3D9;
   flex-shrink: 0;
 }
 
@@ -396,8 +396,8 @@
 }
 
 .add-layer-item.selected {
-  background: rgba(255, 201, 60, 0.1);
-  border-left-color: #E3A520;
+  background: rgba(79, 195, 217, 0.1);
+  border-left-color: #4FC3D9;
 }
 
 .add-layer-item.added {
@@ -405,7 +405,7 @@
 }
 
 .add-layer-item.added svg {
-  color: #E3A520;
+  color: #4FC3D9;
   flex-shrink: 0;
 }
 
@@ -479,22 +479,22 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  background: rgba(79, 195, 217, 0.15);
-  color: #4FC3D9;
-  border: 1px solid rgba(79, 195, 217, 0.45);
-  border-radius: 6px;
-  padding: 8px 14px;
+  background: rgba(79, 195, 217, 0.22);
+  color: #fff;
+  border: 1px solid rgba(79, 195, 217, 0.6);
+  border-radius: 4px;
+  padding: 8px 16px;
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .add-layer-add-btn:hover:not(:disabled) {
-  background: rgba(79, 195, 217, 0.25);
+  background: rgba(79, 195, 217, 0.32);
   border-color: rgba(79, 195, 217, 0.7);
 }
 
@@ -522,23 +522,23 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(79, 195, 217, 0.18);
-  color: #4FC3D9;
-  border: 1px solid rgba(79, 195, 217, 0.5);
-  border-radius: 6px;
-  padding: 8px 14px;
+  background: rgba(79, 195, 217, 0.22);
+  color: #fff;
+  border: 1px solid rgba(79, 195, 217, 0.6);
+  border-radius: 4px;
+  padding: 8px 16px;
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .add-layer-story-btn:hover {
-  background: rgba(79, 195, 217, 0.3);
-  border-color: rgba(79, 195, 217, 0.8);
+  background: rgba(79, 195, 217, 0.32);
+  border-color: rgba(79, 195, 217, 0.7);
 }
 
 .add-layer-story-hint {

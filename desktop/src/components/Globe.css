@@ -511,8 +511,8 @@
 }
 
 .ge-view-btn.assignable:not(:disabled):hover {
-  background: rgba(227, 165, 32, 0.1);
-  border-color: rgba(227, 165, 32, 0.3);
+  background: rgba(79, 195, 217, 0.1);
+  border-color: rgba(79, 195, 217, 0.3);
   color: #fff;
 }
 
@@ -522,7 +522,7 @@
 
 .ge-view-check {
   margin-left: auto;
-  color: #E3A520;
+  color: #4FC3D9;
 }
 
 /* Sidebar footer */
@@ -536,7 +536,7 @@
 .ge-done-btn {
   width: 100%;
   padding: 10px 0;
-  background: #E3A520;
+  background: #4FC3D9;
   color: #000;
   border: none;
   border-radius: 6px;
@@ -547,7 +547,7 @@
   transition: background 0.15s ease;
 }
 
-.ge-done-btn:hover { background: #f5b844; }
+.ge-done-btn:hover { background: #6FD0E2; }
 
 /* ── Canvas — interactive grid ────────────────────────────── */
 .ge-canvas {
@@ -587,24 +587,24 @@
 }
 
 .ge-cell:hover {
-  border-color: rgba(227, 165, 32, 0.35);
-  background: rgba(227, 165, 32, 0.05);
+  border-color: rgba(79, 195, 217, 0.35);
+  background: rgba(79, 195, 217, 0.05);
 }
 
 .ge-cell--selected {
-  border-color: #E3A520;
-  background: rgba(227, 165, 32, 0.1);
+  border-color: #4FC3D9;
+  background: rgba(79, 195, 217, 0.1);
   z-index: 2;
 }
 
 .ge-cell--assigned {
-  border-color: rgba(227, 165, 32, 0.25);
-  background: rgba(227, 165, 32, 0.06);
+  border-color: rgba(79, 195, 217, 0.25);
+  background: rgba(79, 195, 217, 0.06);
 }
 
 .ge-cell--selected.ge-cell--assigned {
-  border-color: #E3A520;
-  background: rgba(227, 165, 32, 0.12);
+  border-color: #4FC3D9;
+  background: rgba(79, 195, 217, 0.12);
 }
 
 .ge-cell--drag-over {
@@ -626,7 +626,7 @@
 }
 
 .ge-cell:hover .ge-cell-drag { color: rgba(255, 255, 255, 0.5); }
-.ge-cell-drag:hover { color: #E3A520; background: rgba(227, 165, 32, 0.15); }
+.ge-cell-drag:hover { color: #4FC3D9; background: rgba(79, 195, 217, 0.15); }
 
 /* Cell delete button (X in top-right when selected) */
 .ge-cell-delete {
@@ -706,5 +706,5 @@
 }
 
 .ge-resize:hover {
-  background: rgba(227, 165, 32, 0.4);
+  background: rgba(79, 195, 217, 0.4);
 }

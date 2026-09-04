@@ -272,7 +272,6 @@ export default function GlobeSplitView() {
         onReorder={() => {}}
         onSettingsChange={() => {}}
         onToggleVisibility={() => {}}
-        onQuickAdd={() => {}}
         onAddClick={() => setAddLayerOpen(true)}
         open={activeTool === 'layers'}
         onClose={() => setActiveTool(null)}

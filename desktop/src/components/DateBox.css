@@ -1,0 +1,235 @@
+/* Compact date box — yyyy-mm-dd text + popup calendar picker */
+.datebox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  box-sizing: border-box;
+  padding: 0 4px 0 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  color: #fff;
+  cursor: text;
+  transition: all 0.2s ease;
+}
+
+.datebox:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.datebox-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  text-align: center;
+  padding: 0;
+  caret-color: #4FC3D9;
+}
+
+.datebox-caret-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.datebox-caret-btn:hover {
+  color: #4FC3D9;
+}
+
+/* ── Popup calendar ─────────────────────────────────────── */
+.datebox-popup {
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  padding: 8px;
+  z-index: 1000;
+  width: 240px;
+  user-select: none;
+}
+
+.datebox-popup-header,
+.datebox-popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.datebox-popup-month {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.datebox-popup-date {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Courier New', monospace;
+}
+
+.datebox-popup-nav {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.datebox-popup-nav:hover {
+  background: rgba(79, 195, 217, 0.2);
+  border-color: rgba(79, 195, 217, 0.4);
+  color: #4FC3D9;
+}
+
+.datebox-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin: 8px 0;
+}
+
+.datebox-popup-dow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  padding: 2px 0;
+}
+
+.datebox-popup-day {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  height: 26px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  padding: 0;
+}
+
+.datebox-popup-day:hover:not(:disabled) {
+  background: rgba(79, 195, 217, 0.15);
+  border-color: rgba(79, 195, 217, 0.3);
+}
+
+.datebox-popup-day.today {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.datebox-popup-day.selected {
+  background: rgba(79, 195, 217, 0.25);
+  border-color: #4FC3D9;
+  color: #fff;
+  font-weight: 700;
+}
+
+.datebox-popup-day:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.datebox-popup-empty {
+  height: 26px;
+}
+
+/* ── Row wrapper — step buttons flanking the box (views/compare panels) ── */
+.datebox-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.datebox-row .datebox {
+  border-radius: 0;
+}
+
+/* ── Range row — start – end with a boxed separator (timelapse) ── */
+.datebox-row--range {
+  gap: 0;
+}
+
+.datebox-range-sep {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  user-select: none;
+}
+
+/* Merge the end box's left border with the separator so the three cells read as one unit */
+.datebox-row--range .datebox:last-child {
+  border-left: 0;
+}
+
+.datebox-step-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  width: 34px;
+  height: 34px;
+  box-sizing: border-box;
+  border-radius: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.datebox-step-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Range popup — both calendars side by side (timelapse) ── */
+.datebox-popup--range {
+  display: flex;
+  gap: 8px;
+  width: auto;
+  flex-wrap: wrap;
+}
+
+.datebox-calendar {
+  width: 240px;
+}

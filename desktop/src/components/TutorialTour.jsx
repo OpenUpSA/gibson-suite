@@ -85,13 +85,13 @@ const TutorialTour = ({ run, onFinish }) => {
       styles={{
         options: {
           zIndex: 10000,
-          primaryColor: '#E3A520',
+          primaryColor: '#4FC3D9',
           textColor: 'rgba(255, 255, 255, 0.9)',
           backgroundColor: '#202020',
           arrowColor: '#202020',
           overlayColor: 'rgba(0, 0, 0, 0.55)'
         },
-        buttonNext: { backgroundColor: '#E3A520', color: '#1a1a1a', fontWeight: 700 },
+        buttonNext: { backgroundColor: '#4FC3D9', color: '#1a1a1a', fontWeight: 700 },
         buttonBack: { color: 'rgba(255, 255, 255, 0.8)' },
         buttonSkip: { color: 'rgba(255, 255, 255, 0.55)' },
         tooltipTitle: { fontSize: 15, fontWeight: 700 },

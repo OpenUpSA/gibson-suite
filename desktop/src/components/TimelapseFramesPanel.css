@@ -1,0 +1,225 @@
+/* Reuse the frame list / frame editor / export styles shared with the
+   left timelapse panel (they live in TimelapsePanel.css). */
+@import './TimelapsePanel.css';
+
+.timelapse-frames-panel {
+  flex: 0 1 380px;
+  min-width: 240px;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1d1d1d;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  color: #fff;
+}
+
+.timelapse-frames-panel-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.timelapse-frames-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.timelapse-frames-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  /* Match the layers sidebar's subtle neutral scrollbar */
+  scrollbar-width: thin;               /* Firefox */
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.timelapse-frames-panel-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timelapse-frames-panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timelapse-frames-panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.timelapse-frames-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.timelapse-frames-panel-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* The whole panel scrolls — don't cap the frames list with its own
+   nested scrollbar. */
+.timelapse-frames-panel .timelapse-frames {
+  max-height: none;
+  overflow-y: visible;
+}
+
+/* ── Compact caption controls — same look as compare/grid views ── */
+.timelapse-frame-editor-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.timelapse-frames-panel .sidebar-grid-caption-toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  box-sizing: border-box;
+}
+
+.timelapse-frames-panel .sidebar-grid-caption-toggle-control span {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+/* Delay box — same backing box as the caption toggle, sits beside it */
+.timelapse-frames-panel .timelapse-frame-delay-control {
+  flex: 0 0 auto;
+}
+
+.timelapse-frames-panel .timelapse-frame-delay-control > span {
+  flex: 0 0 auto;
+}
+
+.timelapse-frames-panel .timelapse-frame-delay-control .sidebar-grid-input-with-unit {
+  flex: 1;
+  min-width: 0;
+}
+
+.timelapse-frames-panel .timelapse-frame-delay-control .sidebar-grid-size-input {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0 18px 0 0;
+  font-size: 12px;
+}
+
+.timelapse-frames-panel .sidebar-grid-caption-textarea-wrap {
+  position: relative;
+}
+
+.timelapse-frames-panel .sidebar-grid-caption-fields {
+  gap: 0;
+}
+
+.timelapse-frames-panel .sidebar-grid-caption-textarea {
+  padding: 14px 36px 14px 16px;
+  border: 0;
+  font-size: 12px;
+}
+
+.timelapse-frames-panel .grid-caption-help-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.timelapse-frames-panel .grid-caption-compact-row {
+  display: flex;
+  width: 100%;
+}
+
+.timelapse-frames-panel .grid-caption-position-cycle {
+  display: grid;
+  grid-template-columns: repeat(2, 6px);
+  grid-template-rows: repeat(2, 6px);
+  gap: 2px;
+  place-content: center;
+  flex: 0 0 38px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.timelapse-frames-panel .grid-caption-position-cycle span {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.timelapse-frames-panel .grid-caption-position-cycle span.active {
+  background: #4FC3D9;
+}
+
+.timelapse-frames-panel .grid-caption-position-cycle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.timelapse-frames-panel .grid-caption-compact-control,
+.timelapse-frames-panel .grid-caption-color-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.timelapse-frames-panel .grid-caption-compact-row > * + * {
+  border-left: 0;
+}
+
+.timelapse-frames-panel .grid-caption-compact-control:not(.grid-caption-compact-control--position) {
+  flex: 1;
+}
+
+.timelapse-frames-panel .grid-caption-compact-control .sidebar-grid-size-input {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+}
+
+.timelapse-frames-panel .grid-caption-color-control {
+  flex: 1;
+  justify-content: flex-start;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.timelapse-frames-panel .grid-caption-color-reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.timelapse-frames-panel .grid-caption-color-reset:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}

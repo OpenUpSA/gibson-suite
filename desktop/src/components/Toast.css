@@ -18,7 +18,7 @@
 
 .app-toast-icon {
   flex-shrink: 0;
-  color: rgba(227, 165, 32, 0.9);
+  color: rgba(79, 195, 217, 0.9);
 }
 
 .app-toast-message {
@@ -28,17 +28,22 @@
 
 .app-toast-action {
   flex-shrink: 0;
-  padding: 5px 10px;
-  background: transparent;
-  border: 1px solid rgba(227, 165, 32, 0.6);
+  padding: 5px 12px;
+  background: rgba(79, 195, 217, 0.22);
+  border: 1px solid rgba(79, 195, 217, 0.6);
   border-radius: 4px;
-  color: #e3a520;
-  font-size: 13px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .app-toast-action:hover {
-  background: rgba(227, 165, 32, 0.12);
+  background: rgba(79, 195, 217, 0.32);
+  border-color: rgba(79, 195, 217, 0.7);
 }
 
 .app-toast-dismiss {

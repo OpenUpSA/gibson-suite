@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '@iconify/react'
 import { encodeCompareShare, shareUrlFor } from '../utils/shareCompare'
-import DatePicker from './DatePicker'
+import DateBox from './DateBox'
 import GridCaptionColorPicker from './GridCaptionColorPicker'
 import './ComparePanel.css'
 
@@ -284,9 +284,10 @@ const ComparePanel = ({
 
         {selectedSide && (
           <div className="compare-side-editor">
-            <DatePicker
+            <DateBox
               selectedDate={dateOverrides?.[selectedSide] || sideTab(selectedSide)?.date}
               onDateChange={(d) => onDateChange(selectedSide, d)}
+              showStepButtons
             />
             {renderCaptionEditor(selectedSide)}
           </div>

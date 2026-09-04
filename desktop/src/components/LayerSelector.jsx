@@ -37,7 +37,7 @@ const LayerSelector = ({ config, onLayerSelect, selectedLayer }) => {
               onClick={() => toggleCategory(categoryName)}
             >
               {cat.icon && (
-                <Icon icon={cat.icon} width="16" height="16" color="#E3A520" />
+                <Icon icon={cat.icon} width="16" height="16" color="#4FC3D9" />
               )}
               <span className="category-name">{categoryName}</span>
               <span className="category-icon">

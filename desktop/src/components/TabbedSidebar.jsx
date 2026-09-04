@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Icon } from '@iconify/react'
 import './Sidebar.css'
 import './TabbedSidebar.css'
-import DatePicker from './DatePicker'
+import DateBox from './DateBox'
 import EditableTabLabel from './EditableTabLabel'
 import PlaceSearch from './PlaceSearch'
 
@@ -20,7 +20,6 @@ const TabbedSidebar = ({
   onReorder,
   onSettingsChange,
   onToggleVisibility,
-  onQuickAdd,
   onAddClick,
   open,
   onClose,
@@ -37,7 +36,6 @@ const TabbedSidebar = ({
 }) => {
   const [expandedId, setExpandedId] = useState(null)
   const [infoLayerId, setInfoLayerId] = useState(null)
-  const [flyoutSection, setFlyoutSection] = useState(null)
   const [overflowOpen, setOverflowOpen] = useState(false)
   const contentRef = useRef(null)
   const tabBarRef = useRef(null)
@@ -149,15 +147,6 @@ const TabbedSidebar = ({
   }, [])
 
   useEffect(() => {
-    if (!flyoutSection) return
-    const handleClick = (e) => {
-      if (!e.target.closest('.sidebar-add-wrap')) setFlyoutSection(null)
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [flyoutSection])
-
-  useEffect(() => {
     if (!overflowOpen) return
     const handleClick = (e) => {
       if (!tabBarRef.current?.contains(e.target)) setOverflowOpen(false)
@@ -254,9 +243,10 @@ const TabbedSidebar = ({
 
       {/* Date picker for current tab */}
       <div className="sidebar-date-picker">
-        <DatePicker
+        <DateBox
           selectedDate={activeTabDate}
           onDateChange={onTabDateChange}
+          showStepButtons
         />
       </div>
 
@@ -272,18 +262,6 @@ const TabbedSidebar = ({
                   && !section.ids.includes(l.id)
               )
               if (!section.ids.length && !availableLayers.length) {
-                if (section.key === 'imagery') {
-                  return (
-                    <div key={section.key} className="sidebar-section">
-                      <div className="sidebar-add-layer-row">
-                        <button type="button" className="add-layer-btn" onClick={onAddClick}>
-                          <Icon icon="fluent:add-20-filled" width="16" height="16" />
-                          Add Layer
-                        </button>
-                      </div>
-                    </div>
-                  )
-                }
                 return null
               }
               return (
@@ -296,38 +274,14 @@ const TabbedSidebar = ({
                         <button
                           type="button"
                           className="sidebar-add-btn"
-                          onClick={() => setFlyoutSection(flyoutSection === section.key ? null : section.key)}
+                          onClick={onAddClick}
                           title={`Add ${section.title}`}
                         >
                           <Icon icon="fluent:add-16-filled" width="14" height="14" />
                         </button>
-                        {flyoutSection === section.key && (
-                          <div className="sidebar-flyout">
-                            {availableLayers.map(layer => (
-                              <button
-                                key={layer.id}
-                                type="button"
-                                className="sidebar-flyout-item"
-                                onClick={() => { onQuickAdd(layer); setFlyoutSection(null) }}
-                                title={layer.description || layer.name}
-                              >
-                                <span className="sidebar-flyout-name">{layer.name}</span>
-                                {layer.subtitle && <span className="sidebar-flyout-sub">{layer.subtitle}</span>}
-                              </button>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
-                  {section.key === 'imagery' && (
-                    <div className="sidebar-add-layer-row">
-                      <button type="button" className="add-layer-btn" onClick={onAddClick}>
-                        <Icon icon="fluent:add-20-filled" width="16" height="16" />
-                        Add Layer
-                      </button>
-                    </div>
-                  )}
                   {section.ids.map((id, index) => {
                     const layer = layerById.get(id)
                     if (!layer) return null

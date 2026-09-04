@@ -17,6 +17,7 @@ const PREVIEW_PAGE = 60
 // PNG (see utils/timelapseProbe.js); dates with no imagery in the crop area
 // are skipped. Previews are low-res (128px) JPEGs.
 const TimelapseBrowser = ({
+  className,
   layerName,
   layers,
   hasRect,
@@ -93,16 +94,6 @@ const TimelapseBrowser = ({
 
   const renderListMode = () => (
     <>
-      <div className="tl-browser-toolbar">
-        <button
-          type="button"
-          className="tl-browser-btn tl-browser-btn--primary tl-browser-btn--auto"
-          onClick={onFetch}
-          disabled={fetching}
-        >
-          {fetching ? 'Fetching…' : 'Fetch available dates'}
-        </button>
-      </div>
       <div className="tl-browser-toolbar">
         <button type="button" className="tl-browser-btn" onClick={onSelectVisible} disabled={visibleDates.length === 0}>
           {allVisibleSelected ? 'Deselect shown' : 'Select shown'}
@@ -321,7 +312,7 @@ const TimelapseBrowser = ({
   )
 
   return (
-    <div className="tl-browser">
+    <div className={`tl-browser${className ? ` ${className}` : ''}`}>
       <div className="tl-browser-header">
         <div className="tl-browser-title">Timelapse Images</div>
         <div className="tl-browser-layer">{layerName || 'No imagery layer active'}</div>
@@ -332,24 +323,31 @@ const TimelapseBrowser = ({
           <Icon icon="fluent:crop-24-regular" width="30" height="30" />
           <p>Draw a crop box on the map to preview available images.</p>
         </div>
-      ) : fetching ? (
-        <div className="tl-browser-state">Loading available dates…</div>
-      ) : visibleDates.length === 0 ? (
-        <div className="tl-browser-state">
-          <p>No images loaded yet.</p>
-          <button
-            type="button"
-            className="tl-browser-btn tl-browser-btn--primary tl-browser-btn--auto"
-            onClick={onFetch}
-            disabled={fetching}
-          >
-            {fetching ? 'Fetching…' : 'Fetch available dates'}
-          </button>
-        </div>
-      ) : confirmed ? (
-        renderPreviewMode()
       ) : (
-        renderListMode()
+        <>
+          {/* Fetch — always right below the date pickers */}
+          <div className="tl-browser-toolbar">
+            <button
+              type="button"
+              className="tl-browser-btn tl-browser-btn--primary tl-browser-btn--auto"
+              onClick={onFetch}
+              disabled={fetching}
+            >
+              {fetching ? 'Fetching…' : 'Fetch available dates'}
+            </button>
+          </div>
+          {fetching ? (
+            <div className="tl-browser-state">Loading available dates…</div>
+          ) : visibleDates.length === 0 ? (
+            <div className="tl-browser-state">
+              <p>No images loaded yet.</p>
+            </div>
+          ) : confirmed ? (
+            renderPreviewMode()
+          ) : (
+            renderListMode()
+          )}
+        </>
       )}
     </div>
   )

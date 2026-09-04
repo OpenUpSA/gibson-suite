@@ -1,13 +1,14 @@
-import { useRef } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Icon } from '@iconify/react'
-import DatePicker from './DatePicker'
+import DateRangePicker from './DateRangePicker'
 import './TimelapsePanel.css'
 
 const INTERVALS = [
-  { value: 1, label: 'Every day' },
-  { value: 3, label: 'Every 3 days' },
-  { value: 7, label: 'Every 7 days' },
-  { value: 30, label: 'Every 30 days' },
+  { value: 1, short: '1D', label: 'Every day' },
+  { value: 3, short: '3D', label: 'Every 3 days' },
+  { value: 7, short: '7D', label: 'Every 7 days' },
+  { value: 30, short: '30D', label: 'Every 30 days' },
 ]
 
 const PRESETS = [
@@ -16,15 +17,10 @@ const PRESETS = [
   { id: 'freeform', ratio: null, label: 'Freeform' },
 ]
 
-// Same positions as the grid-view captions.
-const CAPTION_POSITIONS = [
-  { value: 'bottom-left', label: 'Bottom Left' },
-  { value: 'bottom-right', label: 'Bottom Right' },
-  { value: 'top-left', label: 'Top Left' },
-  { value: 'top-right', label: 'Top Right' },
-]
-
 const TimelapsePanel = ({
+  tabs,
+  viewTab,
+  onViewTabChange,
   layerSummary,
   hasLayers,
   startDate,
@@ -36,50 +32,34 @@ const TimelapsePanel = ({
   aspect,
   onApplyPreset,
   onResetRect,
-  hasRect,
-  rect,
   availableCount,
-  frames,
-  onRemoveFrame,
-  onRemoveAllFrames,
-  onReorderFrames,
-  selectedFrameTime,
-  onSelectFrame,
-  onCaptionChange,
-  onFrameDelayChange,
-  defaultDelay,
-  stampDates,
-  onStampDatesChange,
-  exporting,
-  progress,
-  onExport,
   onClose,
+  children,
 }) => {
-  const dragIndexRef = useRef(null)
+  const [viewFlyout, setViewFlyout] = useState(false)
+  const [flyoutPos, setFlyoutPos] = useState(null)
 
-  const canExport = hasLayers && hasRect && frames.length >= 2 && !exporting
-  const selectedFrame = frames.find(f => f.time === selectedFrameTime) || null
+  // Close the view flyout when clicking outside it.
+  useEffect(() => {
+    if (!viewFlyout) return
+    const handleClick = (e) => {
+      if (!e.target.closest('.timelapse-view-cell') && !e.target.closest('.cell-flyout')) setViewFlyout(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [viewFlyout])
 
-  const handleDragStart = (i) => (e) => {
-    dragIndexRef.current = i
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', String(i))
+  const openViewFlyout = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    setFlyoutPos({ x: rect.left + rect.width / 2, y: rect.bottom })
+    setViewFlyout(prev => !prev)
   }
 
-  const handleDragOver = (e) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-  }
-
-  const handleDrop = (target) => (e) => {
-    e.preventDefault()
-    const from = dragIndexRef.current
-    dragIndexRef.current = null
-    if (from === null || from === target) return
-    const next = [...frames]
-    const [moved] = next.splice(from, 1)
-    next.splice(target, 0, moved)
-    onReorderFrames(next)
+  const assignView = (tabId) => {
+    onViewTabChange(tabId)
+    setViewFlyout(false)
   }
 
   return (
@@ -91,281 +71,142 @@ const TimelapsePanel = ({
         </button>
       </div>
 
-      <div className="timelapse-panel-scroll">
-        {/* Layer */}
-        <div className="timelapse-section">
-          <div className="timelapse-section-title">Layer</div>
-          <div className="timelapse-layer-name">{layerSummary || 'No imagery layer active'}</div>
+      <div className="timelapse-panel-top">
+        {/* Area — aspect presets + reset, all in one line like the grid view */}
+        <div className="timelapse-section timelapse-section--area">
+          <div className="timelapse-area-row">
+            {PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className={`timelapse-area-btn${(p.ratio === null ? aspect === null : p.ratio === aspect) ? ' active' : ''}`}
+                onClick={() => onApplyPreset(p.ratio)}
+                title={p.label}
+              >
+                {p.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="timelapse-area-btn timelapse-area-btn--reset"
+              onClick={onResetRect}
+              title="Reset box to view"
+            >
+              <Icon icon="fluent:arrow-reset-20-regular" width="14" height="14" />
+            </button>
+          </div>
+        </div>
+
+        {/* View — pick which view (tab) the timelapse exports */}
+        <div className="timelapse-section timelapse-section--view">
+          <div className="timelapse-view-cell">
+            {viewTab ? (
+              <>
+                <span className="timelapse-view-label">{viewTab.label}</span>
+                <span className="timelapse-view-meta">{viewTab.date}</span>
+                <button
+                  type="button"
+                  className="timelapse-view-info"
+                  onClick={(e) => e.stopPropagation()}
+                  title={layerSummary || 'No imagery layer active'}
+                >
+                  <Icon icon="fluent:info-16-regular" width="11" height="11" />
+                </button>
+                <button
+                  type="button"
+                  className="timelapse-view-edit"
+                  onClick={openViewFlyout}
+                  title="Assign another view"
+                >
+                  <Icon icon="fluent:chevron-down-16-regular" width="11" height="11" />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="timelapse-view-add"
+                onClick={openViewFlyout}
+                title="Assign a view"
+              >
+                <Icon icon="fluent:add-16-filled" width="14" height="14" />
+              </button>
+            )}
+          </div>
           {!hasLayers && (
             <div className="timelapse-hint">Add an imagery layer (e.g. True Color) via the Layers tool to export a timelapse.</div>
           )}
         </div>
 
-        {/* Period */}
+        {/* Period — start – end date boxes + interval in one row */}
         <div className="timelapse-section">
-          <div className="timelapse-section-title">Period</div>
           <div className="timelapse-date-row">
-            <label className="timelapse-date-label">Start</label>
-            <DatePicker selectedDate={startDate} onDateChange={onStartDateChange} startYear={2000} />
-          </div>
-          <div className="timelapse-date-row">
-            <label className="timelapse-date-label">End</label>
-            <DatePicker selectedDate={endDate} onDateChange={onEndDateChange} />
-          </div>
-          <div className="timelapse-interval-row">
-            <label className="timelapse-date-label">Interval</label>
-            <select
-              className="sidebar-grid-select"
-              value={interval}
-              onChange={(e) => onIntervalChange(parseInt(e.target.value, 10))}
-            >
-              {INTERVALS.map((i) => (
-                <option key={i.value} value={i.value}>{i.label}</option>
-              ))}
-            </select>
+            <DateRangePicker
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={onStartDateChange}
+              onEndDateChange={onEndDateChange}
+              startYear={2000}
+            />
+            <div className="timelapse-interval">
+              <Icon icon="fluent:calendar-clock-20-regular" width="14" height="14" title="Interval" />
+              <div className="timelapse-interval-select-wrap">
+                <select
+                  className="sidebar-grid-select"
+                  value={interval}
+                  onChange={(e) => onIntervalChange(parseInt(e.target.value, 10))}
+                  title="Interval between frames"
+                >
+                  {INTERVALS.map((i) => (
+                    <option key={i.value} value={i.value}>{i.label}</option>
+                  ))}
+                </select>
+                <span className="timelapse-interval-short">
+                  {(INTERVALS.find(i => i.value === interval) || INTERVALS[0]).short}
+                </span>
+              </div>
+            </div>
           </div>
           {availableCount > 0 && (
             <div className="timelapse-count">{availableCount} images in range</div>
           )}
         </div>
 
-        {/* Area */}
-        <div className="timelapse-section">
-          <div className="timelapse-section-title">Area</div>
-          <div className="timelapse-preset-btns">
-            {PRESETS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className={`timelapse-preset-btn${(p.ratio === null ? aspect === null : p.ratio === aspect) ? ' active' : ''}`}
-                onClick={() => onApplyPreset(p.ratio)}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          <button type="button" className="timelapse-reset-btn" onClick={onResetRect}>
-            Reset box to view
-          </button>
-          {hasRect && rect && (
-            <div className="timelapse-rect-info">
-              SW: {rect[0][1].toFixed(3)}, {rect[0][0].toFixed(3)}
-              <br />
-              NE: {rect[1][1].toFixed(3)}, {rect[1][0].toFixed(3)}
-            </div>
-          )}
-        </div>
-
-        {/* Frames */}
-        <div className="timelapse-section">
-          <div className="timelapse-section-row">
-            <div className="timelapse-section-title">Frames ({frames.length})</div>
-            {frames.length > 0 && (
-              <button
-                type="button"
-                className="timelapse-clear-all-btn"
-                onClick={onRemoveAllFrames}
-                title="Remove all frames"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
-          {frames.length === 0 ? (
-            <div className="timelapse-hint">Select images in the right panel, then click “Add selected”.</div>
-          ) : (
-            <div className="timelapse-frames">
-              {frames.map((frame, i) => (
-                <div
-                  key={`${frame.time}-${i}`}
-                  className={`timelapse-frame-row${frame.time === selectedFrameTime ? ' selected' : ''}`}
-                  draggable={!exporting}
-                  onClick={() => onSelectFrame(frame.time)}
-                  onDragStart={handleDragStart(i)}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop(i)}
-                >
-                  <span className="layer-drag-handle">
-                    <Icon icon="fluent:reorder-20-filled" width="16" height="16" />
-                  </span>
-                  <span className="timelapse-frame-date">{frame.label}</span>
-                  {frame.delay != null && frame.delay !== defaultDelay && <span className="timelapse-frame-delay-badge">{frame.delay}s</span>}
-                  <button
-                    type="button"
-                    className="timelapse-frame-remove"
-                    onClick={(e) => { e.stopPropagation(); onRemoveFrame(i) }}
-                    title="Remove frame"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Frame editor — caption + per-frame delay, same look as grid view */}
-          {selectedFrame && (
-            <div className="timelapse-frame-editor">
-              <div className="timelapse-frame-editor-header">
-                <span>Frame · {selectedFrame.label}</span>
-                <button
-                  type="button"
-                  className="timelapse-frame-editor-close"
-                  onClick={() => onSelectFrame(selectedFrame.time)}
-                  title="Close"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                <label>Delay</label>
-                <div className="sidebar-grid-input-with-unit">
-                  <input
-                    type="number"
-                    className="sidebar-grid-size-input"
-                    min="0.1"
-                    max="60"
-                    step="0.1"
-                    value={selectedFrame.delay ?? defaultDelay}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value)
-                      onFrameDelayChange(selectedFrame.time, Number.isFinite(v) && v > 0 ? v : null)
-                    }}
-                    disabled={exporting}
-                  />
-                  <span>s</span>
-                </div>
-              </div>
-
-              <div className="sidebar-grid-caption-controls">
-                <div className="sidebar-grid-caption-header">
-                  <Icon icon="fluent:text-caption-20-filled" width="14" height="14" />
-                  <span>Caption</span>
-                  <div
-                    className={`sidebar-grid-caption-toggle${selectedFrame.caption?.visible ? ' active' : ''}`}
-                    onClick={() => onCaptionChange(selectedFrame.time, { visible: !selectedFrame.caption?.visible })}
-                  >
-                    <div className="sidebar-grid-caption-toggle-knob" />
-                  </div>
-                </div>
-                {selectedFrame.caption?.visible && (
-                  <div className="sidebar-grid-caption-fields">
-                    <div className="sidebar-grid-caption-textarea-wrap">
-                      <textarea
-                        className="sidebar-grid-caption-textarea"
-                        value={selectedFrame.caption.text || ''}
-                        onChange={(e) => onCaptionChange(selectedFrame.time, { text: e.target.value })}
-                        rows={3}
-                        placeholder="%date%  %layer%"
-                      />
-                      <div className="sidebar-grid-caption-hint">
-                        Shown as-is — each line renders on its own row. <code>%date%</code> / <code>%layer%</code> still work if you want them.
-                      </div>
-                    </div>
-
-                    <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                      <label>Position</label>
-                      <select
-                        className="sidebar-grid-select"
-                        value={selectedFrame.caption.position || 'bottom-left'}
-                        onChange={(e) => onCaptionChange(selectedFrame.time, { position: e.target.value })}
-                      >
-                        {CAPTION_POSITIONS.map(pos => (
-                          <option key={pos.value} value={pos.value}>{pos.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                      <label>Font size</label>
-                      <div className="sidebar-grid-input-with-unit">
-                        <input
-                          type="number"
-                          className="sidebar-grid-size-input"
-                          min="8"
-                          max="72"
-                          step="1"
-                          value={selectedFrame.caption.fontSize ?? 11}
-                          onChange={(e) => {
-                            const v = Math.max(8, Math.min(72, parseInt(e.target.value) || 11))
-                            onCaptionChange(selectedFrame.time, { fontSize: v })
-                          }}
-                        />
-                        <span>px</span>
-                      </div>
-                    </div>
-
-                    <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                      <label>Colors</label>
-                      <div className="sidebar-grid-caption-color-row">
-                        <div className="sidebar-grid-caption-color-item">
-                          <span>Overlay</span>
-                          <input
-                            type="color"
-                            className="sidebar-grid-caption-color"
-                            value={selectedFrame.caption.overlayColor || '#000000'}
-                            onChange={(e) => onCaptionChange(selectedFrame.time, { overlayColor: e.target.value })}
-                          />
-                        </div>
-                        <div className="sidebar-grid-caption-color-item">
-                          <span>Text</span>
-                          <input
-                            type="color"
-                            className="sidebar-grid-caption-color"
-                            value={selectedFrame.caption.textColor || '#ffffff'}
-                            onChange={(e) => onCaptionChange(selectedFrame.time, { textColor: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="sidebar-grid-caption-field sidebar-grid-caption-row-field">
-                      <label>Opacity</label>
-                      <div className="sidebar-grid-caption-opacity-row">
-                        <input
-                          type="number"
-                          className="sidebar-grid-size-input sidebar-grid-caption-opacity-input"
-                          min="0"
-                          max="100"
-                          step="5"
-                          value={Math.round((selectedFrame.caption.overlayOpacity ?? 0.55) * 100)}
-                          onChange={(e) => {
-                            const v = Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
-                            onCaptionChange(selectedFrame.time, { overlayOpacity: v / 100 })
-                          }}
-                        />
-                        <span>%</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Export */}
-        <div className="timelapse-section">
-          <div className="timelapse-section-title">Export</div>
-          <label className="timelapse-check-row">
-            <input
-              type="checkbox"
-              checked={stampDates}
-              onChange={(e) => onStampDatesChange(e.target.checked)}
-              disabled={exporting}
-            />
-            <span>Stamp date on frames without a caption</span>
-          </label>
-          <button type="button" className="timelapse-export-btn" onClick={onExport} disabled={!canExport}>
-            {exporting
-              ? (progress ? `Exporting ${progress.done}/${progress.total}…` : 'Exporting…')
-              : `Export GIF (${frames.length} frames)`}
-          </button>
-          {!hasRect && <div className="timelapse-hint">Draw a crop box on the map first.</div>}
-          {hasRect && frames.length < 2 && <div className="timelapse-hint">Add at least 2 frames.</div>}
-        </div>
       </div>
+
+      {/* Available images — fetch + list, embedded below the date selector */}
+      <div className="timelapse-panel-browser">
+        {children}
+      </div>
+
+      {/* View flyout portal — rendered outside overflow containers */}
+      {viewFlyout && flyoutPos && createPortal(
+        <div
+          className="cell-flyout"
+          style={{
+            position: 'fixed',
+            left: flyoutPos.x,
+            top: flyoutPos.y,
+            transform: 'translate(-50%, 6px)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {tabs.map(tab => {
+            const isSelf = tab.id === viewTab?.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className="cell-flyout-item"
+                onClick={() => assignView(tab.id)}
+              >
+                <span className="cell-flyout-name">{tab.label}</span>
+                <span className="cell-flyout-sub">{tab.date}{isSelf ? ' · current' : ''}</span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
+      )}
     </aside>
   )
 }

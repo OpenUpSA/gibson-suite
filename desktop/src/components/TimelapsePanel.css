@@ -44,41 +44,32 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.timelapse-panel-scroll {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0;
+/* Fixed top: area presets, view cell, date selector. The image browser
+   below owns the remaining height and scrolls itself. */
+.timelapse-panel-top {
+  flex-shrink: 0;
   background: rgba(0, 0, 0, 0.25);
-  /* Match the layers sidebar's subtle neutral scrollbar */
-  scrollbar-width: thin;               /* Firefox */
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
-.timelapse-panel-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.timelapse-panel-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.timelapse-panel-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-
-.timelapse-panel-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.timelapse-panel-scroll::-webkit-scrollbar-corner {
-  background: transparent;
+/* Available-images browser embedded below the date selector */
+.timelapse-panel-browser {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1d1d1d;
 }
 
 .timelapse-section {
   margin: 0;
-  padding: 0 12px 12px;
+  padding: 0 0 10px;
+}
+
+/* The view cell keeps breathing room around it (like the compare cells) */
+.timelapse-section--view {
+  margin: 12px;
+  padding: 0;
 }
 
 .timelapse-section-title {
@@ -87,7 +78,7 @@
   text-transform: uppercase;
   letter-spacing: 0.2px;
   color: #fff;
-  margin: 0 -12px 12px;
+  margin: 0;
   padding: 10px 9px 10px 12px;
   background: rgba(79, 195, 217, 0.65);
 }
@@ -96,123 +87,270 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 -12px 12px;
+  margin: 0;
   padding: 10px 9px 10px 12px;
   background: rgba(79, 195, 217, 0.65);
 }
 
 .timelapse-section-row .timelapse-section-title {
-  margin-bottom: 0;
+  margin: 0;
   padding: 0;
   background: transparent;
 }
 
 .timelapse-clear-all-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.6);
+  background: rgba(79, 195, 217, 0.22);
+  border: 1px solid rgba(79, 195, 217, 0.6);
+  color: #fff;
   border-radius: 4px;
-  padding: 2px 8px;
+  padding: 3px 12px;
   font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .timelapse-clear-all-btn:hover {
-  color: #ff6b6b;
-  border-color: rgba(255, 107, 107, 0.5);
-  background: rgba(255, 107, 107, 0.1);
+  color: #fff;
+  border-color: rgba(79, 195, 217, 0.7);
+  background: rgba(79, 195, 217, 0.32);
 }
 
-.timelapse-layer-name {
+/* View cell — pick which view (tab) the timelapse exports (compare-style) */
+.timelapse-view-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 64px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  background: rgba(79, 195, 217, 0.08);
+  cursor: pointer;
+  padding: 8px;
+  transition: all 0.15s ease;
+  overflow: hidden;
+}
+
+.timelapse-view-cell:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(79, 195, 217, 0.12);
+}
+
+.timelapse-view-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4FC3D9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.timelapse-view-meta {
   font-size: 13px;
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: monospace;
+}
+
+.timelapse-view-add,
+.timelapse-view-edit,
+.timelapse-view-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.timelapse-view-add {
+  width: 26px;
+  height: 26px;
+}
+
+.timelapse-view-edit {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+}
+
+.timelapse-view-info {
+  position: absolute;
+  top: 4px;
+  right: 26px;
+  width: 20px;
+  height: 20px;
+  cursor: help;
+}
+
+.timelapse-view-add:hover,
+.timelapse-view-edit:hover,
+.timelapse-view-info:hover {
+  background: rgba(79, 195, 217, 0.2);
+  border-color: rgba(79, 195, 217, 0.4);
+  color: #4FC3D9;
 }
 
 .timelapse-hint {
   color: rgba(255, 255, 255, 0.45);
   font-size: 11px;
   margin-top: 6px;
+  padding: 0 12px;
   line-height: 1.4;
+}
+
+.timelapse-section--view .timelapse-hint {
+  padding: 0;
 }
 
 .timelapse-date-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 0;
+  margin-bottom: 6px;
 }
 
-.timelapse-interval-row {
+/* The range picker takes the remaining width; interval sits flush on the right */
+.timelapse-date-row .datebox-row {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+/* Merge the interval box's left border with the end date box so the whole row reads as one unit */
+.timelapse-date-row .timelapse-interval {
+  border-left: 0;
+}
+
+.timelapse-interval {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 4px;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 6px 0 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.timelapse-date-label {
-  width: 56px;
-  flex-shrink: 0;
-  font-size: 11px;
+.timelapse-interval:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* The select keeps the standard dropdown look (chevron) but transparent inside the box.
+   Fixed narrow width — the short label (1D/3D/…) is what's shown, so it doesn't
+   need to size to the longest option. */
+.timelapse-interval .sidebar-grid-select {
+  flex: 0 0 auto;
+  width: 44px;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  padding: 0 18px 0 0;
+  color: transparent; /* hide the select's own text — the short label overlays it */
+  background-image: url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 8 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4 4L7 1' stroke='%23999' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+}
+
+.timelapse-interval-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* Short active label (1D/3D/…) shown over the transparent select text */
+.timelapse-interval-short {
+  position: absolute;
+  left: 0;
+  right: 18px; /* leave room for the chevron */
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  color: #fff;
+  font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.15px;
-  color: #4FC3D9;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .timelapse-count {
   margin-top: 6px;
+  padding: 0 12px;
   color: rgba(255, 255, 255, 0.45);
   font-size: 11px;
 }
 
-.timelapse-preset-btns {
+/* ── Area row — aspect presets + reset, all in line like grid cells ── */
+.timelapse-section--area {
+  margin: 0;
+  padding: 0;
+}
+
+.timelapse-area-row {
   display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
+  align-items: center;
+  gap: 0;
 }
 
-.timelapse-preset-btn {
+.timelapse-area-btn {
   flex: 1;
-  background: #2e2e2e;
+  min-width: 0;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
   color: rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
-  padding: 6px 0;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0 4px;
 }
 
-.timelapse-preset-btn:hover {
-  background: #383838;
+.timelapse-area-btn + .timelapse-area-btn:not(.active) {
+  border-left: 0;
 }
 
-.timelapse-preset-btn.active {
-  background: rgba(227, 165, 32, 0.25);
-  border-color: rgba(227, 165, 32, 0.7);
+.timelapse-area-btn:hover {
+  background: rgba(79, 195, 217, 0.12);
   color: #fff;
 }
 
-.timelapse-reset-btn {
-  width: 100%;
-  background: transparent;
-  border: 1px dashed rgba(255, 255, 255, 0.25);
-  color: rgba(255, 255, 255, 0.7);
-  border-radius: 4px;
-  padding: 5px 0;
-  font-size: 13px;
-  cursor: pointer;
+.timelapse-area-btn.active {
+  background: rgba(79, 195, 217, 0.25);
+  border-color: rgba(79, 195, 217, 0.7);
+  color: #fff;
 }
 
-.timelapse-reset-btn:hover {
-  border-color: rgba(255, 255, 255, 0.5);
+.timelapse-area-btn--reset {
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.timelapse-rect-info {
-  margin-top: 8px;
-  font-family: monospace;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
-  line-height: 1.5;
+.timelapse-area-btn--reset:hover {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: rgba(255, 107, 107, 0.4);
+  color: #ff6b6b;
 }
 
 .timelapse-frames {
@@ -263,12 +401,12 @@
 }
 
 .timelapse-frame-row:hover {
-  border-color: rgba(227, 165, 32, 0.4);
+  border-color: rgba(79, 195, 217, 0.4);
 }
 
 .timelapse-frame-row.selected {
-  border-color: #E3A520;
-  background: rgba(227, 165, 32, 0.12);
+  border-color: #4FC3D9;
+  background: rgba(79, 195, 217, 0.12);
 }
 
 .timelapse-frame-row:active {
@@ -284,9 +422,9 @@
 .timelapse-frame-delay-badge {
   font-size: 11px;
   font-weight: 700;
-  color: #E3A520;
-  background: rgba(227, 165, 32, 0.15);
-  border: 1px solid rgba(227, 165, 32, 0.4);
+  color: #4FC3D9;
+  background: rgba(79, 195, 217, 0.15);
+  border: 1px solid rgba(79, 195, 217, 0.4);
   border-radius: 3px;
   padding: 1px 5px;
 }
@@ -354,24 +492,33 @@
   font-size: 13px;
 }
 
+/* Stamp-date toggle is hidden for now — functionality kept, UI moved elsewhere later */
+.timelapse-stamp-toggle {
+  display: none;
+}
+
 .timelapse-check-row input {
-  accent-color: #e3a520;
+  accent-color: #4FC3D9;
 }
 
 .timelapse-export-btn {
   width: 100%;
-  background: linear-gradient(180deg, #f0b23a, #d99a1f);
-  border: none;
-  border-radius: 6px;
-  color: #1a1a1a;
-  font-weight: 700;
-  font-size: 13px;
-  padding: 10px 0;
+  background: rgba(79, 195, 217, 0.22);
+  border: 1px solid rgba(79, 195, 217, 0.6);
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 10px 14px;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .timelapse-export-btn:hover:not(:disabled) {
-  filter: brightness(1.1);
+  background: rgba(79, 195, 217, 0.32);
+  border-color: rgba(79, 195, 217, 0.7);
 }
 
 .timelapse-export-btn:disabled {

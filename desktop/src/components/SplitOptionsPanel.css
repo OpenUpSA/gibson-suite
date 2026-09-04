@@ -81,20 +81,23 @@
 
 .split-add-btn {
   width: 100%;
-  padding: 9px;
-  background: rgba(255,255,255,0.06);
-  border: 1px dashed rgba(255,255,255,0.2);
+  padding: 9px 14px;
+  background: rgba(79,195,217,0.22);
+  border: 1px solid rgba(79,195,217,0.6);
   border-radius: 4px;
-  color: #aaa;
-  font-size: 13px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .split-add-btn:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(79,195,217,0.32);
+  border-color: rgba(79,195,217,0.7);
   color: #fff;
-  border-color: rgba(255,255,255,0.3);
 }
 
 .split-sync-toggle {
@@ -118,11 +121,11 @@
 }
 
 .split-sync-toggle.active {
-  background: rgba(255, 154, 60, 0.15);
-  border-color: rgba(255, 154, 60, 0.3);
-  color: #ff9a3c;
+  background: rgba(79, 195, 217, 0.15);
+  border-color: rgba(79, 195, 217, 0.3);
+  color: #4FC3D9;
 }
 
 .split-sync-toggle.active:hover {
-  background: rgba(255, 154, 60, 0.25);
+  background: rgba(79, 195, 217, 0.25);
 }

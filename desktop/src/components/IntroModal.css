@@ -160,22 +160,25 @@
 }
 
 .btn-primary {
-    background: #ff9a3c;
-    color: white;
-    border: none;
+    background: rgba(79, 195, 217, 0.22);
+    color: #fff;
+    border: 1px solid rgba(79, 195, 217, 0.6);
     padding: 12px 32px;
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 600;
-    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(255, 154, 60, 0.3);
+    box-shadow: 0 2px 8px rgba(79, 195, 217, 0.3);
 }
 
 .btn-primary:hover {
-    background: #ff8a1f;
+    background: rgba(79, 195, 217, 0.32);
+    border-color: rgba(79, 195, 217, 0.7);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 154, 60, 0.4);
+    box-shadow: 0 4px 12px rgba(79, 195, 217, 0.4);
 }
 
 .btn-primary:active {

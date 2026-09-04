@@ -1,4 +1,4 @@
-const CACHE = 'gibson-v2'
+const CACHE = 'gibson-v3'
 const PRECACHE = ['/', '/index.html']
 
 self.addEventListener('install', e => {
