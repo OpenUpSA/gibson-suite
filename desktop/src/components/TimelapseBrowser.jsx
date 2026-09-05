@@ -30,6 +30,8 @@ const TimelapseBrowser = ({
   busy,
   confirmed,
   fetching,
+  fetched,
+  fetchError,
   onToggleSelect,
   onSelectVisible,
   onClearSelection,
@@ -338,9 +340,19 @@ const TimelapseBrowser = ({
           </div>
           {fetching ? (
             <div className="tl-browser-state">Loading available dates…</div>
+          ) : fetchError ? (
+            <div className="tl-browser-state">
+              <p>Failed to load available dates.</p>
+              <p className="tl-browser-state-sub">{fetchError}</p>
+            </div>
           ) : visibleDates.length === 0 ? (
             <div className="tl-browser-state">
-              <p>No images loaded yet.</p>
+              <p>{fetched ? 'No imagery in this range.' : 'No images loaded yet.'}</p>
+              {fetched && (
+                <p className="tl-browser-state-sub">
+                  The layer's data may not extend this far — try an earlier end date.
+                </p>
+              )}
             </div>
           ) : confirmed ? (
             renderPreviewMode()

@@ -494,6 +494,8 @@ export default function Globe() {
   const [tlTabId, setTlTabId] = useState(null) // timelapse view (tab) — null = follow the active tab
   const [tlExporting, setTlExporting] = useState(false)
   const [tlFetching, setTlFetching] = useState(false)
+  const [tlFetched, setTlFetched] = useState(false)      // a fetch completed (even with zero results)
+  const [tlFetchError, setTlFetchError] = useState(null) // message from a failed fetch
   const [tlProgress, setTlProgress] = useState(null)      // { done, total } while exporting
   const [tlSelected, setTlSelected] = useState(() => new Set())
   // Preview browser: list mode first (no downloads) — images only load after
@@ -881,12 +883,14 @@ export default function Globe() {
     const layers = layersOverride ?? tlImageryLayers
     if (activeTool !== 'timelapse' || layers.length === 0) return
     setTlFetching(true)
+    setTlFetchError(null)
     try {
       const perLayer = await Promise.all(
         layers.map(l => availableDates(l.id, start, end, tlInterval)),
       )
       const union = [...new Set(perLayer.flat())].sort()
       setTlAvailableDates(union)
+      setTlFetched(true)
       setTlPreviewLimit(PREVIEW_PAGE)
       setTlSelected(new Set())
       // New date range → back to list mode; no previews until confirmed.
@@ -897,6 +901,8 @@ export default function Globe() {
     } catch (err) {
       console.warn('[Timelapse] Failed to load available dates:', err)
       setTlAvailableDates([])
+      setTlFetched(true)
+      setTlFetchError(err?.message || String(err))
     } finally {
       setTlFetching(false)
     }
@@ -939,6 +945,8 @@ export default function Globe() {
     setTlPreviewStatus(new Map())
     setTlCoverage(new Map())
     setTlPreviewBusy(false)
+    setTlFetched(false)
+    setTlFetchError(null)
   }, [activeTool, tlImageryLayers, tlStartDate, tlEndDate, tlInterval, tlRect])
 
 
@@ -1778,6 +1786,8 @@ export default function Globe() {
               busy={tlPreviewBusy}
               confirmed={tlPreviewsConfirmed}
               fetching={tlFetching}
+              fetched={tlFetched}
+              fetchError={tlFetchError}
               onToggleSelect={handleTlToggleSelect}
               onSelectVisible={handleTlSelectVisible}
               onClearSelection={handleTlClearSelection}

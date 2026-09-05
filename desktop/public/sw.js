@@ -1,5 +1,9 @@
-const CACHE = 'gibson-v5'
+const CACHE = 'gibson-v6'
 const PRECACHE = ['/', '/index.html']
+// Data files that change with every deploy — never cache, always fetch fresh.
+// layer-dates.json (timelapse date availability) is regenerated from the GIBS
+// capabilities on each release; a stale cached copy silently shows "no dates".
+const NETWORK_ONLY = ['/layer-dates.json']
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -19,6 +23,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url)
   if (url.origin !== location.origin) return // skip external (tiles, OSM, GIBS)
   if (e.request.method !== 'GET') return
+  if (NETWORK_ONLY.includes(url.pathname)) return // always fresh (timelapse dates)
 
   // Network-first for navigations so new builds (fresh index.html with new
   // hashed assets) are picked up automatically; fall back to the cached shell
