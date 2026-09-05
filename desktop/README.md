@@ -108,6 +108,25 @@ All layer configurations are stored in `src/config/layers.json`. You can easily 
 
 Visit the [NASA GIBS Capabilities Document](https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml) to find available layers and their tile matrix sets.
 
+### Timelapse date availability (`public/layer-dates.json`)
+
+The timelapse tool needs to know which dates each layer has imagery for. That
+lives in the WMTS capabilities document, which is huge (5+ MB) and **times out
+when proxied through Netlify (504 Gateway Timeout)**. Instead, the app ships a
+pre-generated static JSON — `public/layer-dates.json` — with the raw TIME
+dimension values per layer, served straight from the CDN (no proxy, no timeout).
+
+Regenerate it whenever the caps change (e.g. a new satellite comes online):
+
+```sh
+curl -o work/wmts_caps.xml \
+  https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml
+python3 work/gen_layer_dates.py
+```
+
+Commit the updated `public/layer-dates.json`; the build copies it to `dist/`
+automatically. The client expands the intervals (see `src/utils/gibsCaps.js`).
+
 ## Project Structure
 
 ```

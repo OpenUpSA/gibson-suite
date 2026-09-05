@@ -1,61 +1,31 @@
-// GIBS WMTS capabilities parser — extracts the available TIME values for a
-// layer so the timelapse tool knows which dates have imagery.
+// GIBS layer TIME availability — compact static JSON (public/layer-dates.json).
 //
-// The caps XML is large (tens of MB), so it is fetched once per session and
-// cached at module level. The vite dev server proxies /wmts-capabilities to
-// https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0 (see vite.config.js).
-
-let capsPromise = null
-let capsDoc = null
-
-// Strip namespace prefixes so querySelector can match by local name
-// (same trick as the legacy app).
+// The full WMTS capabilities XML is huge (5+ MB minified) and times out when
+// proxied through Netlify (504 Gateway Timeout), which broke the timelapse
+// "Fetch available dates" on the deployed site. Instead we ship a pre-generated
+// static JSON with the raw TIME dimension values per layer (see
+// work/gen_layer_dates.py) and expand the intervals client-side here. Static
+// files are served straight from the CDN — no proxy, no timeout.
 //
-// The GIBS caps XML declares a *default* namespace (xmlns='...wmts/1.0') in
-// addition to several prefixed ones (xmlns:ows, xmlns:xlink, ...). After we
-// rename <ows:Identifier> -> <Identifier>, the elements still carry the
-// default namespace, so an XMLDocument parsed from this text puts <Layer> etc.
-// in the wmts/1.0 namespace. querySelector('Layer') on an XMLDocument does
-// namespace-exact matching and would then match NOTHING — which made every
-// layer appear to have no time dimension.
-//
-// Fix: strip the default namespace declaration (both quote styles) so the
-// unprefixed elements end up in the null namespace and the selectors work. The
-// prefixed xmlns declarations (xmlns:xlink, xmlns:ows, ...) are kept on purpose
-// so attributes like xlink:href stay valid after parsing.
-const stripNamespaces = (text) => text
-  .replace(/<\/(\w+):(\w+)>/g, '</$2>')
-  .replace(/<(\w+):(\w+)([\s>])/g, '<$2$3')
-  .replace(/\s+xmlns=(?:"[^"]*"|'[^']*')/g, '')
+// The JSON is fetched once per session and cached at module level.
 
-const ensureCaps = async () => {
-  if (capsDoc) return capsDoc
-  if (!capsPromise) {
-    capsPromise = fetch('/wmts-capabilities/WMTSCapabilities.xml')
+let datesPromise = null
+let datesByLayer = null
+
+const ensureDates = async () => {
+  if (datesByLayer) return datesByLayer
+  if (!datesPromise) {
+    datesPromise = fetch('/layer-dates.json')
       .then((res) => {
-        if (!res.ok) throw new Error(`capabilities fetch failed: ${res.status}`)
-        return res.text()
+        if (!res.ok) throw new Error(`layer dates fetch failed: ${res.status}`)
+        return res.json()
       })
-      .then((text) => {
-        const clean = stripNamespaces(text)
-        capsDoc = new DOMParser().parseFromString(clean, 'text/xml')
-        return capsDoc
+      .then((data) => {
+        datesByLayer = data
+        return datesByLayer
       })
   }
-  return capsPromise
-}
-
-const findTimeDimension = (doc, layerId) => {
-  for (const el of doc.querySelectorAll('Layer')) {
-    const idEl = el.querySelector('Identifier')
-    if (idEl && idEl.textContent === layerId) {
-      for (const dim of el.querySelectorAll('Dimension')) {
-        const dimId = dim.querySelector('Identifier')
-        if (dimId && dimId.textContent.toLowerCase() === 'time') return dim
-      }
-    }
-  }
-  return null
+  return datesPromise
 }
 
 // ISO 8601 period (P1D, PT30M, P8D) → fractional days.
@@ -78,15 +48,15 @@ const addDaysIso = (iso, days) => {
 
 const diffDays = (a, b) => Math.round((new Date(`${b}T00:00:00Z`) - new Date(`${a}T00:00:00Z`)) / 86400000)
 
-// Full sorted list of unique dates a layer has imagery for (from capabilities).
+// Full sorted list of unique dates a layer has imagery for (from layer-dates.json).
 export const getLayerTimeValues = async (layerId) => {
-  const doc = await ensureCaps()
-  const dim = findTimeDimension(doc, layerId)
-  if (!dim) return []
+  const byLayer = await ensureDates()
+  const values = byLayer[layerId]
+  if (!values) return []
 
   const dates = []
-  for (const val of dim.querySelectorAll('Value')) {
-    const parts = val.textContent.split('/')
+  for (const val of values) {
+    const parts = val.split('/')
     if (parts.length >= 3) {
       // Interval: start/end/period
       const start = parts[0].split('T')[0]
