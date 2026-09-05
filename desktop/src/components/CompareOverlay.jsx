@@ -12,7 +12,7 @@ import './CompareOverlay.css'
  * locked to the same camera (pan/zoom on one is mirrored to the other); the
  * top map is inert — interaction happens on the bottom map.
  */
-const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition, mode = 'split', splitPos: splitPosProp, onSplitPosChange }) => {
+const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition, mode = 'split', splitPos: splitPosProp, onSplitPosChange, onLayerLoadError }) => {
   const [internalSplitPos, setInternalSplitPos] = useState(50)
   const containerRef = useRef(null)
   const mapsRef = useRef([null, null])
@@ -173,6 +173,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
           mapSettings={mapSettings}
           onMapReady={handleMapReady(1)}
           onMapPositionChange={onMapPositionChange ? onMapPositionChange(1) : undefined}
+          onLayerLoadError={(layerId, failedDate, displayedDate, message) => onLayerLoadError?.(1, layerId, failedDate, displayedDate, message)}
         />
       </div>
       <div
@@ -190,6 +191,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
           mapSettings={mapSettings}
           onMapReady={handleMapReady(0)}
           onMapPositionChange={onMapPositionChange ? onMapPositionChange(0) : undefined}
+          onLayerLoadError={(layerId, failedDate, displayedDate, message) => onLayerLoadError?.(0, layerId, failedDate, displayedDate, message)}
         />
       </div>
       <div

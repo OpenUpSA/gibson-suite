@@ -16,6 +16,11 @@
   font-size: 13px;
 }
 
+/* Stacked above another toast (e.g. the restore-session toast) */
+.app-toast--stacked {
+  bottom: 64px;
+}
+
 .app-toast-icon {
   flex-shrink: 0;
   color: rgba(79, 195, 217, 0.9);

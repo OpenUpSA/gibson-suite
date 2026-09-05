@@ -137,7 +137,7 @@ import Toast from './Toast'
 
 import layersConfig from '../config/layers.json'
 import { buildTileUrlTemplate } from '../config/tileUrl'
-import { availableDates } from '../utils/gibsCaps'
+import { availableDates, getLayerTimeValues } from '../utils/gibsCaps'
 import { rectToBbox3857 } from '../utils/webMercator'
 import { renderTimelapseGif, GIF_MAX_WIDTH } from '../utils/timelapseGif'
 import { probeHasData, runPool } from '../utils/timelapseProbe'
@@ -213,6 +213,26 @@ const baseCoversDate = (layer, date) => {
   return true
 }
 
+// Best-effort coverage check: does this layer have imagery for the date?
+// Static layers (reference overlays, custom tile templates, layers with no
+// time dimension) always pass. Returns true when unknown — never blocks the
+// crossfade (the safety timeout still catches real failures).
+const layerHasDate = async (layer, date) => {
+  if (layerSection(layer) === 'reference') return true
+  if (layer.tiles) return true
+  try {
+    const values = await Promise.race([
+      getLayerTimeValues(layer.id),
+      new Promise(resolve => setTimeout(() => resolve(null), 3000))
+    ])
+    if (!values) return true // check timed out — don't block
+    if (!values.length) return true // static or unknown — don't block
+    return values.includes(date)
+  } catch {
+    return true // check failed — don't block, let the timeout handle it
+  }
+}
+
 // Active layers grouped by section. New layers are added to the front (top)
 // of their section. Defaults: VIIRS imagery + coastlines reference overlay.
 const initialBySection = {
@@ -256,13 +276,18 @@ const rasterSource = (tiles, maxzoom, layer) => ({
 // that both setPaintProperty calls fire — no black frames.
 
 // MapInstance component - renders a single map pane for a tab
-export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, selectionMode, selectionRect, onSelectionChange }) {
+export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, selectionMode, selectionRect, onSelectionChange, onLayerLoadError }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerSrcMapRef = useRef({})
   const transitionsRef = useRef({})
+  const crossfadeCounterRef = useRef(0)
   const prevDateRef = useRef(tab.date)
   const [mapReady, setMapReady] = useState(false)
+  // Layer ids currently crossfading to new tiles — drives the loading spinner.
+  const [loadingLayers, setLoadingLayers] = useState(() => new Set())
+  // { layerId, date } when a layer failed to load — drives the error pill.
+  const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -309,10 +334,186 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
 
     return () => {
+      // Cancel any in-flight crossfades before tearing the map down.
+      Object.values(transitionsRef.current).forEach(t => t?.cleanup())
+      transitionsRef.current = {}
       map.remove()
       mapRef.current = null
     }
   }, [])
+
+  // Place layers in stacking order (reverse because index 0 = top in our model).
+  // Layers with an in-flight crossfade are skipped — their new layer is already
+  // on top and gets reordered when the crossfade completes.
+  const reorderLayers = (map, activeLayers) => {
+    for (let i = activeLayers.length - 1; i >= 0; i--) {
+      const layerId = activeLayers[i]
+      if (transitionsRef.current[layerId]) continue
+      const srcId = layerSrcMapRef.current[layerId]?.srcId
+      if (srcId && map.getLayer(srcId)) {
+        try {
+          map.moveLayer(srcId)
+        } catch {}
+      }
+    }
+  }
+
+  // Crossfade a layer to new tiles — the same proven pattern as the legacy
+  // Map.jsx updateGibsLayer:
+  //   1. Add the new source+layer ON TOP at opacity 0 with a transition defined.
+  //   2. Wait for sourcedata → isSourceLoaded → map idle.
+  //   3. Fade the new layer in while fading the old one out (same tick).
+  //   4. Remove the old layer after its fade-out completes.
+  // The old layer stays visible the whole time, so the map never blanks out
+  // and tiles never appear "block by block".
+  const crossfadeLayer = (map, layerId, layer, oldSrcId, settings, targetOpacity) => {
+    // Cancel any in-flight transition for this layer (e.g. rapid date changes).
+    transitionsRef.current[layerId]?.cleanup()
+    // A retry supersedes any previous failure for this layer.
+    setLoadError(prev => (prev && prev.layerId === layerId ? null : prev))
+    setLoadingLayers(prev => new Set(prev).add(layerId))
+
+    let settled = false
+    let newSrcId = null
+    let onData = () => {}
+    let onError = () => {}
+    let safetyTimer = null
+
+    const removePending = () => {
+      if (newSrcId) {
+        try {
+          if (map.getLayer(newSrcId)) map.removeLayer(newSrcId)
+          if (map.getSource(newSrcId)) map.removeSource(newSrcId)
+        } catch (_) {}
+      }
+    }
+
+    const finish = () => {
+      if (settled) return
+      settled = true
+      clearTimeout(safetyTimer)
+      map.off('sourcedata', onData)
+      map.off('error', onError)
+      setLoadingLayers(prev => {
+        const next = new Set(prev)
+        next.delete(layerId)
+        return next
+      })
+      delete transitionsRef.current[layerId]
+    }
+
+    // Tiles failed or never arrived — drop the pending layer, keep the old one
+    // visible, and report the failure so the parent can revert the date.
+    const fail = (message) => {
+      if (settled) return
+      removePending()
+      finish()
+      setLoadError({ layerId, date: tab.date, message })
+      if (oldSrcId) {
+        onLayerLoadError?.(layerId, tab.date, layerSrcMapRef.current[layerId]?.date, message)
+      }
+    }
+
+    // Register a cancellable entry immediately so rapid date changes can
+    // cancel this crossfade even while the coverage check is in flight.
+    transitionsRef.current[layerId] = {
+      cleanup() {
+        if (settled) return
+        settled = true
+        clearTimeout(safetyTimer)
+        map.off('sourcedata', onData)
+        map.off('error', onError)
+        removePending()
+        setLoadingLayers(prev => {
+          const next = new Set(prev)
+          next.delete(layerId)
+          return next
+        })
+        delete transitionsRef.current[layerId]
+      }
+    }
+
+    // Best-effort coverage check — fail fast when the layer has no imagery for
+    // the date. GIBS answers missing dates with 404s that MapLibre silently
+    // swallows (no error event, source never reports loaded), so without this
+    // the user would stare at the spinner until the safety timeout.
+    layerHasDate(layer, tab.date).then((covered) => {
+      if (settled) return
+      if (!covered) {
+        fail(`No imagery available for ${tab.date}`)
+        return
+      }
+
+      newSrcId = `layer-${layerId}-${Date.now()}-${++crossfadeCounterRef.current}`
+      const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
+      // Custom tile templates (e.g. OpenStreetMap) are served at full zoom — the
+      // GIBS quality preset doesn't apply to them. WMS layers (fires, etc.) are
+      // rasterised server-side at any zoom, so don't cap them either.
+      const maxzoom = layer.tiles ? 19 : (layer.wms ? 12 : QUALITY_MAXZOOM[settings.quality])
+
+      map.addSource(newSrcId, rasterSource([url], maxzoom, layer))
+      map.addLayer({
+        id: newSrcId,
+        type: 'raster',
+        source: newSrcId,
+        paint: {
+          'raster-opacity': 0,
+          'raster-opacity-transition': { duration: 600, delay: 0 }
+        }
+      })
+
+      const fadeIn = () => {
+        if (settled) return
+        // Use the old layer's current opacity as the target so any opacity
+        // change made while tiles were loading is preserved.
+        let opacity = targetOpacity
+        if (oldSrcId && map.getLayer(oldSrcId)) {
+          try {
+            const current = map.getPaintProperty(oldSrcId, 'raster-opacity')
+            if (typeof current === 'number') opacity = current
+          } catch (_) {}
+        }
+        // Fade the new layer in while the old one fades out — same tick, so
+        // MapLibre animates both from the transition definitions above.
+        map.setPaintProperty(newSrcId, 'raster-opacity', opacity)
+        if (oldSrcId && map.getLayer(oldSrcId)) {
+          try {
+            map.setPaintProperty(oldSrcId, 'raster-opacity-transition', { duration: 400, delay: 0 })
+            map.setPaintProperty(oldSrcId, 'raster-opacity', 0)
+          } catch (_) {}
+        }
+        layerSrcMapRef.current[layerId] = { srcId: newSrcId, date: layerTime(layer, tab.date) }
+        // Remove the old layer after its fade-out completes.
+        setTimeout(() => {
+          try {
+            if (oldSrcId && map.getLayer(oldSrcId)) map.removeLayer(oldSrcId)
+            if (oldSrcId && map.getSource(oldSrcId)) map.removeSource(oldSrcId)
+          } catch (_) {}
+        }, 700)
+        finish()
+        // Place the new layer in its correct stacking position now that the
+        // transition entry is gone (it was kept on top during the crossfade).
+        reorderLayers(map, flattenActive(tab.activeBySection))
+      }
+
+      onData = (e) => {
+        if (e.sourceId !== newSrcId || !e.isSourceLoaded) return
+        map.off('sourcedata', onData)
+        map.once('idle', fadeIn)
+      }
+
+      onError = (e) => {
+        if (e.sourceId !== newSrcId) return
+        fail()
+      }
+
+      // Safety net: if tiles never arrive, stop waiting and keep the old layer.
+      safetyTimer = setTimeout(fail, 10000)
+
+      map.on('sourcedata', onData)
+      map.on('error', onError)
+    })
+  }
 
   // Update map layers when tab state changes
   useEffect(() => {
@@ -327,12 +528,27 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
     // Remove layers that are no longer active
     for (const layerId of prevLayers) {
       if (!activeLayers.includes(layerId)) {
-        const srcId = layerSrcMapRef.current[layerId]
+        // Cancel any in-flight crossfade for this layer first.
+        transitionsRef.current[layerId]?.cleanup()
+        const srcId = layerSrcMapRef.current[layerId]?.srcId
         try {
-          if (map.getLayer(srcId)) map.removeLayer(srcId)
-          if (map.getSource(srcId)) map.removeSource(srcId)
+          if (srcId && map.getLayer(srcId)) map.removeLayer(srcId)
+          if (srcId && map.getSource(srcId)) map.removeSource(srcId)
         } catch {}
         delete layerSrcMapRef.current[layerId]
+      }
+    }
+
+    // Clear a stale load error once the displayed source matches the current
+    // date (e.g. the parent reverted the date after a failure) or the layer
+    // is no longer active. A layer that failed on initial add keeps its error
+    // until it loads or is removed.
+    if (loadError) {
+      const src = layerSrcMapRef.current[loadError.layerId]
+      if (!activeLayers.includes(loadError.layerId)) {
+        setLoadError(null)
+      } else if (src && src.date === tab.date) {
+        setLoadError(null)
       }
     }
 
@@ -348,85 +564,62 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         if (fb && baseCoversDate(fb, tab.date)) layer = fb
       }
 
-      const srcId = `layer-${layerId}`
+      const src = layerSrcMapRef.current[layerId]
+      const srcId = src?.srcId
       const settings = tab.layerSettings[layerId] ?? { quality: 'low', opacity: 1 }
       const isHidden = tab.hiddenLayers.has(layerId)
       const targetOpacity = isHidden ? 0 : settings.opacity
 
-      if (!map.getSource(srcId)) {
-        try {
-          const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
-          // Custom tile templates (e.g. OpenStreetMap) are served at full
-          // zoom — the GIBS quality preset doesn't apply to them.
-          // WMS layers (fires, etc.) are rasterised server-side at any zoom,
-          // so don't cap them at the GIBS quality preset either.
-          const maxzoom = layer.tiles ? 19 : (layer.wms ? 12 : QUALITY_MAXZOOM[settings.quality])
-          map.addSource(srcId, rasterSource([url], maxzoom, layer))
-          map.addLayer({
-            id: srcId,
-            type: 'raster',
-            source: srcId,
-            paint: {
-              'raster-opacity': targetOpacity,
-              'raster-opacity-transition': { duration: 300, delay: 0 }
-            }
-          })
-          layerSrcMapRef.current[layerId] = srcId
-        } catch (err) {
-          console.warn('Failed to add layer:', layerId, err)
+      if (!src || !map.getSource(srcId)) {
+        // New layer — add it invisible and fade in once its tiles are ready.
+        // Skip if it already failed for the current date (the error pill is
+        // showing; a retry happens on the next date change or pill dismiss).
+        if (!(loadError && loadError.layerId === layerId && loadError.date === tab.date)) {
+          crossfadeLayer(map, layerId, layer, null, settings, targetOpacity)
         }
       } else if (map.getLayer(srcId)) {
-        // Layer exists - update opacity
-        try {
-          map.setPaintProperty(srcId, 'raster-opacity', targetOpacity)
-        } catch {}
-
-        // If date changed, rebuild the source. We deliberately REMOVE and
-        // RE-ADD the source+layer rather than calling source.setTiles([url]):
-        // setTiles leaves the raster source mid-transition and maplibre's
-        // raster painter can throw "Cannot read properties of undefined
-        // (reading 'bind')" during the next render. Remove/re-add is the same
-        // safe pattern the add branch and Map.jsx use.
-        if (dateChanged) {
+        // Layer exists — update opacity (skip while a crossfade is in flight;
+        // the new layer picks up the latest opacity when it fades in).
+        if (!transitionsRef.current[layerId]) {
           try {
-            const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
-            if (map.getLayer(srcId)) map.removeLayer(srcId)
-            if (map.getSource(srcId)) map.removeSource(srcId)
-            const maxzoom = layer.tiles ? 19 : (layer.wms ? 12 : QUALITY_MAXZOOM[settings.quality])
-            map.addSource(srcId, rasterSource([url], maxzoom, layer))
-            map.addLayer({
-              id: srcId,
-              type: 'raster',
-              source: srcId,
-              paint: {
-                'raster-opacity': targetOpacity,
-                'raster-opacity-transition': { duration: 300, delay: 0 }
-              }
-            })
-            layerSrcMapRef.current[layerId] = srcId
-          } catch (err) {
-            console.warn('Failed to update source tiles for date change:', layerId, err)
-          }
+            map.setPaintProperty(srcId, 'raster-opacity', targetOpacity)
+          } catch {}
+        }
+
+        // Date changed — crossfade to the new tiles instead of removing the
+        // layer (which blanks the map and reloads block by block). Reference
+        // overlays are date-independent ('default' time), so skip them. Also
+        // skip when the displayed source already matches the date (e.g. the
+        // parent reverted the date after a load failure).
+        if (dateChanged && layerSection(layer) !== 'reference' && src.date !== tab.date) {
+          crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity)
         }
       }
     }
 
     // Reorder layers to match active order (reverse because 0 = top in our model)
-    for (let i = activeLayers.length - 1; i >= 0; i--) {
-      const layerId = activeLayers[i]
-      const srcId = `layer-${layerId}`
-      if (map.getLayer(srcId)) {
-        try {
-          map.moveLayer(srcId)
-        } catch {}
-      }
-    }
-  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, mapReady, layerById, wmtsBaseUrl])
+    reorderLayers(map, activeLayers)
+  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, mapReady, layerById, wmtsBaseUrl, wmsBaseUrl])
 
   return (
     <div ref={containerRef} className="globe-map" data-tour="map">
       {selectionMode && mapReady && (
         <TimelapseOverlay map={mapRef.current} rectangle={selectionRect} onChange={onSelectionChange} />
+      )}
+      {loadingLayers.size > 0 && (
+        <div className="globe-loading-indicator">
+          <span className="globe-loading-spinner" />
+          <span>Loading imagery…</span>
+        </div>
+      )}
+      {loadError && (
+        <div className="globe-load-error">
+          <Icon icon="fluent:warning-16-regular" width="14" height="14" />
+          <span>{loadError.message || `Couldn't load ${layerById.get(loadError.layerId)?.name || 'imagery'} for ${loadError.date}`}</span>
+          <button type="button" className="globe-load-error-dismiss" onClick={() => setLoadError(null)} aria-label="Dismiss">
+            <Icon icon="fluent:dismiss-16-regular" width="12" height="12" />
+          </button>
+        </div>
       )}
     </div>
   )
@@ -534,6 +727,8 @@ export default function Globe() {
   const [activeTabId, setActiveTabId] = useState(() => savedState.current?.activeTabId || 'tab-1')
   const [isTabbedMode, setIsTabbedMode] = useState(true)
   const [showRestoreToast, setShowRestoreToast] = useState(restoredFromStorage)
+  // Toast shown when a layer fails to load for a date (the date is reverted).
+  const [loadErrorToast, setLoadErrorToast] = useState(null)
 
   // ── Pane resize state ──────────────────────────────────────────────
   const [paneSizes, setPaneSizes] = useState(() => equalPaneSizes(tabs.length))
@@ -720,6 +915,30 @@ export default function Globe() {
   const handleTabDateChange = useCallback((newDate) => {
     updateActiveTab({ date: newDate })
   }, [updateActiveTab])
+
+  // A layer failed to load for a date — revert the tab's date so the picker
+  // matches what's actually displayed, and tell the user why.
+  const handleLayerLoadError = useCallback((tabId, failedDate, displayedDate, message) => {
+    if (!displayedDate) return
+    setTabs(prev => prev.map(tab =>
+      tab.id === tabId && tab.date === failedDate ? { ...tab, date: displayedDate } : tab
+    ))
+    setLoadErrorToast(message || `Couldn't load imagery for ${failedDate} — showing ${displayedDate}`)
+  }, [])
+
+  // Compare-view variant — reverts the per-side date override when the failed
+  // date came from one, otherwise reverts the underlying tab's date.
+  const handleCompareLayerLoadError = useCallback((side, tabId, failedDate, displayedDate, message) => {
+    if (!displayedDate) return
+    setCompareDateOverrides(prev => {
+      if (prev[side] === failedDate) return { ...prev, [side]: displayedDate }
+      return prev
+    })
+    setTabs(prev => prev.map(tab =>
+      tab.id === tabId && tab.date === failedDate ? { ...tab, date: displayedDate } : tab
+    ))
+    setLoadErrorToast(message || `Couldn't load imagery for ${failedDate} — showing ${displayedDate}`)
+  }, [])
 
   // Wrappers to update the active tab's state
   const setActiveBySectionTabbed = useCallback((updater) => {
@@ -1813,6 +2032,7 @@ export default function Globe() {
                 onMapPositionChange={(pos) => {
                   setTabs(prev => prev.map(t => (t.id === tlTab.id ? { ...t, mapPosition: pos } : t)))
                 }}
+                onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tlTab.id, failedDate, displayedDate, message)}
                 selectionMode
                 selectionRect={tlRect}
                 onSelectionChange={setTlRect}
@@ -1883,6 +2103,15 @@ export default function Globe() {
               anchorPosition={activeTab?.mapPosition}
               onMapReady={(index, map) => trackMapInstance(index === 0 ? compareTabA.id : compareTabB.id, map)}
               onMapPositionChange={handleCompareMapPositionChange}
+              onLayerLoadError={(index, layerId, failedDate, displayedDate, message) =>
+                handleCompareLayerLoadError(
+                  index === 0 ? 'before' : 'after',
+                  (index === 0 ? effectiveCompareTabA : effectiveCompareTabB).id,
+                  failedDate,
+                  displayedDate,
+                  message
+                )
+              }
             />
           </div>
         </div>
@@ -1941,6 +2170,7 @@ export default function Globe() {
                       mapSettings={mapSettings}
                       onMapReady={(map) => trackMapInstance(tab.id, map)}
                       onMapPositionChange={handleMapPositionChange}
+                      onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, failedDate, displayedDate, message)}
                     />
                   ) : (
                     <div className="globe-grid-empty">Empty</div>
@@ -2029,6 +2259,7 @@ export default function Globe() {
             mapSettings={mapSettings}
             onMapReady={(map) => trackMapInstance(activeTab.id, map)}
             onMapPositionChange={handleMapPositionChange}
+            onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(activeTab.id, failedDate, displayedDate, message)}
           />
         </div>
       )}
@@ -2121,6 +2352,14 @@ export default function Globe() {
           actionLabel="Reset"
           onAction={handleResetAll}
           onDismiss={() => setShowRestoreToast(false)}
+        />
+      )}
+
+      {loadErrorToast && (
+        <Toast
+          className="app-toast--stacked"
+          message={loadErrorToast}
+          onDismiss={() => setLoadErrorToast(null)}
         />
       )}
 

@@ -3,8 +3,8 @@ import './Toast.css'
 
 // Bottom-right toast — used to tell the user their previous session was
 // restored from local storage, with a one-click way back to defaults.
-const Toast = ({ message, actionLabel, onAction, onDismiss }) => (
-  <div className="app-toast">
+const Toast = ({ message, actionLabel, onAction, onDismiss, className }) => (
+  <div className={`app-toast${className ? ` ${className}` : ''}`}>
     <Icon icon="fluent:info-20-regular" width="16" height="16" className="app-toast-icon" />
     <span className="app-toast-message">{message}</span>
     {actionLabel && onAction && (
