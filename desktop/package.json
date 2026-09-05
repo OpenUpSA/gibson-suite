@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node work/refresh_layer_dates.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "start": "vite preview",

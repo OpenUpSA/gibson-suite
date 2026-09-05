@@ -116,7 +116,19 @@ when proxied through Netlify (504 Gateway Timeout)**. Instead, the app ships a
 pre-generated static JSON — `public/layer-dates.json` — with the raw TIME
 dimension values per layer, served straight from the CDN (no proxy, no timeout).
 
-Regenerate it whenever the caps change (e.g. a new satellite comes online):
+**It refreshes automatically — no manual step.** The `prebuild` hook
+(`work/refresh_layer_dates.mjs`) runs before every `vite build` (i.e. every
+Netlify deploy): if the committed JSON's data is older than a day it downloads
+the current capabilities and regenerates the JSON via `work/gen_layer_dates.py`.
+If GIBS is unreachable at build time it warns and keeps the committed copy —
+the build never fails because of a refresh.
+
+As a second safety net, the client (`src/utils/gibsCaps.js`) falls back to
+fetching the live capabilities XML **directly from GIBS** (CORS-enabled) when
+the JSON is missing a layer or its data is stale — so new layers and recent
+dates still work between deploys.
+
+To regenerate manually (e.g. offline):
 
 ```sh
 curl -o work/wmts_caps.xml \
