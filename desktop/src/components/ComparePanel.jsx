@@ -16,6 +16,9 @@ const ComparePanel = ({
   tabs,
   compareAId,
   compareBId,
+  mode,
+  onModeChange,
+  splitPos,
   onCompareAChange,
   onCompareBChange,
   onSwap,
@@ -103,10 +106,18 @@ const ComparePanel = ({
 
   const renderCell = (side) => {
     const tab = sideTab(side)
+    // The handle position maps to how much of each view is visible: in fade
+    // mode it's the top (before) view's opacity, in split mode it's the clip
+    // boundary. Either way the before cell fills as the handle moves right
+    // and the after cell fills as it moves left.
+    const share = side === 'before' ? (splitPos ?? 50) : 100 - (splitPos ?? 50)
     return (
       <div className="compare-cell-wrap">
         <div
           className={`compare-cell${tab ? ' has-view' : ''}${selectedSide === side ? ' selected' : ''}${cellFlyout === side ? ' flyout-open' : ''}`}
+          style={{
+            background: `linear-gradient(to top, rgba(79,195,217,0.38) 0%, rgba(79,195,217,0.38) ${share}%, rgba(255,255,255,0.03) ${share}%, rgba(255,255,255,0.03) 100%)`
+          }}
           onClick={(e) => { if (tab) toggleSelect(side) }}
           onContextMenu={(e) => openFlyout(side, e)}
         >
@@ -141,6 +152,7 @@ const ComparePanel = ({
               <Icon icon="fluent:add-16-filled" width="14" height="14" />
             </button>
           )}
+          <span className="compare-cell-share-pct">{Math.round(share)}%</span>
         </div>
       </div>
     )
@@ -274,6 +286,34 @@ const ComparePanel = ({
           >
             <Icon icon="fluent:arrow-swap-20-regular" width="14" height="14" />
           </button>
+        </div>
+
+        <div className="compare-mode-toggle" role="group" aria-label="Compare blend mode">
+          <button
+            type="button"
+            className={`compare-mode-btn${mode === 'split' ? ' active' : ''}`}
+            onClick={() => onModeChange('split')}
+            title="Split — drag the handle to reveal one view on each side"
+            aria-pressed={mode === 'split'}
+          >
+            <Icon icon="fluent:split-horizontal-20-regular" width="14" height="14" />
+            Split
+          </button>
+          <button
+            type="button"
+            className={`compare-mode-btn${mode === 'fade' ? ' active' : ''}`}
+            onClick={() => onModeChange('fade')}
+            title="Fade — drag the handle to crossfade between the two views"
+            aria-pressed={mode === 'fade'}
+          >
+            <Icon icon="fluent:drop-20-regular" width="14" height="14" />
+            Fade
+          </button>
+        </div>
+
+        <div className="compare-share-hint">
+          <Icon icon="fluent:info-16-regular" width="12" height="12" />
+          <span>Drag the handle right to reveal the Before view, left for After.</span>
         </div>
 
         {selectedSide && (

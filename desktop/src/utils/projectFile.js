@@ -4,7 +4,7 @@
 
 export const PROJECT_VERSION = 1
 
-export const serializeProject = ({ tabs, gridConfig, compareCaptions, activeTabId, timelapse }) => ({
+export const serializeProject = ({ tabs, gridConfig, compareCaptions, compareMode, activeTabId, timelapse }) => ({
   version: PROJECT_VERSION,
   savedAt: new Date().toISOString(),
   activeTabId,
@@ -19,12 +19,13 @@ export const serializeProject = ({ tabs, gridConfig, compareCaptions, activeTabI
   })),
   grid: gridConfig,
   compareCaptions,
+  compareMode,
   timelapse
 })
 
 /**
  * Parse + validate a project file.
- * @returns {{ tabs, gridConfig, compareCaptions, activeTabId, timelapse } | null}
+ * @returns {{ tabs, gridConfig, compareCaptions, compareMode, activeTabId, timelapse } | null}
  *          null when the file is not a valid project for this version.
  */
 export const deserializeProject = (jsonText) => {
@@ -73,7 +74,7 @@ export const deserializeProject = (jsonText) => {
       ? p.activeTabId
       : tabs[0].id
 
-    return { tabs, gridConfig, compareCaptions: p.compareCaptions, activeTabId, timelapse: p.timelapse }
+    return { tabs, gridConfig, compareCaptions: p.compareCaptions, compareMode: p.compareMode, activeTabId, timelapse: p.timelapse }
   } catch {
     return null
   }

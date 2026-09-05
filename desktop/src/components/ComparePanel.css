@@ -31,6 +31,73 @@
   position: relative;
 }
 
+/* ── Blend mode toggle (split vs fade) ────────────────────── */
+.compare-mode-toggle {
+  display: flex;
+  gap: 6px;
+  margin: 0 12px 4px;
+}
+
+.compare-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.compare-mode-btn:hover {
+  border-color: rgba(79, 195, 217, 0.5);
+  color: #4FC3D9;
+}
+
+.compare-mode-btn.active {
+  background: rgba(79, 195, 217, 0.22);
+  border-color: rgba(79, 195, 217, 0.6);
+  color: #fff;
+}
+
+/* Activity indicator — the cells fill to show which view is more visible
+   as the handle moves (both split and fade modes). */
+.compare-cell-share-pct {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.compare-share-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 12px 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(79, 195, 217, 0.25);
+  border-radius: 4px;
+  background: rgba(79, 195, 217, 0.08);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .compare-cells {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -78,6 +78,28 @@
   border-radius: 1px;
 }
 
+/* ── Fade mode ─────────────────────────────────────────────── */
+/* No split boundary in fade mode — the handle position maps to the top
+   view's opacity, so drop the full-height line and the split bars and show
+   the current opacity % inside the handle instead. */
+.compare-divider--fade .compare-divider-line {
+  display: none;
+}
+
+.compare-divider--fade .compare-divider-handle::before,
+.compare-divider--fade .compare-divider-handle::after {
+  display: none;
+}
+
+.compare-divider-opacity {
+  font-size: 11px;
+  font-weight: 700;
+  color: #333;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
 /* ── Per-side caption zones ───────────────────────────────── */
 /* Before captions live in the left half, after captions in the right half.
    Inside each zone the caption is placed by the shared .globe-grid-caption

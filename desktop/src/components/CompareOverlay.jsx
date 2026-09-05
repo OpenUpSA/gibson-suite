@@ -4,18 +4,30 @@ import './CompareOverlay.css'
 
 /**
  * Before/after overlay for two views (tabs). View A is rendered on top of
- * view B and clipped from the right edge by the draggable divider, so the
- * left side of the slider shows A and the right side shows B. Both maps are
- * always geographically locked to the same camera (pan/zoom on one is
- * mirrored to the other); the top map is inert — interaction happens on the
- * bottom map.
+ * view B. In split mode the top view is clipped from the right edge by the
+ * draggable divider, so the left side of the slider shows A and the right
+ * side shows B. In fade mode the top view is not clipped — the divider's
+ * position instead maps to its opacity (left = transparent, right = opaque),
+ * crossfading between the two views. Both maps are always geographically
+ * locked to the same camera (pan/zoom on one is mirrored to the other); the
+ * top map is inert — interaction happens on the bottom map.
  */
-const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition }) => {
-  const [splitPos, setSplitPos] = useState(50)
+const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition, mode = 'split', splitPos: splitPosProp, onSplitPosChange }) => {
+  const [internalSplitPos, setInternalSplitPos] = useState(50)
   const containerRef = useRef(null)
   const mapsRef = useRef([null, null])
   const syncingRef = useRef(false)
   const [readyCount, setReadyCount] = useState(0)
+  const isFade = mode === 'fade'
+
+  // Controlled (splitPos prop) or uncontrolled (internal state). The Globe
+  // passes splitPos down so the sidebar cells can mirror the fade amount;
+  // the share route (CompareShare) leaves it uncontrolled.
+  const splitPos = splitPosProp !== undefined ? splitPosProp : internalSplitPos
+  const setSplitPos = (value) => {
+    if (splitPosProp !== undefined) onSplitPosChange?.(value)
+    else setInternalSplitPos(value)
+  }
 
   // When the compared views change, the MapInstances remount (keys) and
   // report new instances — reset the tracked refs until both are ready.
@@ -165,7 +177,9 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
       </div>
       <div
         className="compare-map compare-map-top"
-        style={{ clipPath: `inset(0 ${100 - splitPos}% 0 0)` }}
+        style={isFade
+          ? { opacity: splitPos / 100 }
+          : { clipPath: `inset(0 ${100 - splitPos}% 0 0)` }}
       >
         <MapInstance
           key={`compare-a-${tabA?.id}`}
@@ -179,13 +193,15 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
         />
       </div>
       <div
-        className="compare-divider"
+        className={`compare-divider${isFade ? ' compare-divider--fade' : ''}`}
         style={{ left: `${splitPos}%` }}
         onMouseDown={(e) => { e.preventDefault(); startDrag(e.clientX) }}
         onTouchStart={(e) => { e.preventDefault(); startDrag(e.touches[0].clientX) }}
       >
-        <div className="compare-divider-line" />
-        <div className="compare-divider-handle" />
+        {!isFade && <div className="compare-divider-line" />}
+        <div className="compare-divider-handle">
+          {isFade && <span className="compare-divider-opacity">{Math.round(splitPos)}%</span>}
+        </div>
       </div>
       {renderCaption('before')}
       {renderCaption('after')}

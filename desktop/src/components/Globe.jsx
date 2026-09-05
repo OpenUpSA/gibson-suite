@@ -473,6 +473,12 @@ export default function Globe() {
   const [compareDateOverrides, setCompareDateOverrides] = useState({ before: null, after: null })
   // Compare overlay stays visible when the sidebar is hidden (like grid view).
   const [compareViewActive, setCompareViewActive] = useState(false)
+  // Compare blend mode: 'split' clips the top view at the handle; 'fade'
+  // crossfades it — the handle position maps to the top view's opacity.
+  const [compareMode, setCompareMode] = useState('split')
+  // Handle position (0-100) — lifted so the sidebar cells can mirror which
+  // view is more visible in fade mode.
+  const [compareSplitPos, setCompareSplitPos] = useState(50)
 
   // ── Timelapse tool state ────────────────────────────────────────────
   const [tlRect, setTlRect] = useState(null)              // [[swLng,swLat],[neLng,neLat]]
@@ -1571,9 +1577,9 @@ export default function Globe() {
   // ── Project file (the only save/share mechanism) ────────────────────
   const handleSaveProject = useCallback(() => {
     const timelapse = { tlStartDate, tlEndDate, tlInterval, tlAspect, tlRect, tlStampDates, tlFrames }
-    const project = serializeProject({ tabs, gridConfig, compareCaptions, activeTabId, timelapse })
+    const project = serializeProject({ tabs, gridConfig, compareCaptions, compareMode, activeTabId, timelapse })
     downloadProjectFile(project)
-  }, [tabs, gridConfig, compareCaptions, activeTabId, tlStartDate, tlEndDate, tlInterval, tlAspect, tlRect, tlStampDates, tlFrames])
+  }, [tabs, gridConfig, compareCaptions, compareMode, activeTabId, tlStartDate, tlEndDate, tlInterval, tlAspect, tlRect, tlStampDates, tlFrames])
 
   // Load a project file into the app. Returns true on success so the
   // sidebar can surface a "couldn't read that file" message.
@@ -1584,6 +1590,7 @@ export default function Globe() {
     setActiveTabId(state.activeTabId)
     setGridConfig(state.gridConfig)
     if (state.compareCaptions) setCompareCaptions(state.compareCaptions)
+    if (state.compareMode) setCompareMode(state.compareMode)
     if (state.timelapse) {
       const tl = state.timelapse
       if (tl.tlStartDate) setTlStartDate(tl.tlStartDate)
@@ -1824,6 +1831,9 @@ export default function Globe() {
             tabs={tabs}
             compareAId={compareTabA.id}
             compareBId={compareTabB.id}
+            mode={compareMode}
+            onModeChange={setCompareMode}
+            splitPos={compareSplitPos}
             onCompareAChange={(id) => handleCompareAssign('before', id)}
             onCompareBChange={(id) => handleCompareAssign('after', id)}
             onSwap={() => {
@@ -1850,6 +1860,9 @@ export default function Globe() {
               wmtsBaseUrl={wmtsBaseUrl}
               mapSettings={mapSettings}
               captions={compareCaptions}
+              mode={compareMode}
+              splitPos={compareSplitPos}
+              onSplitPosChange={setCompareSplitPos}
               anchorPosition={activeTab?.mapPosition}
               onMapReady={(index, map) => trackMapInstance(index === 0 ? compareTabA.id : compareTabB.id, map)}
               onMapPositionChange={handleCompareMapPositionChange}
