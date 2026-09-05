@@ -1,8 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import pkg from './package.json'
 
 export default defineConfig({
   plugins: [react()],
+  // Single source of truth for the app version: package.json. Injected at
+  // build/dev time so src/config/version.js never needs a manual bump.
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version)
+  },
   // The same proxy config must be provided for BOTH the dev server and the
   // preview server: `server.proxy` only applies to `vite dev`, while a built
   // app served via `vite preview` (npm run preview/start) needs `preview.proxy`.
