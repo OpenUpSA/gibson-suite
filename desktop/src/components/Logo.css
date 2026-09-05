@@ -8,6 +8,14 @@
   gap: 6px;
 }
 
+/* The content block can be wider than the image (e.g. the subtitle text),
+   so center the image inside it instead of letting it sit at the left edge. */
+.logo-container .logo-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .logo-container .logo-image {
   max-height: 64px;
   max-width: 240px;

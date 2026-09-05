@@ -595,9 +595,9 @@ export default function Globe() {
     }
   }, []) // Only on mount
 
-  // Entering layout mode shows the grid view. Closing the panel (or switching
-  // to another tool) should NOT revert to the single view — grid view stays
-  // active until the layout tool is reopened and grid view is explicitly left.
+  // Entering layout mode shows the grid view. Closing the panel keeps the
+  // grid view on screen (like the compare overlay); switching to another
+  // tool (handleToolClick / keyboard shortcuts) turns it off again.
   useEffect(() => {
     if (activeTool === 'layout') setGridViewActive(true)
   }, [activeTool])
@@ -802,7 +802,8 @@ export default function Globe() {
     setCompareBId(`preset-${layer.id}-after`)
     setActiveTool('compare')
     setCompareViewActive(true)
-  }, [layerSection, setActiveBySectionTabbed, setTabs, setCompareAId, setCompareBId, setActiveTool, setCompareViewActive])
+    setGridViewActive(false)
+  }, [layerSection, setActiveBySectionTabbed, setTabs, setCompareAId, setCompareBId, setActiveTool, setCompareViewActive, setGridViewActive])
 
   const reorderSection = (section, nextIds) => {
     setActiveBySectionTabbed(prev => ({ ...prev, [section]: nextIds }))
@@ -823,12 +824,14 @@ export default function Globe() {
 
   // Toolbar: clicking the active tool closes its panel; clicking another
   // switches to it. Opening one panel closes the other. The compare overlay
-  // stays when its panel is closed (like the grid view) and only leaves when
+  // and the grid view stay when their panel is closed and only leave when
   // another tool is opened.
   const handleToolClick = (tool) => {
     setActiveTool(prev => (prev === tool ? null : tool))
     if (tool === 'compare') setCompareViewActive(true)
     else setCompareViewActive(false)
+    if (tool === 'layout') setGridViewActive(true)
+    else setGridViewActive(false)
   }
 
   // Keyboard shortcuts
@@ -838,24 +841,28 @@ export default function Globe() {
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit1') {
         e.preventDefault()
         setCompareViewActive(false)
+        setGridViewActive(false)
         setActiveTool(prev => (prev === 'layers' ? null : 'layers'))
       }
       // Ctrl+Shift+2 — toggle timelapse tool
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit2') {
         e.preventDefault()
         setCompareViewActive(false)
+        setGridViewActive(false)
         setActiveTool(prev => (prev === 'timelapse' ? null : 'timelapse'))
       }
       // Ctrl+Shift+3 — toggle compare tool
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit3') {
         e.preventDefault()
         setCompareViewActive(true)
+        setGridViewActive(false)
         setActiveTool(prev => (prev === 'compare' ? null : 'compare'))
       }
       // Ctrl+Shift+4 — toggle layout tool
       if (e.ctrlKey && e.shiftKey && e.code === 'Digit4') {
         e.preventDefault()
         setCompareViewActive(false)
+        setGridViewActive(true)
         setActiveTool(prev => (prev === 'layout' ? null : 'layout'))
       }
     }

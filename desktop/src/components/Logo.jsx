@@ -1,11 +1,11 @@
 import React from 'react'
-import gibsonLogo from '../assets/GIBSON.png'
 import adhLogo from '../assets/adh-logo.svg'
 import './Logo.css'
 import { APP_VERSION } from '../config/version'
 
-// Logo block for the welcome / about modal. Primary shows the Gibson logo,
-// secondary shows the ADH logo linking to africadatahub.org.
+// Logo block for the welcome / about modal. Primary shows the Gibson logo
+// (served from /public/gibson-logo.png), secondary shows the ADH logo
+// linking to africadatahub.org.
 const Logo = ({ secondary = false }) => {
   if (secondary) {
     return (
@@ -20,7 +20,7 @@ const Logo = ({ secondary = false }) => {
   return (
     <div className="logo-container">
       <div className="logo-content" title={`GIBS Observations Navigator v${APP_VERSION}`}>
-        <img src={gibsonLogo} alt="Logo" className="logo-image" />
+        <img src="/gibson-logo.png" alt="Logo" className="logo-image" />
         <div className="logo-subtitle">GIBS Observations Navigator</div>
       </div>
     </div>
