@@ -97,9 +97,10 @@ const parsePeriodToDays = (period) => {
 }
 
 const addDaysIso = (iso, days) => {
-  const d = new Date(`${iso}T00:00:00Z`)
-  d.setUTCDate(d.getUTCDate() + days)
-  return d.toISOString().split('T')[0]
+  // Millisecond-based so fractional days (sub-daily periods) advance the date
+  // correctly — setUTCDate() truncates the fraction and never crosses midnight.
+  const t = Date.parse(`${iso}T00:00:00Z`) + days * 86400000
+  return new Date(t).toISOString().split('T')[0]
 }
 
 const diffDays = (a, b) => Math.round((new Date(`${b}T00:00:00Z`) - new Date(`${a}T00:00:00Z`)) / 86400000)
@@ -114,7 +115,10 @@ const expandValues = (values) => {
       // Interval: start/end/period
       const start = parts[0].split('T')[0]
       const end = parts[1].split('T')[0]
-      const step = parsePeriodToDays(parts[2])
+      // Sub-daily periods (PT30M, PT1H, …) mean data exists at least once per
+      // day, so iterate by whole days — correct AND keeps the loop small
+      // (a PT30M interval would otherwise step 48×/day and blow the guard).
+      const step = Math.max(1, parsePeriodToDays(parts[2]))
       let cur = start
       let guard = 0
       while (cur <= end && guard < 100000) {
