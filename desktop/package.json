@@ -1,6 +1,6 @@
 {
   "name": "gibs-layer-viewer",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "NASA GIBS Satellite Layer Viewer",
   "type": "module",
   "scripts": {
