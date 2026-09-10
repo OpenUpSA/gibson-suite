@@ -38,16 +38,21 @@ export const buildWmsUrl = (config, layer, bbox3857, width, height, time, format
   return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=${fmt}&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=${Math.round(width)}&HEIGHT=${Math.round(height)}&BBOX=${minX},${minY},${maxX},${maxY}&TIME=${time}`
 }
 
-// Single-image WMS GetMap URL that stacks several layers in one request
-// (imagery/base first, reference overlays on top). `layers` is the same
-// ordered array consumed by renderTimelapseGif; `times[i]` is the resolved
-// WMS TIME for layers[i] (frame date, or 'default' for reference crops).
-// Used by the timelapse preview browser to composite all active layers.
-export const buildWmsUrlMulti = (config, layers, bbox3857, width, height, times) => {
+// Single-image WMS GetMap URL that stacks several layers in one request.
+// `layers` is the same ordered array consumed by renderTimelapseGif (entries
+// {layer, role}, first = bottom); `time` is the WMS TIME applied to ALL
+// layers (the frame date — reference overlays are drawn separately with
+// 'default'). Used by the timelapse GIF exporter to composite all dated
+// layers server-side: GIBS handles layer transparency correctly, whereas
+// fetching each layer separately and compositing client-side fails because
+// GIBS returns OPAQUE PNGs for full-coverage products (an upper layer would
+// paint over everything below it, leaving only the top layer visible).
+// NOTE: a per-layer TIME list (comma-separated) is NOT supported — GIBS
+// answers 400 Bad Request.
+export const buildWmsUrlMulti = (config, layers, bbox3857, width, height, time) => {
   const [minX, minY, maxX, maxY] = bbox3857
-  const ids = layers.map(l => l.id).join(',')
-  const timeList = times.join(',')
+  const ids = layers.map(l => (l.layer || l).id).join(',')
   return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${ids}` +
     `&STYLES=&FORMAT=image%2Fjpeg&TRANSPARENT=TRUE&CRS=EPSG:3857` +
-    `&WIDTH=${Math.round(width)}&HEIGHT=${Math.round(height)}&BBOX=${minX},${minY},${maxX},${maxY}&TIME=${timeList}`
+    `&WIDTH=${Math.round(width)}&HEIGHT=${Math.round(height)}&BBOX=${minX},${minY},${maxX},${maxY}&TIME=${time}`
 }

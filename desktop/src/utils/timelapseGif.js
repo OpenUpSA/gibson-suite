@@ -1,6 +1,6 @@
 import GIF from 'gif.js'
 import gifWorkerSource from 'gif.js/dist/gif.worker.js?raw'
-import { buildWmsUrl } from '../config/tileUrl'
+import { buildWmsUrl, buildWmsUrlMulti } from '../config/tileUrl'
 
 // gif.js runs the encoder in a web worker; the worker script is bundled as raw
 // text and served from a Blob URL (same pattern as the legacy app).
@@ -70,7 +70,7 @@ const drawDateStamp = (ctx, text, width, height) => {
  *
  * @param {Object} opts
  * @param {Array<{time: string, label?: string, caption?: Object, delayMs?: number}>} opts.frames — one per GIF frame; caption (visible/text/position/overlayColor/overlayOpacity/textColor/fontSize) overrides the date stamp, delayMs overrides the default delay
- * @param {Array<{layer: Object, role?: string}>} opts.layers — every active layer, pre-ordered bottom→top (base first, imagery above, reference on top — matching the map's stacking). `layer` is the layers.json object, `role` is 'imagery'|'base'|'reference'. TIME is resolved per frame: imagery/base use the frame date, reference uses GIBS 'default'.
+ * @param {Array<{layer: Object, role?: string}>} opts.layers — every active layer, pre-ordered bottom→top (base first, imagery above, reference on top — matching the map's stacking). `layer` is the layers.json object, `role` is 'imagery'|'base'|'reference'. All dated layers (imagery/base) are composited server-side in ONE WMS request using the frame date; reference overlays are drawn separately with GIBS 'default' time.
  * @param {Array<number>} opts.bbox3857 — [minX, minY, maxX, maxY] EPSG:3857
  * @param {number} opts.width — target GIF width (≤ GIF_MAX_WIDTH)
  * @param {number} opts.height — target GIF height
@@ -100,6 +100,17 @@ export const renderTimelapseGif = ({
       workerScript: gifWorkerUrl,
     })
 
+    // Dated layers (imagery/base) use the frame date; reference overlays use
+    // GIBS 'default' (static) time. Dated layers are composited server-side
+    // in ONE WMS request — GIBS blends layer transparency correctly. Fetching
+    // them separately and drawing client-side fails because GIBS returns
+    // OPAQUE PNGs for full-coverage products (True Color, AOD, NDVI, …), so
+    // an upper layer paints over everything below it and only the top layer
+    // survives. Reference overlays are genuinely transparent PNGs, so they
+    // are drawn client-side on top.
+    const datedLayers = layers.filter(l => l.role !== 'reference')
+    const referenceLayers = layers.filter(l => l.role === 'reference')
+
     let done = 0
     const total = frames.length
 
@@ -122,25 +133,27 @@ export const renderTimelapseGif = ({
         ctx.fillStyle = '#000'
         ctx.fillRect(0, 0, width, height)
 
-        // Composite every active layer for this frame, in stacking order.
-        // `layers` is pre-ordered so the bottom layer draws first. TIME is
-        // resolved per frame: imagery/base use the frame date, reference
-        // overlays use the GIBS 'default' (static) time.
-        // Only the bottom-most layer is opaque JPEG; every layer above it is
-        // PNG so its transparency composites over the layers beneath. A JPEG
-        // overlay is opaque and would paint over (erase) everything below it —
-        // with multiple imagery layers that left only the top layer visible.
-        for (let i = 0; i < layers.length; i++) {
-          const l = layers[i]
+        // All dated layers in one server-composited image (bottom→top order).
+        if (datedLayers.length > 0) {
           try {
-            const time = l.role === 'reference' ? 'default' : frame.time
-            const fmt = i === 0 ? 'image/jpeg' : 'image/png'
-            const url = buildWmsUrl({ wmsBaseUrl }, l.layer, bbox3857, width, height, time, fmt)
+            const url = buildWmsUrlMulti({ wmsBaseUrl }, datedLayers, bbox3857, width, height, frame.time)
+            const img = await loadImage(url)
+            ctx.drawImage(img, 0, 0, width, height)
+          } catch (e) {
+            // A failed composite shouldn't abort the whole GIF — skip it.
+            console.warn(`[Timelapse] composite failed for ${frame.time}:`, e)
+          }
+        }
+
+        // Reference overlays on top (transparent PNGs, static 'default' time).
+        for (const l of referenceLayers) {
+          try {
+            const url = buildWmsUrl({ wmsBaseUrl }, l.layer, bbox3857, width, height, 'default', 'image/png')
             const img = await loadImage(url)
             ctx.drawImage(img, 0, 0, width, height)
           } catch (e) {
             // A single failed layer shouldn't abort the whole GIF — skip it.
-            console.warn(`[Timelapse] layer ${l.layer?.id} failed for ${frame.time}:`, e)
+            console.warn(`[Timelapse] reference layer ${l.layer?.id} failed for ${frame.time}:`, e)
           }
         }
 
