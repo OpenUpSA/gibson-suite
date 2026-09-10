@@ -227,6 +227,15 @@ const layerHasDate = async (layer, date) => {
     ])
     if (!values) return true // check timed out — don't block
     if (!values.length) return true // static or unknown — don't block
+    const first = values[0]
+    const last = values[values.length - 1]
+    if (date < first) return false
+    if (date > last) {
+      // The static date list can lag a day or two behind GIBS. Dates just past
+      // the last known value are left to the tile fetch — WMS serves the
+      // newest imagery as soon as it exists.
+      return date <= addDaysIso(last, 2)
+    }
     return values.includes(date)
   } catch {
     return true // check failed — don't block, let the timeout handle it
@@ -599,7 +608,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
 
     // Reorder layers to match active order (reverse because 0 = top in our model)
     reorderLayers(map, activeLayers)
-  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, mapReady, layerById, wmtsBaseUrl, wmsBaseUrl])
+  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, loadError, mapReady, layerById, wmtsBaseUrl, wmsBaseUrl])
 
   return (
     <div ref={containerRef} className="globe-map" data-tour="map">
@@ -916,28 +925,16 @@ export default function Globe() {
     updateActiveTab({ date: newDate })
   }, [updateActiveTab])
 
-  // A layer failed to load for a date — revert the tab's date so the picker
-  // matches what's actually displayed, and tell the user why.
+  // A layer failed to load for a date — tell the user, but never change the
+  // chosen date. The map keeps showing the last successfully loaded imagery
+  // for that layer; the user can pick another date or layer themselves.
   const handleLayerLoadError = useCallback((tabId, failedDate, displayedDate, message) => {
-    if (!displayedDate) return
-    setTabs(prev => prev.map(tab =>
-      tab.id === tabId && tab.date === failedDate ? { ...tab, date: displayedDate } : tab
-    ))
-    setLoadErrorToast(message || `Couldn't load imagery for ${failedDate} — showing ${displayedDate}`)
+    setLoadErrorToast(message || `No imagery available for ${failedDate}`)
   }, [])
 
-  // Compare-view variant — reverts the per-side date override when the failed
-  // date came from one, otherwise reverts the underlying tab's date.
+  // Compare-view variant — same as above: report the failure, keep the date.
   const handleCompareLayerLoadError = useCallback((side, tabId, failedDate, displayedDate, message) => {
-    if (!displayedDate) return
-    setCompareDateOverrides(prev => {
-      if (prev[side] === failedDate) return { ...prev, [side]: displayedDate }
-      return prev
-    })
-    setTabs(prev => prev.map(tab =>
-      tab.id === tabId && tab.date === failedDate ? { ...tab, date: displayedDate } : tab
-    ))
-    setLoadErrorToast(message || `Couldn't load imagery for ${failedDate} — showing ${displayedDate}`)
+    setLoadErrorToast(message || `No imagery available for ${failedDate}`)
   }, [])
 
   // Wrappers to update the active tab's state

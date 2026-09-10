@@ -5,15 +5,21 @@
 // the WMS endpoint, which rasterises them server-side. MapLibre substitutes
 // the {bbox-epsg-3857} token per tile.
 export const buildTileUrlTemplate = (config, layer, time) => {
-  // Flood-extent products are sparse/event-driven and regularly return WMTS 404
-  // tiles even when the layer/time is valid. WMS returns a stable raster tile
-  // (transparent when empty), avoiding console error floods.
-  const floodExtentViaWms = /^(VIIRS|MODIS)_Combined_Flood_[123]-Day$/.test(layer.id)
+  // Dated imagery layers are served via WMS instead of WMTS. GIBS builds the
+  // WMTS tile pyramid top-down, so a partially-processed day (or a sparse
+  // product) can 404 on fine tiles while the data itself exists — the map then
+  // shows a black void until you zoom to a level whose tiles exist. WMS
+  // rasterises server-side at any zoom, so the nearest available imagery
+  // always loads. (Flood-extent products were already routed this way for the
+  // same reason.)
+  const viaWms = layer.section === 'imagery' || layer.wms ||
+    /^(VIIRS|MODIS)_Combined_Flood_[123]-Day$/.test(layer.id)
 
   // Custom raster tile template (e.g. OpenStreetMap) — returned verbatim.
   if (layer.tiles) return layer.tiles
-  if (layer.wms || floodExtentViaWms) {
-    return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}&TIME=${time}`
+  if (viaWms) {
+    const fmt = encodeURIComponent(layer.format || 'image/png')
+    return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=${fmt}&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}&TIME=${time}`
   }
   const ext = layer.format?.split('/')[1] === 'jpeg' ? 'jpg' : layer.format?.split('/')[1] || 'png'
   return `${config.wmtsBaseUrl}/${layer.id}/default/${time}/${layer.tileMatrixSet}/{z}/{y}/{x}.${ext}`
