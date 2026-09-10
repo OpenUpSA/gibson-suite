@@ -28,6 +28,7 @@ const TimelapseFramesPanel = ({
   const dragIndexRef = useRef(null)
 
   const canExport = hasLayers && hasRect && frames.length >= 2 && !exporting
+  const totalSeconds = frames.reduce((sum, f) => sum + (f.delay ?? defaultDelay), 0)
   const selectedFrame = frames.find(f => f.time === selectedFrameTime) || null
 
   const cycleCaptionPosition = (time) => {
@@ -276,7 +277,10 @@ const TimelapseFramesPanel = ({
         </div>
 
         {/* Export */}
-        <div className="timelapse-section">
+        <div className="timelapse-section timelapse-section--export">
+          <div className="timelapse-section-row">
+            <div className="timelapse-section-title">Export</div>
+          </div>
           <label className="timelapse-check-row timelapse-stamp-toggle">
             <input
               type="checkbox"
@@ -286,11 +290,40 @@ const TimelapseFramesPanel = ({
             />
             <span>Stamp date on frames without a caption</span>
           </label>
+
+          {frames.length >= 2 && (
+            <div className="timelapse-export-summary">
+              <span className="timelapse-export-summary-num">{frames.length}</span>
+              <span className="timelapse-export-summary-unit">frames</span>
+              <span className="timelapse-export-summary-sep">·</span>
+              <span className="timelapse-export-summary-num">{totalSeconds}</span>
+              <span className="timelapse-export-summary-unit">sec</span>
+            </div>
+          )}
+
           <button type="button" className="timelapse-export-btn" onClick={onExport} disabled={!canExport}>
-            {exporting
-              ? (progress ? `Exporting ${progress.done}/${progress.total}…` : 'Exporting…')
-              : `Export GIF (${frames.length} frames)`}
+            {exporting ? (
+              <>
+                <Icon icon="fluent:spinner-ios-20-regular" width="18" height="18" className="timelapse-export-spin" />
+                <span>{progress ? `Rendering ${progress.done}/${progress.total}…` : 'Exporting…'}</span>
+              </>
+            ) : (
+              <>
+                <Icon icon="fluent:gif-20-filled" width="20" height="20" />
+                <span>Export GIF</span>
+              </>
+            )}
           </button>
+
+          {exporting && progress && progress.total > 0 && (
+            <div className="timelapse-export-progress">
+              <div
+                className="timelapse-export-progress-fill"
+                style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }}
+              />
+            </div>
+          )}
+
           {!hasRect && <div className="timelapse-hint">Draw a crop box on the map first.</div>}
           {hasRect && frames.length < 2 && <div className="timelapse-hint">Add at least 2 frames.</div>}
         </div>

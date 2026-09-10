@@ -504,25 +504,84 @@
 
 .timelapse-export-btn {
   width: 100%;
-  background: rgba(79, 195, 217, 0.22);
-  border: 1px solid rgba(79, 195, 217, 0.6);
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(180deg, rgba(79, 195, 217, 0.4), rgba(79, 195, 217, 0.22));
+  border: 1px solid rgba(79, 195, 217, 0.75);
+  border-radius: 6px;
   color: #fff;
-  font-weight: 600;
-  font-size: 11px;
+  font-weight: 700;
+  font-size: 14px;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  padding: 10px 14px;
+  letter-spacing: 0.5px;
+  padding: 14px 16px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .timelapse-export-btn:hover:not(:disabled) {
-  background: rgba(79, 195, 217, 0.32);
-  border-color: rgba(79, 195, 217, 0.7);
+  background: linear-gradient(180deg, rgba(79, 195, 217, 0.55), rgba(79, 195, 217, 0.35));
+  border-color: rgba(79, 195, 217, 0.95);
+  box-shadow: 0 0 14px rgba(79, 195, 217, 0.3);
 }
 
 .timelapse-export-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.timelapse-export-spin {
+  animation: timelapse-spin 1s linear infinite;
+}
+
+@keyframes timelapse-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Prominent export stats: big frame count + total duration */
+.timelapse-export-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.timelapse-export-summary-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4FC3D9;
+  font-family: monospace;
+  line-height: 1;
+}
+
+.timelapse-export-summary-unit {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.timelapse-export-summary-sep {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 16px;
+  margin: 0 2px;
+}
+
+/* Progress bar shown while the GIF is rendering */
+.timelapse-export-progress {
+  margin-top: 8px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.timelapse-export-progress-fill {
+  height: 100%;
+  background: #4FC3D9;
+  border-radius: 3px;
+  transition: width 0.2s ease;
 }

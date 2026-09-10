@@ -4,7 +4,6 @@ import './TimelapseBrowser.css'
 import { buildWmsUrl } from '../config/tileUrl'
 
 const PREVIEW_W = 128
-const PREVIEW_PAGE = 60
 
 // Right-hand panel for the timelapse workbench.
 //
@@ -24,7 +23,6 @@ const TimelapseBrowser = ({
   bbox3857,
   wmsBaseUrl,
   dates,
-  limit,
   selected,
   status,
   busy,
@@ -33,16 +31,14 @@ const TimelapseBrowser = ({
   fetched,
   fetchError,
   onToggleSelect,
-  onSelectVisible,
+  onSelectAll,
   onClearSelection,
   onAddSelected,
-  onLoadMore,
   onConfirm,
   onBackToList,
   onFetch,
   coverage,
 }) => {
-  const visibleDates = dates.slice(0, limit)
   const selectedDates = useMemo(() => [...selected].sort(), [selected])
   const selectedCount = selectedDates.length
 
@@ -81,7 +77,7 @@ const TimelapseBrowser = ({
   // `coverage` is a Map<date, Map<layerId, boolean>> (true = has data).
   const coverageFor = (date) => coverage?.get(date)
 
-  const allVisibleSelected = visibleDates.length > 0 && visibleDates.every((d) => selected.has(d))
+  const allSelected = dates.length > 0 && dates.every((d) => selected.has(d))
 
   // ── Preview-mode progress counts ──────────────────────────────────────
   let ready = 0
@@ -97,19 +93,19 @@ const TimelapseBrowser = ({
   const renderListMode = () => (
     <>
       <div className="tl-browser-toolbar">
-        <button type="button" className="tl-browser-btn" onClick={onSelectVisible} disabled={visibleDates.length === 0}>
-          {allVisibleSelected ? 'Deselect shown' : 'Select shown'}
+        <button type="button" className="tl-browser-btn" onClick={onSelectAll} disabled={dates.length === 0}>
+          {allSelected ? 'Deselect all' : 'Select all'}
         </button>
         <button type="button" className="tl-browser-btn" onClick={onClearSelection} disabled={selectedCount === 0}>
           Clear
         </button>
       </div>
       <div className="tl-browser-count">
-        {dates.length} available · showing {visibleDates.length}
+        {dates.length} available
       </div>
       <div className="tl-browser-progress">Tick dates below — previews only download after you confirm.</div>
       <div className="tl-list">
-        {visibleDates.map((date) => {
+        {dates.map((date) => {
           const s = status?.get(date)
           const cov = coverageFor(date)
           return (
@@ -159,11 +155,6 @@ const TimelapseBrowser = ({
           Add selected ({selectedCount})
         </button>
       </div>
-      {dates.length > visibleDates.length && (
-        <button type="button" className="tl-browser-btn tl-browser-loadmore tl-browser-btn--auto" onClick={onLoadMore}>
-          Load more ({dates.length - visibleDates.length} remaining)
-        </button>
-      )}
     </>
   )
 
@@ -345,7 +336,7 @@ const TimelapseBrowser = ({
               <p>Failed to load available dates.</p>
               <p className="tl-browser-state-sub">{fetchError}</p>
             </div>
-          ) : visibleDates.length === 0 ? (
+          ) : dates.length === 0 ? (
             <div className="tl-browser-state">
               <p>{fetched ? 'No imagery in this range.' : 'No images loaded yet.'}</p>
               {fetched && (
@@ -366,4 +357,3 @@ const TimelapseBrowser = ({
 }
 
 export default TimelapseBrowser
-export { PREVIEW_PAGE }

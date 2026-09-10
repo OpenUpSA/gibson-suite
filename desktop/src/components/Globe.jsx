@@ -127,7 +127,7 @@ import AddLayerModal from './AddLayerModal'
 import DatePicker from './DatePicker'
 import TimelapsePanel from './TimelapsePanel'
 import TimelapseFramesPanel from './TimelapseFramesPanel'
-import TimelapseBrowser, { PREVIEW_PAGE } from './TimelapseBrowser'
+import TimelapseBrowser from './TimelapseBrowser'
 import TimelapseOverlay from './TimelapseOverlay'
 import ComparePanel from './ComparePanel'
 import CompareOverlay from './CompareOverlay'
@@ -689,7 +689,6 @@ export default function Globe() {
   const [tlEndDate, setTlEndDate] = useState(defaultDate)
   const [tlInterval, setTlInterval] = useState(1)         // days: 1 | 3 | 7 | 30
   const [tlAvailableDates, setTlAvailableDates] = useState([])
-  const [tlPreviewLimit, setTlPreviewLimit] = useState(PREVIEW_PAGE)
   const [tlFrames, setTlFrames] = useState([])            // [{ time, label, delay, caption? }] — delay is seconds (default 2)
   const [tlEditFrameTime, setTlEditFrameTime] = useState(null) // frame.time being edited (caption/delay)
   const [tlStampDates, setTlStampDates] = useState(true)
@@ -1107,7 +1106,6 @@ export default function Globe() {
       const union = [...new Set(perLayer.flat())].sort()
       setTlAvailableDates(union)
       setTlFetched(true)
-      setTlPreviewLimit(PREVIEW_PAGE)
       setTlSelected(new Set())
       // New date range → back to list mode; no previews until confirmed.
       setTlPreviewsConfirmed(false)
@@ -1155,7 +1153,6 @@ export default function Globe() {
   useEffect(() => {
     if (activeTool !== 'timelapse') return
     setTlAvailableDates([])
-    setTlPreviewLimit(PREVIEW_PAGE)
     setTlSelected(new Set())
     setTlPreviewsConfirmed(false)
     setTlPreviewStatus(new Map())
@@ -1474,16 +1471,15 @@ export default function Globe() {
     })
   }, [])
 
-  const handleTlSelectVisible = useCallback(() => {
-    const visible = tlAvailableDates.slice(0, tlPreviewLimit)
-    if (!visible.length) return
+  const handleTlSelectAll = useCallback(() => {
+    if (!tlAvailableDates.length) return
     setTlSelected(prev => {
       const next = new Set(prev)
-      const allSelected = visible.every(d => next.has(d))
-      visible.forEach(d => (allSelected ? next.delete(d) : next.add(d)))
+      const allSelected = tlAvailableDates.every(d => next.has(d))
+      tlAvailableDates.forEach(d => (allSelected ? next.delete(d) : next.add(d)))
       return next
     })
-  }, [tlAvailableDates, tlPreviewLimit])
+  }, [tlAvailableDates])
 
   const handleTlAddSelected = useCallback(() => {
     if (!tlSelected.size) return
@@ -1497,10 +1493,6 @@ export default function Globe() {
     })
     setTlSelected(new Set())
   }, [tlSelected])
-
-  const handleTlLoadMore = useCallback(() => {
-    setTlPreviewLimit(prev => prev + PREVIEW_PAGE)
-  }, [])
 
   const handleTlClearSelection = useCallback(() => {
     setTlSelected(new Set())
@@ -2014,7 +2006,6 @@ export default function Globe() {
                 ...tlReferenceLayers,
               ].map(layer => ({ layer, role: layerSection(layer) }))}
               dates={tlAvailableDates}
-              limit={tlPreviewLimit}
               selected={tlSelected}
               status={tlPreviewStatus}
               coverage={tlCoverage}
@@ -2024,10 +2015,9 @@ export default function Globe() {
               fetched={tlFetched}
               fetchError={tlFetchError}
               onToggleSelect={handleTlToggleSelect}
-              onSelectVisible={handleTlSelectVisible}
+              onSelectAll={handleTlSelectAll}
               onClearSelection={handleTlClearSelection}
               onAddSelected={handleTlAddSelected}
-              onLoadMore={handleTlLoadMore}
               onConfirm={handleTlLoadPreviews}
               onBackToList={handleTlBackToList}
               onFetch={handleTlFetch}

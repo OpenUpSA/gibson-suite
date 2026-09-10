@@ -194,11 +194,6 @@
   height: 18px;
 }
 
-.tl-browser-loadmore {
-  margin: 4px 14px 14px;
-  flex-shrink: 0;
-}
-
 /* ── Phase 1: available-dates list (no downloads) ─────────────────────── */
 
 .tl-browser-progress {
