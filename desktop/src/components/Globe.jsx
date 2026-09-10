@@ -1589,6 +1589,25 @@ export default function Globe() {
     setTlFrames(prev => prev.map(f => (f.time === time ? { ...f, delay: value } : f)))
   }, [])
 
+  // Bulk: copy the selected frame's caption to every frame (template → all).
+  // A frame without a caption clears captions everywhere (bulk remove).
+  const handleTlApplyCaptionToAll = useCallback((time) => {
+    const source = tlFrames.find(f => f.time === time)
+    if (!source) return
+    setTlFrames(prev => prev.map(f =>
+      f.time === time ? f : { ...f, caption: source.caption ? { ...source.caption } : undefined },
+    ))
+  }, [tlFrames])
+
+  // Bulk: copy the selected frame's delay to every frame.
+  const handleTlApplyDelayToAll = useCallback((time) => {
+    const source = tlFrames.find(f => f.time === time)
+    if (!source) return
+    setTlFrames(prev => prev.map(f =>
+      f.time === time ? f : { ...f, delay: source.delay ?? DEFAULT_FRAME_DELAY },
+    ))
+  }, [tlFrames])
+
   const handleTimelapseExport = useCallback(async () => {
     if (!tlRect || tlFrames.length < 2 || tlImageryLayers.length === 0 || tlExporting) return
     setTlExporting(true)
@@ -2046,6 +2065,8 @@ export default function Globe() {
               onSelectFrame={handleTlSelectFrame}
               onCaptionChange={handleTlCaptionChange}
               onFrameDelayChange={handleTlFrameDelayChange}
+              onApplyCaptionToAll={handleTlApplyCaptionToAll}
+              onApplyDelayToAll={handleTlApplyDelayToAll}
               defaultDelay={DEFAULT_FRAME_DELAY}
               stampDates={tlStampDates}
               onStampDatesChange={setTlStampDates}

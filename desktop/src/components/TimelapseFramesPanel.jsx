@@ -16,6 +16,8 @@ const TimelapseFramesPanel = ({
   onSelectFrame,
   onCaptionChange,
   onFrameDelayChange,
+  onApplyCaptionToAll,
+  onApplyDelayToAll,
   defaultDelay,
   stampDates,
   onStampDatesChange,
@@ -245,6 +247,30 @@ const TimelapseFramesPanel = ({
                     </div>
                   </div>
                 )}
+                {/* Bulk: this frame is the template — copy it to every frame,
+                    then tweak individual frames afterwards. */}
+                <div className="timelapse-frame-editor-bulk-row">
+                  <button
+                    type="button"
+                    className="timelapse-bulk-btn"
+                    onClick={() => onApplyCaptionToAll(selectedFrame.time)}
+                    disabled={exporting}
+                    title="Copy this frame's caption to every frame (overwrites existing captions)"
+                  >
+                    <Icon icon="fluent:copy-20-regular" width="14" height="14" />
+                    Apply caption to all
+                  </button>
+                  <button
+                    type="button"
+                    className="timelapse-bulk-btn"
+                    onClick={() => onApplyDelayToAll(selectedFrame.time)}
+                    disabled={exporting}
+                    title="Copy this frame's delay to every frame"
+                  >
+                    <Icon icon="fluent:clock-20-regular" width="14" height="14" />
+                    Apply delay to all
+                  </button>
+                </div>
             </div>
           )}
         </div>
