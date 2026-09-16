@@ -183,6 +183,40 @@ export const getLayerTimeValues = async (layerId) => {
   return jsonValues ? expandValues(jsonValues) : []
 }
 
+// Last available date (YYYY-MM-DD) for a layer — the same fast-path / live-caps
+// fallback as getLayerTimeValues, but without expanding the whole date list.
+// Returns null when the layer's availability is unknown.
+//
+// Used for the Add Layer "no data after …" warning: the static endDate stored in
+// layers.json is only a snapshot taken when that file was generated, so it goes
+// stale as GIBS keeps publishing (e.g. it still said 2026-08-04 weeks later).
+export const getLayerLastDate = async (layerId) => {
+  let jsonValues = null
+  try {
+    const byLayer = await ensureDates()
+    jsonValues = byLayer[layerId]
+  } catch {
+    // JSON fetch failed — fall through to the live caps doc.
+  }
+
+  if (jsonValues && !isStale(jsonValues)) {
+    return lastDateOf(jsonValues)
+  }
+
+  try {
+    const doc = await ensureCapsDoc()
+    const dim = findTimeDimension(doc, layerId)
+    if (dim) {
+      const values = [...dim.querySelectorAll('Value')].map((v) => v.textContent)
+      return lastDateOf(values)
+    }
+  } catch (err) {
+    console.warn('[gibsCaps] caps fallback failed, using static dates:', err)
+  }
+
+  return jsonValues ? lastDateOf(jsonValues) : null
+}
+
 // Dates in [start, end] (inclusive), sub-sampled by intervalDays (1/3/7/30).
 // intervalDays 1 returns every available date; larger intervals pick the first
 // available date in each window of that many days.

@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { Icon } from '@iconify/react'
+import { getLayerLastDate } from '../utils/gibsCaps'
 import './AddLayerModal.css'
 
 // Build the left-side accordion groups from the new categories structure
@@ -132,6 +133,27 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
     }
   }, [activeFilters, filteredGroups])
 
+  // Live availability per layer (id → last date with imagery). Resolved from
+  // the build-refreshed layer-dates JSON (live-caps fallback), NOT from
+  // layers.json's static endDate — that snapshot goes stale between builds and
+  // produced bogus "No data after <old date>" warnings.
+  const [runtimeLast, setRuntimeLast] = useState({})
+  useEffect(() => {
+    if (!open) return undefined
+    let cancelled = false
+    const ids = [...new Set(catalog.map(l => l.id))]
+    Promise.all(ids.map(async id => {
+      try {
+        return [id, await getLayerLastDate(id)]
+      } catch {
+        return [id, null]
+      }
+    })).then(entries => {
+      if (!cancelled) setRuntimeLast(Object.fromEntries(entries))
+    })
+    return () => { cancelled = true }
+  }, [open, catalog])
+
   const hasActiveFilters = Object.keys(activeFilters).length > 0
   const selected = catalog.find(l => l.id === selectedId) || null
   const selectedAdded = selected ? activeSet.has(selected.id) : false
@@ -257,12 +279,15 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
                       // Availability: warn when the current map date falls outside
                       // the layer's GIBS coverage window (so users don't add a
                       // layer that will render empty for their chosen date).
+                      // Prefer the live-resolved last date; fall back to the
+                      // static snapshot when availability is unknown.
+                      const effectiveEnd = runtimeLast[layer.id] || layer.endDate
                       const noDataBefore = layer.startDate && selectedDate && selectedDate < layer.startDate
-                      const noDataAfter = layer.endDate && selectedDate && selectedDate > layer.endDate
+                      const noDataAfter = effectiveEnd && selectedDate && selectedDate > effectiveEnd
                       const availLabel = noDataBefore
                         ? `No data before ${formatDate(layer.startDate)}`
                         : noDataAfter
-                          ? `No data after ${formatDate(layer.endDate)}`
+                          ? `No data after ${formatDate(effectiveEnd)}`
                           : null
                       return (
                       <button
@@ -356,7 +381,7 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
                         { key: 'mission', label: 'Mission', value: selected.metadata.mission, icon: 'fluent:rocket-20-regular' },
                         selected.startDate && { key: 'startDate', label: 'Available From', value: formatDate(selected.startDate), icon: 'fluent:calendar-20-regular' },
                         selected.endDate && { key: 'endDate', label: 'Available To', value: formatDate(selected.endDate), icon: 'fluent:calendar-end-20-regular' },
-                        selected.latestDate && { key: 'latestDate', label: 'Latest', value: formatDate(selected.latestDate), icon: 'fluent:clock-20-regular' },
+                        (runtimeLast[selected.id] || selected.latestDate) && { key: 'latestDate', label: 'Latest', value: formatDate(runtimeLast[selected.id] || selected.latestDate), icon: 'fluent:clock-20-regular' },
                       ].filter(item => item && item.value && item.value !== 'N/A').map(item => (
                         <div key={item.key} className="add-layer-metadata-card">
                           <Icon icon={item.icon} width="16" height="16" className="add-layer-metadata-card-icon" />
