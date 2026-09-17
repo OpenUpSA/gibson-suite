@@ -4,6 +4,28 @@
 // tiles on WMTS, so for those (flagged with `wms: true` in layers.json) we use
 // the WMS endpoint, which rasterises them server-side. MapLibre substitutes
 // the {bbox-epsg-3857} token per tile.
+
+// Pixel size of a WMS tile. WMS renders on demand at whatever size we ask for,
+// so requesting 512px covers the same ground as four 256px tiles in ONE
+// request. GIBS answers tile requests with `cache-control: no-store`, so every
+// avoided request is a CDN round trip (~1s) we don't pay — and MapLibre keeps
+// four times fewer tiles in memory. Single-image callers (timelapse, below)
+// pass their own dimensions and are unaffected.
+export const WMS_TILE_SIZE = 512
+
+// Is this layer served through GIBS WMS rather than the WMTS tile pyramid?
+// Dated imagery is routed this way so newly-processed days render even where
+// the fine WMTS tiles haven't been built yet; some products (fires, flood
+// extent) only exist as WMS. Single source of truth — the map, the quality
+// model and the timelapse all need to agree on which endpoint a layer uses.
+export const usesWms = (layer) => Boolean(
+  layer && (
+    layer.section === 'imagery' ||
+    layer.wms ||
+    /^(VIIRS|MODIS)_Combined_Flood_[123]-Day$/.test(layer.id)
+  )
+)
+
 export const buildTileUrlTemplate = (config, layer, time) => {
   // Dated imagery layers are served via WMS instead of WMTS. GIBS builds the
   // WMTS tile pyramid top-down, so a partially-processed day (or a sparse
@@ -12,14 +34,13 @@ export const buildTileUrlTemplate = (config, layer, time) => {
   // rasterises server-side at any zoom, so the nearest available imagery
   // always loads. (Flood-extent products were already routed this way for the
   // same reason.)
-  const viaWms = layer.section === 'imagery' || layer.wms ||
-    /^(VIIRS|MODIS)_Combined_Flood_[123]-Day$/.test(layer.id)
+  const viaWms = usesWms(layer)
 
   // Custom raster tile template (e.g. OpenStreetMap) — returned verbatim.
   if (layer.tiles) return layer.tiles
   if (viaWms) {
     const fmt = encodeURIComponent(layer.format || 'image/png')
-    return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=${fmt}&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}&TIME=${time}`
+    return `${config.wmsBaseUrl}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${layer.id}&STYLES=&FORMAT=${fmt}&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=${WMS_TILE_SIZE}&HEIGHT=${WMS_TILE_SIZE}&BBOX={bbox-epsg-3857}&TIME=${time}`
   }
   const ext = layer.format?.split('/')[1] === 'jpeg' ? 'jpg' : layer.format?.split('/')[1] || 'png'
   return `${config.wmtsBaseUrl}/${layer.id}/default/${time}/${layer.tileMatrixSet}/{z}/{y}/{x}.${ext}`

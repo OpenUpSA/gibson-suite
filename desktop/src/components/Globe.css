@@ -128,6 +128,41 @@
   overflow: hidden;
 }
 
+/* ── View stack ──────────────────────────────────────────────
+   Single / grid / compare / timelapse all stay mounted once opened and are
+   only hidden when inactive, so each keeps its MapLibre map — WebGL context,
+   sources, decoded tiles and camera — instead of rebuilding (and
+   re-downloading) on every switch.
+
+   Hiding uses visibility, never display:none: a hidden view must keep its
+   real size, otherwise MapLibre shrinks every source's tile cache down to a
+   zero-sized viewport (and any map shown later would have to resize first). */
+.globe-view-stack {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.globe-view-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.globe-view-layer--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Inactive view tabs in the single view are stacked the same way. */
+.globe-single-view--hidden {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* ── Timelapse workbench ─────────────────────────────────── */
 .timelapse-layout {
   flex: 1;

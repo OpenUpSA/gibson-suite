@@ -6,8 +6,7 @@ import './TabbedSidebar.css'
 import DateBox from './DateBox'
 import EditableTabLabel from './EditableTabLabel'
 import PlaceSearch from './PlaceSearch'
-
-const QUALITY_ORDER = ['low', 'medium', 'high']
+import { QUALITY_ORDER, qualitySupport } from '../utils/layerQuality'
 
 const TabbedSidebar = ({
   sections,
@@ -356,6 +355,19 @@ const TabbedSidebar = ({
                                 ))}
                               </div>
                             </div>
+                            {(() => {
+                              const support = qualitySupport(layer)
+                              if (support.mode === 'fixed') {
+                                return <p className="layer-res-hint">{support.detail}</p>
+                              }
+                              return (
+                                <p className="layer-res-hint">
+                                  {support.nativeLevel !== null
+                                    ? `Tiles go up to zoom level ${support.nativeLevel}. Lower presets download fewer, coarser tiles and appear sooner.`
+                                    : 'Lower presets download fewer, coarser tiles and appear sooner.'}
+                                </p>
+                              )
+                            })()}
                             {isImagery && (
                               <div className="layer-setting-row">
                                 <span className="layer-setting-label">Opacity</span>

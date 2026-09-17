@@ -11,6 +11,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Tile host: opening the connection up front saves a TLS handshake on
+         the first imagery request, which is otherwise the critical path. -->
+    <link rel="preconnect" href="https://gibs.earthdata.nasa.gov" crossorigin>
+
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1a1a1a">

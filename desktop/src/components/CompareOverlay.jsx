@@ -12,7 +12,7 @@ import './CompareOverlay.css'
  * locked to the same camera (pan/zoom on one is mirrored to the other); the
  * top map is inert — interaction happens on the bottom map.
  */
-const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition, mode = 'split', splitPos: splitPosProp, onSplitPosChange, onLayerLoadError }) => {
+const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition, mode = 'split', splitPos: splitPosProp, onSplitPosChange, onLayerLoadError, visible = true }) => {
   const [internalSplitPos, setInternalSplitPos] = useState(50)
   const containerRef = useRef(null)
   const mapsRef = useRef([null, null])
@@ -45,12 +45,15 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
   // Always start geographically locked: once both maps are ready, snap both
   // to the SAME camera. The anchor is the active view's position (passed in)
   // so compare opens at the location the user was just looking at; fall back
-  // to the interactive bottom map's camera. Runs once per view pair — the
-  // per-move lockstep effect below keeps them together afterwards.
+  // to the interactive bottom map's camera. The maps are kept alive while the
+  // compare view is hidden (so leaving and returning doesn't reload tiles), so
+  // this also re-runs when compare is reopened — it IS the "opens where you
+  // are looking" behaviour, which a fresh mount used to provide for free.
   const anchorRef = useRef(anchorPosition)
   anchorRef.current = anchorPosition
 
   useEffect(() => {
+    if (!visible) return
     const maps = mapsRef.current
     if (!maps[0] || !maps[1]) return
     const anchor = anchorRef.current || {
@@ -60,7 +63,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
       bearing: maps[1].getBearing()
     }
     maps.forEach(m => m.jumpTo(anchor))
-  }, [readyCount, tabA?.id, tabB?.id])
+  }, [readyCount, tabA?.id, tabB?.id, visible])
 
   // Keep both cameras in lockstep while either map moves (pan, zoom, rotate).
   useEffect(() => {
@@ -171,6 +174,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
           layerCatalog={layerCatalog}
           wmtsBaseUrl={wmtsBaseUrl}
           mapSettings={mapSettings}
+          followCamera={false}
           onMapReady={handleMapReady(1)}
           onMapPositionChange={onMapPositionChange ? onMapPositionChange(1) : undefined}
           onLayerLoadError={(layerId, failedDate, displayedDate, message) => onLayerLoadError?.(1, layerId, failedDate, displayedDate, message)}
@@ -189,6 +193,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
           layerCatalog={layerCatalog}
           wmtsBaseUrl={wmtsBaseUrl}
           mapSettings={mapSettings}
+          followCamera={false}
           onMapReady={handleMapReady(0)}
           onMapPositionChange={onMapPositionChange ? onMapPositionChange(0) : undefined}
           onLayerLoadError={(layerId, failedDate, displayedDate, message) => onLayerLoadError?.(0, layerId, failedDate, displayedDate, message)}

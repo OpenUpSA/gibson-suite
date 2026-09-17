@@ -143,6 +143,14 @@ import { renderTimelapseGif, GIF_MAX_WIDTH } from '../utils/timelapseGif'
 import { probeHasData, runPool } from '../utils/timelapseProbe'
 import { serializeProject, deserializeProject, downloadProjectFile } from '../utils/projectFile'
 import { layerNamesForTab } from '../utils/layerNames'
+import {
+  effectiveQuality,
+  maxzoomFor,
+  planStartMaxzoom,
+  tileSizeFor,
+  tileZoomFor,
+  zoomBeyondTileCap
+} from '../utils/layerQuality'
 
 // Layer catalogue — everything the user can add to the map, grouped by section
 // in layers.json: sections.base / sections.imagery / sections.reference.
@@ -188,15 +196,6 @@ const addDaysIso = (iso, days) => {
 // Base imagery is dated (yesterday). Static reference overlays use GIBS's
 // literal 'default' time keyword, so they are date-independent.
 const layerTime = (layer, date) => (layerSection(layer) === 'reference' ? 'default' : (date || defaultDate))
-
-// Per-layer resolution presets — caps the finest zoom level of tiles requested.
-// The base layer is native at Level9; lower qualities let coarser tiles
-// upscale so fewer/harder-to-fetch tiles load (snappier, blurrier zoom-in).
-const QUALITY_MAXZOOM = {
-  high: 9, // Level9 — native resolution
-  medium: 8,
-  low: 7
-}
 
 // Default view framed on the whole of Africa.
 const INITIAL_CENTER = [17, 5] // [lng, lat]
@@ -253,8 +252,12 @@ const initialBySection = {
 // Per-layer settings. Only imagery layers have adjustable opacity — base is
 // fixed at 1, reference at 0.9, and neither exposes an opacity control.
 // Default opacity: base 1, imagery 1, reference 0.9.
+// Default quality: imagery starts at the lightest preset; base and reference
+// layers are static (their tiles never change with the date) and render at
+// full detail instead — at the low cap the coastlines and graticule went
+// visibly soft as soon as you zoomed in.
 const DEFAULT_SETTINGS = (layer) => ({
-  quality: 'low',
+  quality: layerSection(layer) === 'imagery' ? 'low' : 'high',
   opacity: layerSection(layer) === 'imagery' ? 1 : (layerSection(layer) === 'base' ? 1 : 0.9)
 })
 const initialSettings = Object.fromEntries(
@@ -265,10 +268,13 @@ const initialSettings = Object.fromEntries(
 // rebuild maps from an encoded URL payload without duplicating config.
 export { layerById, layerCatalog, wmtsBaseUrl, mapSettings, DEFAULT_SETTINGS }
 
-const rasterSource = (tiles, maxzoom, layer) => ({
+// Raster source spec for a layer's tiles. `tileSize` must match the pixel size
+// the endpoint returns (see tileSizeFor) — MapLibre uses it to work out which
+// tile levels to request, so a mismatch shifts every level.
+const rasterSource = (tiles, maxzoom, layer, tileSize) => ({
   type: 'raster',
   tiles,
-  tileSize: 256,
+  tileSize,
   minzoom: 0,
   maxzoom,
   attribution: layer?.attribution || 'NASA GIBS',
@@ -285,18 +291,42 @@ const rasterSource = (tiles, maxzoom, layer) => ({
 // that both setPaintProperty calls fire — no black frames.
 
 // MapInstance component - renders a single map pane for a tab
-export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, selectionMode, selectionRect, onSelectionChange, onLayerLoadError }) {
+export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapGone, onMapPositionChange, followCamera = true, selectionMode, selectionRect, onSelectionChange, onLayerLoadError }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerSrcMapRef = useRef({})
   const transitionsRef = useRef({})
+  // Deepest tile cap the current settings ask for, per layer — used to decide
+  // whether a finished pass should refine further.
+  const wantedMaxzoomRef = useRef({})
   const crossfadeCounterRef = useRef(0)
+  // Last camera this map reported upwards. The tab's stored position is shared
+  // between panes (single view + a grid cell + the compare tool can all show
+  // the same tab), so a stored position that differs from this means someone
+  // else moved — we follow it instead of fighting it.
+  const reportedPositionRef = useRef(null)
   const prevDateRef = useRef(tab.date)
   const [mapReady, setMapReady] = useState(false)
+  // Bumped when zooming in out-resolves the tiles we loaded, so the layer sync
+  // effect re-runs and refines the cap.
+  const [zoomTick, setZoomTick] = useState(0)
   // Layer ids currently crossfading to new tiles — drives the loading spinner.
   const [loadingLayers, setLoadingLayers] = useState(() => new Set())
   // { layerId, date } when a layer failed to load — drives the error pill.
   const [loadError, setLoadError] = useState(null)
+
+  // Map panes are now long-lived and reused across views, so every callback is
+  // read through a ref: the mount effect's closure would otherwise keep calling
+  // whatever was passed on the very first render (e.g. the tab that was active
+  // back then, or a map registry key that has since changed).
+  const onMapReadyRef = useRef(onMapReady)
+  const onMapGoneRef = useRef(onMapGone)
+  const onPositionChangeRef = useRef(onMapPositionChange)
+  const onLayerLoadErrorRef = useRef(onLayerLoadError)
+  onMapReadyRef.current = onMapReady
+  onMapGoneRef.current = onMapGone
+  onPositionChangeRef.current = onMapPositionChange
+  onLayerLoadErrorRef.current = onLayerLoadError
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -324,20 +354,34 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
     map.on('load', () => {
       mapRef.current = map
       setMapReady(true)
-      onMapReady?.(map)
+      onMapReadyRef.current?.(map)
 
-      // Listen for map position changes (move and zoom)
+      // Report the camera once the gesture settles. Listening to 'move' would
+      // call back on every frame of a pan/zoom (a React state write per frame,
+      // which is what made dragging feel sluggish); 'moveend' fires for pans,
+      // zooms, rotations and programmatic jumps alike.
       const handleMapChange = () => {
         const center = map.getCenter()
-        const zoom = map.getZoom()
-        onMapPositionChange?.({
-          center: [center.lng, center.lat],
-          zoom: zoom
-        })
+        const position = { center: [center.lng, center.lat], zoom: map.getZoom() }
+        reportedPositionRef.current = position
+        onPositionChangeRef.current?.(position)
       }
 
-      map.on('move', handleMapChange)
-      map.on('zoom', handleMapChange)
+      map.on('moveend', handleMapChange)
+
+      // Zooming in past what the loaded tiles can resolve means the cap is now
+      // costing detail — nudge the sync effect so it refines then, rather than
+      // re-downloading everything up front on an upgrade that buys nothing.
+      map.on('zoomend', () => {
+        const mapZoom = map.getZoom()
+        for (const src of Object.values(layerSrcMapRef.current)) {
+          if (src.maxzoom == null || !src.tileSize) continue
+          if (tileZoomFor(mapZoom, src.tileSize) > src.maxzoom) {
+            setZoomTick(t => t + 1)
+            return
+          }
+        }
+      })
     })
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
@@ -346,10 +390,42 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       // Cancel any in-flight crossfades before tearing the map down.
       Object.values(transitionsRef.current).forEach(t => t?.cleanup())
       transitionsRef.current = {}
+      onMapGoneRef.current?.(map)
       map.remove()
       mapRef.current = null
     }
   }, [])
+
+  // Follow camera changes that came from OUTSIDE this pane (the compare tool's
+  // lockstep, a project load, or another pane showing the same view). Panes are
+  // long-lived now, so without this a map would keep the camera it had when it
+  // was last shown instead of the position the view actually holds.
+  // Only panes that are actually on screen follow: a hidden view must not pull
+  // other views around, which is exactly what happened when the compare tool's
+  // two locked maps relayed the active view's camera into the other view's
+  // stored position.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || !followCamera) return
+    const pos = tab.mapPosition
+    if (!pos?.center || pos.zoom === undefined) return
+    const reported = reportedPositionRef.current
+    if (reported) {
+      const sameAsReported =
+        reported.center[0] === pos.center[0] &&
+        reported.center[1] === pos.center[1] &&
+        reported.zoom === pos.zoom
+      if (sameAsReported) return
+    }
+    const current = map.getCenter()
+    const alreadyThere =
+      Math.abs(current.lng - pos.center[0]) < 1e-9 &&
+      Math.abs(current.lat - pos.center[1]) < 1e-9 &&
+      Math.abs(map.getZoom() - pos.zoom) < 1e-9
+    if (alreadyThere) return
+    map.jumpTo({ center: pos.center, zoom: pos.zoom })
+    reportedPositionRef.current = { center: [pos.center[0], pos.center[1]], zoom: pos.zoom }
+  }, [tab.mapPosition, mapReady, followCamera])
 
   // Place layers in stacking order (reverse because index 0 = top in our model).
   // Layers with an in-flight crossfade are skipped — their new layer is already
@@ -375,12 +451,22 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
   //   4. Remove the old layer after its fade-out completes.
   // The old layer stays visible the whole time, so the map never blanks out
   // and tiles never appear "block by block".
-  const crossfadeLayer = (map, layerId, layer, oldSrcId, settings, targetOpacity) => {
+  //
+  // `opts`:
+  //   maxzoom — tile cap for THIS pass (a source's maxzoom is fixed at
+  //             creation, so a different cap needs a new source).
+  //   silent  — a refinement pass: no spinner, no coverage re-check and no
+  //             error pill. It runs on top of an image that is already on
+  //             screen, so a failure just leaves the previous pass visible.
+  const crossfadeLayer = (map, layerId, layer, oldSrcId, settings, targetOpacity, opts = {}) => {
+    const { silent = false } = opts
+    const maxzoom = opts.maxzoom ?? maxzoomFor(layer, effectiveQuality(layer, settings, layerSection(layer)))
+
     // Cancel any in-flight transition for this layer (e.g. rapid date changes).
     transitionsRef.current[layerId]?.cleanup()
     // A retry supersedes any previous failure for this layer.
     setLoadError(prev => (prev && prev.layerId === layerId ? null : prev))
-    setLoadingLayers(prev => new Set(prev).add(layerId))
+    if (!silent) setLoadingLayers(prev => new Set(prev).add(layerId))
 
     let settled = false
     let newSrcId = null
@@ -417,9 +503,10 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       if (settled) return
       removePending()
       finish()
+      if (silent) return // refinement failure — the previous pass is still fine
       setLoadError({ layerId, date: tab.date, message })
       if (oldSrcId) {
-        onLayerLoadError?.(layerId, tab.date, layerSrcMapRef.current[layerId]?.date, message)
+        onLayerLoadErrorRef.current?.(layerId, tab.date, layerSrcMapRef.current[layerId]?.date, message)
       }
     }
 
@@ -446,7 +533,10 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
     // the date. GIBS answers missing dates with 404s that MapLibre silently
     // swallows (no error event, source never reports loaded), so without this
     // the user would stare at the spinner until the safety timeout.
-    layerHasDate(layer, tab.date).then((covered) => {
+    // A refinement pass skips it: this image is already on screen, so the date
+    // is known to be covered and the check would only delay the sharper tiles.
+    const coverageCheck = silent ? Promise.resolve(true) : layerHasDate(layer, tab.date)
+    coverageCheck.then((covered) => {
       if (settled) return
       if (!covered) {
         fail(`No imagery available for ${tab.date}`)
@@ -455,12 +545,8 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
 
       newSrcId = `layer-${layerId}-${Date.now()}-${++crossfadeCounterRef.current}`
       const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
-      // Custom tile templates (e.g. OpenStreetMap) are served at full zoom — the
-      // GIBS quality preset doesn't apply to them. WMS layers (fires, etc.) are
-      // rasterised server-side at any zoom, so don't cap them either.
-      const maxzoom = layer.tiles ? 19 : (layer.wms ? 12 : QUALITY_MAXZOOM[settings.quality])
 
-      map.addSource(newSrcId, rasterSource([url], maxzoom, layer))
+      map.addSource(newSrcId, rasterSource([url], maxzoom, layer, tileSizeFor(layer)))
       map.addLayer({
         id: newSrcId,
         type: 'raster',
@@ -491,7 +577,12 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
             map.setPaintProperty(oldSrcId, 'raster-opacity', 0)
           } catch (_) {}
         }
-        layerSrcMapRef.current[layerId] = { srcId: newSrcId, date: layerTime(layer, tab.date) }
+        layerSrcMapRef.current[layerId] = {
+          srcId: newSrcId,
+          date: layerTime(layer, tab.date),
+          maxzoom,
+          tileSize: tileSizeFor(layer)
+        }
         // Remove the old layer after its fade-out completes.
         setTimeout(() => {
           try {
@@ -503,6 +594,20 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         // Place the new layer in its correct stacking position now that the
         // transition entry is gone (it was kept on top during the crossfade).
         reorderLayers(map, flattenActive(tab.activeBySection))
+
+        // Refine: if this pass was deliberately coarse and the settings (or a
+        // change made while we were loading) still ask for deeper tiles that
+        // this zoom level can actually show, fetch them on top. The coarse
+        // image stays visible meanwhile, so this reads as sharpening rather
+        // than loading. Skipped when the deeper tiles would be identical to
+        // the ones we just got, so nothing is ever downloaded twice.
+        const wanted = wantedMaxzoomRef.current[layerId] ?? maxzoom
+        if (wanted > maxzoom && zoomBeyondTileCap(map.getZoom(), maxzoom, tileSizeFor(layer)) && map.getLayer(newSrcId)) {
+          crossfadeLayer(map, layerId, layer, newSrcId, settings, opacity, {
+            maxzoom: wanted,
+            silent: true
+          })
+        }
       }
 
       onData = (e) => {
@@ -578,13 +683,22 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       const settings = tab.layerSettings[layerId] ?? { quality: 'low', opacity: 1 }
       const isHidden = tab.hiddenLayers.has(layerId)
       const targetOpacity = isHidden ? 0 : settings.opacity
+      const section = layerSection(layer)
+      const wantedMaxzoom = maxzoomFor(layer, effectiveQuality(layer, settings, section))
+      // Remember what the settings ask for, so a pass that lands later can tell
+      // whether refining further is worth another fetch.
+      wantedMaxzoomRef.current[layerId] = wantedMaxzoom
 
       if (!src || !map.getSource(srcId)) {
         // New layer — add it invisible and fade in once its tiles are ready.
         // Skip if it already failed for the current date (the error pill is
         // showing; a retry happens on the next date change or pill dismiss).
         if (!(loadError && loadError.layerId === layerId && loadError.date === tab.date)) {
-          crossfadeLayer(map, layerId, layer, null, settings, targetOpacity)
+          // Deep views start coarse and sharpen (see planStartMaxzoom) — a
+          // shallow view goes straight to the wanted cap, so no tile is ever
+          // fetched twice.
+          const startMaxzoom = planStartMaxzoom(layer, wantedMaxzoom, map.getZoom())
+          crossfadeLayer(map, layerId, layer, null, settings, targetOpacity, { maxzoom: startMaxzoom })
         }
       } else if (map.getLayer(srcId)) {
         // Layer exists — update opacity (skip while a crossfade is in flight;
@@ -600,18 +714,36 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         // overlays are date-independent ('default' time), so skip them. Also
         // skip when the displayed source already matches the date (e.g. the
         // parent reverted the date after a load failure).
-        if (dateChanged && layerSection(layer) !== 'reference' && src.date !== tab.date) {
-          crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity)
+        const dateOutOfSync = dateChanged && section !== 'reference' && src.date !== tab.date
+
+        // Resolution changed in the sidebar, or zooming in has out-resolved
+        // what we loaded: a source's maxzoom is fixed at creation, so picking
+        // up more detail means building a new one. The crossfade keeps the
+        // current image on screen throughout, and we only refine when deeper
+        // tiles genuinely buy detail at this zoom.
+        const needsSharper =
+          src.maxzoom != null &&
+          wantedMaxzoom > src.maxzoom &&
+          zoomBeyondTileCap(map.getZoom(), src.maxzoom, src.tileSize)
+
+        if (dateOutOfSync) {
+          const startMaxzoom = planStartMaxzoom(layer, wantedMaxzoom, map.getZoom())
+          crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity, { maxzoom: startMaxzoom })
+        } else if (needsSharper && !transitionsRef.current[layerId]) {
+          crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity, {
+            maxzoom: wantedMaxzoom,
+            silent: true
+          })
         }
       }
     }
 
     // Reorder layers to match active order (reverse because 0 = top in our model)
     reorderLayers(map, activeLayers)
-  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, loadError, mapReady, layerById, wmtsBaseUrl, wmsBaseUrl])
+  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, loadError, mapReady, zoomTick, layerById, wmtsBaseUrl, wmsBaseUrl])
 
   return (
-    <div ref={containerRef} className="globe-map" data-tour="map">
+    <div ref={containerRef} className="globe-map">
       {selectionMode && mapReady && (
         <TimelapseOverlay map={mapRef.current} rectangle={selectionRect} onChange={onSelectionChange} />
       )}
@@ -738,6 +870,37 @@ export default function Globe() {
   // Toast shown when a layer fails to load for a date (the date is reverted).
   const [loadErrorToast, setLoadErrorToast] = useState(null)
 
+  // ── View keep-alive ────────────────────────────────────────────────
+  // Every view (single / grid / compare / timelapse) stays mounted once it has
+  // been opened, and is merely hidden when it isn't the active one. Unmounting
+  // a view destroys its MapLibre map — WebGL context, sources, decoded tiles
+  // and camera included — so switching tabs used to re-download the lot. The
+  // hidden layers keep their full size (visibility, never display:none) so the
+  // maps neither resize nor shrink their tile caches while hidden.
+  const [mountedViews, setMountedViews] = useState({
+    single: true, grid: false, compare: false, timelapse: false
+  })
+  const showView = useCallback((view) => {
+    setMountedViews(prev => (prev[view] ? prev : { ...prev, [view]: true }))
+  }, [])
+
+  // Single view keeps one live map PER VIEW TAB (most recently used first), so
+  // switching views is instant and each view keeps its own camera. Capped so a
+  // long session with many tabs can't exhaust the browser's WebGL contexts —
+  // MapLibre survives context loss, but only by rebuilding from scratch.
+  const MAX_KEPT_TAB_MAPS = 4
+  const [keptTabIds, setKeptTabIds] = useState(() => [activeTabId])
+  useEffect(() => {
+    setKeptTabIds(prev => {
+      const alive = prev.filter(id => tabs.some(t => t.id === id))
+      const list = alive.includes(activeTabId) ? alive : [activeTabId, ...alive]
+      const next = list.slice(0, MAX_KEPT_TAB_MAPS)
+      // Same contents → return the old reference so React can skip the render.
+      if (next.length === prev.length && next.every((id, i) => id === prev[i])) return prev
+      return next
+    })
+  }, [activeTabId, tabs])
+
   // ── Pane resize state ──────────────────────────────────────────────
   const [paneSizes, setPaneSizes] = useState(() => equalPaneSizes(tabs.length))
   const [isResizing, setIsResizing] = useState(false)
@@ -779,7 +942,10 @@ export default function Globe() {
   // distorted on-screen box otherwise causes the exported image to stretch (see handleExportGrid).
   useEffect(() => {
     const wrap = gridViewWrapRef.current
-    if (!wrap || !gridViewActive) return
+    // No gridViewActive gate: the grid stays mounted (hidden) once opened, and
+    // it keeps its real size while hidden, so the letterbox scale can be kept
+    // correct continuously instead of only while the view is on screen.
+    if (!wrap) return
     const computeScale = () => {
       const availW = wrap.clientWidth
       const availH = wrap.clientHeight
@@ -790,7 +956,7 @@ export default function Globe() {
     const observer = new ResizeObserver(computeScale)
     observer.observe(wrap)
     return () => observer.disconnect()
-  }, [gridViewActive, gridConfig.width, gridConfig.height])
+  }, [mountedViews.grid, gridConfig.width, gridConfig.height])
 
   // Auto-assign first tab to cell 0 when grid has no cells
   useEffect(() => {
@@ -916,9 +1082,12 @@ export default function Globe() {
     ))
   }, [activeTabId])
 
-  const handleMapPositionChange = useCallback((newPosition) => {
-    updateActiveTab({ mapPosition: newPosition })
-  }, [updateActiveTab])
+  // Camera writes go to the tab the pane belongs to — in grid view the old
+  // handler wrote every cell's camera into whichever view happened to be
+  // active in the sidebar.
+  const handleTabMapPositionChange = useCallback((tabId, newPosition) => {
+    setTabs(prev => prev.map(tab => (tab.id === tabId ? { ...tab, mapPosition: newPosition } : tab)))
+  }, [])
 
   const handleTabDateChange = useCallback((newDate) => {
     updateActiveTab({ date: newDate })
@@ -1397,22 +1566,46 @@ export default function Globe() {
     handleCaptionChange(cellIndex, 'visible', !current.visible)
   }, [gridConfig, tabs, layerById, handleCaptionChange])
 
-  // ── Map instance tracking for export ──────────────────────────────────
-  const mapInstancesRef = useRef({}) // { tabId: mapInstance }
+  // ── Map instance tracking ─────────────────────────────────────────────
+  // Now that panes outlive view switches and several panes can show the same
+  // tab (single view + a grid cell), live maps are keyed by SCOPE as well as
+  // tab, so one can't silently overwrite another's entry.
+  const mapInstancesRef = useRef({}) // { scopeKey: mapInstance }
 
-  const trackMapInstance = useCallback((tabId, map) => {
-    if (map) mapInstancesRef.current[tabId] = map
+  const scopedKey = {
+    single: (tabId) => `single:${tabId}`,
+    grid: (tabId) => `grid:${tabId}`,
+    compare: (index) => `compare:${index}`,
+    timelapse: 'timelapse'
+  }
+
+  const trackMapInstance = useCallback((key, map) => {
+    if (map) mapInstancesRef.current[key] = map
   }, [])
 
-  // Fly the active view's map to a searched place (Nominatim result).
+  const untrackMapInstance = useCallback((key) => {
+    delete mapInstancesRef.current[key]
+  }, [])
+
+  // The map the user is currently looking at — used by place search, which
+  // should drive whatever is on screen rather than a hidden pane.
+  const visibleMapInstance = useCallback((tabId) => {
+    const registry = mapInstancesRef.current
+    if (gridViewActive) return registry[scopedKey.grid(tabId)] || null
+    if (activeTool === 'timelapse') return registry[scopedKey.timelapse] || null
+    if (compareViewActive) return registry[scopedKey.compare(1)] || registry[scopedKey.compare(0)] || null
+    return registry[scopedKey.single(tabId)] || null
+  }, [gridViewActive, activeTool, compareViewActive])
+
+  // Fly the visible map to a searched place (Nominatim result).
   const handleSearchSelect = useCallback((lat, lon) => {
-    const map = mapInstancesRef.current[activeTabId]
+    const map = visibleMapInstance(activeTabId)
     if (map) map.flyTo({ center: [lon, lat], zoom: 12 })
-  }, [activeTabId])
+  }, [activeTabId, visibleMapInstance])
 
   // ── Timelapse tool handlers ─────────────────────────────────────────
   const handleTlApplyPreset = useCallback((ratio) => {
-    const map = mapInstancesRef.current.timelapse
+    const map = mapInstancesRef.current[scopedKey.timelapse]
     if (!map) return
     const canvas = map.getCanvas()
     const w = canvas.clientWidth
@@ -1436,7 +1629,7 @@ export default function Globe() {
   }, [])
 
   const handleTlResetRect = useCallback(() => {
-    const map = mapInstancesRef.current.timelapse
+    const map = mapInstancesRef.current[scopedKey.timelapse]
     if (!map) return
     const canvas = map.getCanvas()
     const w = canvas.clientWidth
@@ -1715,7 +1908,7 @@ export default function Globe() {
   }
 
   const handleExportTab = useCallback((tabId) => {
-    const map = mapInstancesRef.current[tabId]
+    const map = mapInstancesRef.current[scopedKey.single(tabId)] || visibleMapInstance(tabId)
     if (!map) return
     const tab = tabs.find(t => t.id === tabId)
     const srcCanvas = map.getCanvas()
@@ -1771,7 +1964,7 @@ export default function Globe() {
 
     const drawOps = []
     Object.entries(cells).forEach(([cellIndex, cellData]) => {
-      const map = mapInstancesRef.current[cellData.tabId]
+      const map = mapInstancesRef.current[scopedKey.grid(cellData.tabId)] || visibleMapInstance(cellData.tabId)
       if (!map) return
       const cellEl = containerEl.querySelector(`[data-cell-index="${cellIndex}"]`)
       if (!cellEl) return // not currently placed in the grid
@@ -1971,10 +2164,29 @@ export default function Globe() {
     resizeIndexRef.current = index
   }, [])
 
+  // Which view is on screen. Each keeps running (hidden) once opened — see
+  // mountedViews — so a switch is a visibility toggle, not a teardown.
+  const timelapseVisible = activeTool === 'timelapse' && Boolean(tlTab)
+  const compareVisible = compareViewActive && Boolean(compareTabA) && Boolean(compareTabB)
+  const gridVisible = !timelapseVisible && !compareVisible && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0
+  const singleVisible = !timelapseVisible && !compareVisible && !gridViewActive && Boolean(activeTab)
+
+  useEffect(() => {
+    if (timelapseVisible) showView('timelapse')
+    if (compareVisible) showView('compare')
+    if (gridVisible) showView('grid')
+    if (singleVisible) showView('single')
+  }, [timelapseVisible, compareVisible, gridVisible, singleVisible, showView])
+
+  // Views kept alive in the single view's pane stack (active first).
+  const keptTabs = keptTabIds.map(id => tabs.find(t => t.id === id)).filter(Boolean)
+
   return (
     <div className="globe-root">
+      <div className="globe-view-stack" data-tour="map">
       {/* Timelapse workbench — crop box on the map + image browser */}
-      {activeTool === 'timelapse' && tlTab && (
+      <div className={`globe-view-layer${timelapseVisible ? '' : ' globe-view-layer--hidden'}`}>
+      {mountedViews.timelapse && (
         <div className="timelapse-layout">
           <TimelapsePanel
             tabs={tabs}
@@ -2032,12 +2244,12 @@ export default function Globe() {
                 wmtsBaseUrl={wmtsBaseUrl}
                 mapSettings={mapSettings}
                 onMapReady={(map) => {
-                  trackMapInstance('timelapse', map)
+                  trackMapInstance(scopedKey.timelapse, map)
                   seedTlRectIfNeeded(map)
                 }}
-                onMapPositionChange={(pos) => {
-                  setTabs(prev => prev.map(t => (t.id === tlTab.id ? { ...t, mapPosition: pos } : t)))
-                }}
+                onMapGone={() => untrackMapInstance(scopedKey.timelapse)}
+                onMapPositionChange={(pos) => handleTabMapPositionChange(tlTab.id, pos)}
+                followCamera={timelapseVisible}
                 onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tlTab.id, failedDate, displayedDate, message)}
                 selectionMode
                 selectionRect={tlRect}
@@ -2067,9 +2279,11 @@ export default function Globe() {
           </div>
         </div>
       )}
+      </div>
 
       {/* Compare workbench — two views overlaid with a draggable slider */}
-      {compareViewActive && compareTabA && compareTabB && (
+      <div className={`globe-view-layer${compareVisible ? '' : ' globe-view-layer--hidden'}`}>
+      {mountedViews.compare && (
         <div className="compare-layout">
           {activeTool === 'compare' && (
           <ComparePanel
@@ -2109,7 +2323,8 @@ export default function Globe() {
               splitPos={compareSplitPos}
               onSplitPosChange={setCompareSplitPos}
               anchorPosition={activeTab?.mapPosition}
-              onMapReady={(index, map) => trackMapInstance(index === 0 ? compareTabA.id : compareTabB.id, map)}
+              visible={compareVisible}
+              onMapReady={(index, map) => trackMapInstance(scopedKey.compare(index), map)}
               onMapPositionChange={handleCompareMapPositionChange}
               onLayerLoadError={(index, layerId, failedDate, displayedDate, message) =>
                 handleCompareLayerLoadError(
@@ -2124,9 +2339,11 @@ export default function Globe() {
           </div>
         </div>
       )}
+      </div>
 
-      {/* Main view — grid layout or single active tab */}
-      {activeTool !== 'timelapse' && !compareViewActive && gridViewActive && gridConfig.rows > 0 && gridConfig.cols > 0 && (
+      {/* Main view — grid layout */}
+      <div className={`globe-view-layer${gridVisible ? '' : ' globe-view-layer--hidden'}`}>
+      {mountedViews.grid && (
         <div className="globe-grid-view" ref={gridViewWrapRef}>
           <div className="globe-grid-container" ref={gridContainerRef} style={{
             display: 'grid',
@@ -2176,8 +2393,10 @@ export default function Globe() {
                       layerCatalog={layerCatalog}
                       wmtsBaseUrl={wmtsBaseUrl}
                       mapSettings={mapSettings}
-                      onMapReady={(map) => trackMapInstance(tab.id, map)}
-                      onMapPositionChange={handleMapPositionChange}
+                      onMapReady={(map) => trackMapInstance(scopedKey.grid(tab.id), map)}
+                      onMapGone={() => untrackMapInstance(scopedKey.grid(tab.id))}
+                      onMapPositionChange={(pos) => handleTabMapPositionChange(tab.id, pos)}
+                      followCamera={gridVisible}
                       onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, failedDate, displayedDate, message)}
                     />
                   ) : (
@@ -2225,6 +2444,7 @@ export default function Globe() {
           </div>
         </div>
       )}
+      </div>
 
       {/* Grid-cell assign-view flyout portal — rendered outside overflow containers */}
       {gridCellFlyout !== null && gridFlyoutPos && createPortal(
@@ -2256,21 +2476,29 @@ export default function Globe() {
         document.body
       )}
 
-      {/* Single view */}
-      {activeTool !== 'timelapse' && !compareViewActive && !gridViewActive && activeTab && (
-        <div className="globe-single-view" data-tour="map-single">
+      {/* Single view — one live map per view tab (most recent first) */}
+      <div className={`globe-view-layer${singleVisible ? '' : ' globe-view-layer--hidden'}`}>
+      {mountedViews.single && keptTabs.map(tab => (
+        <div
+          key={tab.id}
+          className={`globe-single-view${tab.id === activeTabId ? '' : ' globe-single-view--hidden'}`}
+        >
           <MapInstance
-            tab={activeTab}
+            tab={tab}
             layerById={layerById}
             layerCatalog={layerCatalog}
             wmtsBaseUrl={wmtsBaseUrl}
             mapSettings={mapSettings}
-            onMapReady={(map) => trackMapInstance(activeTab.id, map)}
-            onMapPositionChange={handleMapPositionChange}
-            onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(activeTab.id, failedDate, displayedDate, message)}
+            onMapReady={(map) => trackMapInstance(scopedKey.single(tab.id), map)}
+            onMapGone={() => untrackMapInstance(scopedKey.single(tab.id))}
+            onMapPositionChange={(pos) => handleTabMapPositionChange(tab.id, pos)}
+            followCamera={singleVisible && tab.id === activeTabId}
+            onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, failedDate, displayedDate, message)}
           />
         </div>
-      )}
+      ))}
+      </div>
+      </div>
 
       <SideToolbar
         activeTool={activeTool}

@@ -409,6 +409,16 @@
   color: #4FC3D9;
 }
 
+/* Explains what the Resolution presets actually do for this layer — some
+   products have no levels to pick from, others cap out below "high". */
+.layer-res-hint {
+  margin: 0;
+  padding-left: 76px;
+  font-size: 10px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 .layer-opacity {
   flex: 1;
   min-width: 0;

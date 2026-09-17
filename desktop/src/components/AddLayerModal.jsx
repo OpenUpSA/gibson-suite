@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { Icon } from '@iconify/react'
 import { getLayerLastDate } from '../utils/gibsCaps'
+import { qualitySupport } from '../utils/layerQuality'
 import './AddLayerModal.css'
 
 // Build the left-side accordion groups from the new categories structure
@@ -84,6 +85,8 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
   const [activeFilters, setActiveFilters] = useState({})
   const [expandedFilters, setExpandedFilters] = useState(new Set())
   const [filtersOpen, setFiltersOpen] = useState(false)
+  // "About this layer" accordion in the details pane
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   // Expand/collapse a category's layer list (chevron click)
   const toggleGroup = useCallback((key) => {
@@ -99,6 +102,7 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
   const handleCatInfo = useCallback((key) => {
     setSelectedCatKey(prev => prev === key ? null : key)
     setSelectedId(null)
+    setAboutOpen(false)
   }, [])
 
   const toggleFilterValue = useCallback((field, value) => {
@@ -294,7 +298,7 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
                         key={layer.id}
                         type="button"
                         className={`add-layer-item${selectedId === layer.id ? ' selected' : ''}${activeSet.has(layer.id) ? ' added' : ''}`}
-                        onClick={() => { setSelectedId(layer.id); setSelectedCatKey(null) }}
+                        onClick={() => { setSelectedId(layer.id); setSelectedCatKey(null); setAboutOpen(false) }}
                       >
                         <span className="add-layer-item-name">
                           <span className="add-layer-item-title">{layer.name}</span>
@@ -359,45 +363,178 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
                   </div>
                 )}
 
+                {/* Example image */}
+                {selected.preview && (
+                  <div className="add-layer-preview">
+                    <img src={selected.preview} alt={`${selected.name} example`} loading="lazy" />
+                  </div>
+                )}
+
+                {/* One-sentence intro */}
                 {selected.description && (
-                  <div className="add-layer-detail-block">
-                    <div className="add-layer-detail-html add-layer-detail-intro" dangerouslySetInnerHTML={{ __html: selected.description }} />
-                  </div>
+                  <p className="add-layer-intro">{selected.description}</p>
                 )}
 
-                {selected.metadata && (
-                  <div className="add-layer-detail-block">
-                    <div className="add-layer-metadata-cards">
-                      {[
-                        { key: 'satellite', label: 'Satellite', value: selected.metadata.satellite, icon: 'fluent:globe-20-regular' },
-                        { key: 'sensors', label: 'Sensor', value: selected.metadata.sensors, icon: 'fluent:eye-20-regular' },
-                        { key: 'spatialResolution', label: 'Resolution', value: selected.metadata.spatialResolution, icon: 'fluent:zoom-in-20-regular' },
-                        { key: 'spatialCoverage', label: 'Coverage', value: selected.metadata.spatialCoverage, icon: 'fluent:map-20-regular' },
-                        { key: 'temporalResolution', label: 'Frequency', value: selected.metadata.temporalResolution, icon: 'fluent:clock-20-regular' },
-                        { key: 'energySource', label: 'Energy', value: selected.metadata.energySource, icon: 'fluent:lightbulb-20-regular' },
-                        { key: 'spectralRange', label: 'Spectral', value: selected.metadata.spectralRange, icon: 'fluent:paint-brush-20-regular' },
-                        { key: 'spectralResolution', label: 'Bands', value: selected.metadata.spectralResolution, icon: 'fluent:options-20-regular' },
-                        { key: 'orbit', label: 'Orbit', value: selected.metadata.orbit, icon: 'fluent:circle-20-regular' },
-                        { key: 'mission', label: 'Mission', value: selected.metadata.mission, icon: 'fluent:rocket-20-regular' },
-                        selected.startDate && { key: 'startDate', label: 'Available From', value: formatDate(selected.startDate), icon: 'fluent:calendar-20-regular' },
-                        selected.endDate && { key: 'endDate', label: 'Available To', value: formatDate(selected.endDate), icon: 'fluent:calendar-end-20-regular' },
-                        (runtimeLast[selected.id] || selected.latestDate) && { key: 'latestDate', label: 'Latest', value: formatDate(runtimeLast[selected.id] || selected.latestDate), icon: 'fluent:clock-20-regular' },
-                      ].filter(item => item && item.value && item.value !== 'N/A').map(item => (
-                        <div key={item.key} className="add-layer-metadata-card">
-                          <Icon icon={item.icon} width="16" height="16" className="add-layer-metadata-card-icon" />
-                          <div className="add-layer-metadata-card-content">
-                            <span className="add-layer-metadata-card-label">{item.label}</span>
-                            <span className="add-layer-metadata-card-value">{item.value}</span>
-                          </div>
-                        </div>
-                      ))}
+                {/* Key facts — the main features, big and prominent */}
+                <div className="add-layer-keyfacts">
+                  {selected.period ? (
+                    <div className="add-layer-keyfact">
+                      <Icon icon="fluent:calendar-20-regular" width="18" height="18" className="add-layer-keyfact-icon" />
+                      <span className="add-layer-keyfact-label">Period</span>
+                      <span className="add-layer-keyfact-value">{selected.period}</span>
                     </div>
+                  ) : (
+                    <>
+                      <div className="add-layer-keyfact">
+                        <Icon icon="fluent:calendar-20-regular" width="18" height="18" className="add-layer-keyfact-icon" />
+                        <span className="add-layer-keyfact-label">From</span>
+                        <span className="add-layer-keyfact-value">{formatDate(selected.startDate) || '—'}</span>
+                      </div>
+                      <div className="add-layer-keyfact">
+                        <Icon icon="fluent:calendar-ltr-20-regular" width="18" height="18" className="add-layer-keyfact-icon" />
+                        <span className="add-layer-keyfact-label">To</span>
+                        <span className="add-layer-keyfact-value">{formatDate(selected.endDate) || '—'}</span>
+                      </div>
+                    </>
+                  )}
+                  {[
+                    { key: 'satellite', label: 'Satellite', value: selected.metadata?.satellite, icon: 'fluent:globe-20-regular' },
+                    { key: 'sensors', label: 'Sensor', value: selected.metadata?.sensors, icon: 'fluent:eye-20-regular' },
+                    { key: 'temporalResolution', label: 'Frequency', value: selected.metadata?.temporalResolution, icon: 'fluent:clock-20-regular' },
+                    { key: 'spatialResolution', label: 'Resolution', value: selected.metadata?.spatialResolution, icon: 'fluent:zoom-in-20-regular' },
+                  ].filter(item => item.value && item.value !== 'N/A').map(item => (
+                    <div key={item.key} className="add-layer-keyfact">
+                      <Icon icon={item.icon} width="18" height="18" className="add-layer-keyfact-icon" />
+                      <span className="add-layer-keyfact-label">{item.label}</span>
+                      <span className="add-layer-keyfact-value">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Legend */}
+                {selected.legend && (
+                  <div className="add-layer-legend">
+                    <img src={selected.legend} alt={`${selected.name} legend`} loading="lazy" />
                   </div>
                 )}
 
-                {selected.gibsDescription && (
-                  <div className="add-layer-detail-block">
-                    <div className="add-layer-detail-html" dangerouslySetInnerHTML={{ __html: selected.gibsDescription }} />
+                {/* Secondary metadata — smaller, less prominent */}
+                {(() => {
+                  const secondary = [
+                    { key: 'mission', label: 'Mission', value: selected.metadata?.mission, icon: 'fluent:rocket-20-regular' },
+                    { key: 'orbit', label: 'Orbit', value: selected.metadata?.orbit, icon: 'fluent:circle-20-regular' },
+                    { key: 'energySource', label: 'Energy', value: selected.metadata?.energySource, icon: 'fluent:lightbulb-20-regular' },
+                    { key: 'spectralRange', label: 'Spectral', value: selected.metadata?.spectralRange, icon: 'fluent:paint-brush-20-regular' },
+                    { key: 'spectralResolution', label: 'Bands', value: selected.metadata?.spectralResolution, icon: 'fluent:options-20-regular' },
+                    { key: 'spatialCoverage', label: 'Coverage', value: selected.metadata?.spatialCoverage, icon: 'fluent:map-20-regular' },
+                  ].filter(item => item.value && item.value !== 'N/A')
+                  if (secondary.length === 0) return null
+                  return (
+                    <div className="add-layer-detail-block">
+                      <div className="add-layer-detail-label">More details</div>
+                      <div className="add-layer-secondary">
+                        {secondary.map(item => (
+                          <div key={item.key} className="add-layer-secondary-item">
+                            <Icon icon={item.icon} width="14" height="14" className="add-layer-secondary-icon" />
+                            <span className="add-layer-secondary-label">{item.label}</span>
+                            <span className="add-layer-secondary-value">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {/* Image quality — how the download behaves, so the
+                    Resolution control in the layers sidebar is never a
+                    surprise. Layers without levels say so here. */}
+                {(() => {
+                  const quality = qualitySupport(selected)
+                  const format = (selected.format || '').split('/')[1]
+                  const formatLabel = format
+                    ? (format === 'jpeg' ? 'JPEG' : format.toUpperCase())
+                    : 'PNG'
+                  const rows = [
+                    {
+                      key: 'quality',
+                      label: 'Download quality',
+                      value: quality.label,
+                      icon: quality.mode === 'presets'
+                        ? 'fluent:arrow-sort-20-regular'
+                        : 'fluent:lock-closed-20-regular'
+                    },
+                    ...(quality.nativeLevel !== null
+                      ? [{
+                          key: 'level',
+                          label: 'Max detail',
+                          value: `Zoom level ${quality.nativeLevel}`,
+                          icon: 'fluent:zoom-in-20-regular'
+                        }]
+                      : []),
+                    {
+                      key: 'format',
+                      label: 'Image format',
+                      value: `${formatLabel} tiles`,
+                      icon: 'fluent:image-20-regular'
+                    }
+                  ]
+                  return (
+                    <div className="add-layer-detail-block">
+                      <div className="add-layer-detail-label">Image quality</div>
+                      <div className="add-layer-secondary">
+                        {rows.map(item => (
+                          <div key={item.key} className="add-layer-secondary-item">
+                            <Icon icon={item.icon} width="14" height="14" className="add-layer-secondary-icon" />
+                            <span className="add-layer-secondary-label">{item.label}</span>
+                            <span className="add-layer-secondary-value">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="add-layer-quality-hint">{quality.detail}</p>
+                    </div>
+                  )
+                })()}
+
+                {/* About — longer explanation in an accordion, with links */}
+                {(selected.about || selected.gibsDescription || (selected.links && selected.links.length > 0)) && (
+                  <div className="add-layer-about">
+                    <button
+                      type="button"
+                      className="add-layer-about-toggle"
+                      onClick={() => setAboutOpen(prev => !prev)}
+                      aria-expanded={aboutOpen}
+                    >
+                      <Icon
+                        icon={aboutOpen ? 'fluent:chevron-down-20-filled' : 'fluent:chevron-right-20-filled'}
+                        width="14"
+                        height="14"
+                      />
+                      <span>About this layer</span>
+                    </button>
+                    {aboutOpen && (
+                      <div className="add-layer-about-body">
+                        {selected.about && <p className="add-layer-about-text">{selected.about}</p>}
+                        {selected.gibsDescription && (
+                          <div className="add-layer-detail-html" dangerouslySetInnerHTML={{ __html: selected.gibsDescription }} />
+                        )}
+                        {selected.links && selected.links.length > 0 && (
+                          <div className="add-layer-links">
+                            {selected.links.map(link => (
+                              <a
+                                key={link.url}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="add-layer-link"
+                              >
+                                <Icon icon="fluent:open-20-regular" width="13" height="13" />
+                                {link.label}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </>
