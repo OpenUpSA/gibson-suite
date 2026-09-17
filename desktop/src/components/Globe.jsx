@@ -137,7 +137,17 @@ import Toast from './Toast'
 
 import layersConfig from '../config/layers.json'
 import { buildTileUrlTemplate } from '../config/tileUrl'
-import { availableDates, getLayerTimeValues } from '../utils/gibsCaps'
+import { availableDates, availableTimes, framesForDay, getLayerLatestTime, getLayerTimeValues, isSubDailyLayer } from '../utils/gibsCaps'
+import {
+  addMinutes as addMinutesToDateTime,
+  datePart,
+  formatDateTimeLabel,
+  formatFrameLabel,
+  joinDateTime,
+  normalizeHHMM,
+  safeFilenameStamp,
+  timePart
+} from '../utils/timeFormat'
 import { rectToBbox3857 } from '../utils/webMercator'
 import { renderTimelapseGif, GIF_MAX_WIDTH } from '../utils/timelapseGif'
 import { probeHasData, runPool } from '../utils/timelapseProbe'
@@ -186,16 +196,48 @@ const defaultDate = (() => {
   return yesterday.toISOString().split('T')[0]
 })()
 
-// Shift an ISO date by whole days (UTC).
+// Shift an ISO date (or datetime) by whole days (UTC) → 'YYYY-MM-DD'.
 const addDaysIso = (iso, days) => {
-  const d = new Date(`${iso}T00:00:00Z`)
+  const d = new Date(`${datePart(iso)}T00:00:00Z`)
   d.setUTCDate(d.getUTCDate() + days)
   return d.toISOString().split('T')[0]
 }
 
+// Sub-daily imagery layers of a view — the ones that carry a time-of-day.
+const subDailyLayersOf = (tab) => flattenActive(tab?.activeBySection || {})
+  .map(id => layerById.get(id))
+  .filter(l => l && isSubDailyLayer(l))
+
+// Cache key for a view's Auto time. The newest frame of a day depends on the
+// date and on which sub-daily layers are on the map.
+const autoTimeKey = (tab, layers) => `${tab.id}|${datePart(tab.date)}|${layers.map(l => l.id).join('+')}`
+
+// Display label for a view's moment in time — '2026-09-15' for daily views,
+// '2026-09-15 19:40' once a time-of-day is in play.
+const tabWhenLabel = (tab) => {
+  const t = normalizeHHMM(tab?.time)
+  return t ? `${datePart(tab.date)} ${t}` : datePart(tab?.date || '')
+}
+
 // Base imagery is dated (yesterday). Static reference overlays use GIBS's
-// literal 'default' time keyword, so they are date-independent.
-const layerTime = (layer, date) => (layerSection(layer) === 'reference' ? 'default' : (date || defaultDate))
+// literal 'default' time keyword, so they are date-independent. Sub-daily
+// layers address an individual frame with a full ISO datetime; everything
+// else gets a bare date.
+const layerTime = (layer, date, hhmm) => {
+  if (layerSection(layer) === 'reference') return 'default'
+  const d = datePart(date || defaultDate)
+  if (!hhmm || !isSubDailyLayer(layer)) return d
+  return joinDateTime(d, hhmm)
+}
+
+// The time-of-day a layer should render for a given view. Only sub-daily
+// layers have one: an explicit `tab.time` (UTC 'HH:MM') wins, otherwise the
+// view is in Auto mode and shows the newest frame of the selected day —
+// resolved asynchronously by the parent and handed down as `autoTime`.
+const timeForLayer = (layer, tab, autoTime) => {
+  if (!isSubDailyLayer(layer)) return null
+  return normalizeHHMM(tab.time) || normalizeHHMM(autoTime) || null
+}
 
 // Default view framed on the whole of Africa.
 const INITIAL_CENTER = [17, 5] // [lng, lat]
@@ -208,34 +250,49 @@ const INITIAL_ZOOM = 2.5
 const BASE_FALLBACK_ID = 'MODIS_Terra_CorrectedReflectance_TrueColor'
 const baseCoversDate = (layer, date) => {
   if (!layer) return false
-  if (layer.startDate && date && date < layer.startDate) return false
+  if (layer.startDate && date && datePart(date) < datePart(layer.startDate)) return false
   return true
 }
 
-// Best-effort coverage check: does this layer have imagery for the date?
-// Static layers (reference overlays, custom tile templates, layers with no
-// time dimension) always pass. Returns true when unknown — never blocks the
-// crossfade (the safety timeout still catches real failures).
-const layerHasDate = async (layer, date) => {
+// Resolve to null instead of hanging when a lookup is slow — a coverage check
+// must never stall the first paint.
+const withTimeout = (promise, ms = 3000) => Promise.race([
+  promise,
+  new Promise(resolve => setTimeout(() => resolve(null), ms))
+])
+
+// Best-effort coverage check: does this layer have imagery for the date and,
+// for sub-daily layers, at least one frame that day? Static layers (reference
+// overlays, custom tile templates, layers with no time dimension) always pass.
+// Returns true when unknown — never blocks the crossfade (the safety timeout
+// still catches real failures).
+const layerHasImagery = async (layer, date) => {
   if (layerSection(layer) === 'reference') return true
   if (layer.tiles) return true
+  const day = datePart(date)
   try {
-    const values = await Promise.race([
-      getLayerTimeValues(layer.id),
-      new Promise(resolve => setTimeout(() => resolve(null), 3000))
-    ])
-    if (!values) return true // check timed out — don't block
+    if (isSubDailyLayer(layer)) {
+      const frames = await withTimeout(framesForDay(layer, day))
+      if (frames === null) return true // lookup timed out — don't block
+      if (frames.length) return true   // the day has real frames
+      // Nothing that day: either a gap in an otherwise live product (GIBS
+      // snaps to the nearest frame, so let it through) or a date outside the
+      // record — block that, and keep the same "just past the end" grace the
+      // daily layers get for processing lag.
+    }
+    const values = await withTimeout(getLayerTimeValues(layer.id))
+    if (values === null) return true // check timed out — don't block
     if (!values.length) return true // static or unknown — don't block
     const first = values[0]
     const last = values[values.length - 1]
-    if (date < first) return false
-    if (date > last) {
+    if (day < first) return false
+    if (day > last) {
       // The static date list can lag a day or two behind GIBS. Dates just past
       // the last known value are left to the tile fetch — WMS serves the
       // newest imagery as soon as it exists.
-      return date <= addDaysIso(last, 2)
+      return day <= addDaysIso(last, 2)
     }
-    return values.includes(date)
+    return isSubDailyLayer(layer) ? true : values.includes(day)
   } catch {
     return true // check failed — don't block, let the timeout handle it
   }
@@ -291,7 +348,7 @@ const rasterSource = (tiles, maxzoom, layer, tileSize) => ({
 // that both setPaintProperty calls fire — no black frames.
 
 // MapInstance component - renders a single map pane for a tab
-export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapGone, onMapPositionChange, followCamera = true, selectionMode, selectionRect, onSelectionChange, onLayerLoadError }) {
+export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapGone, onMapPositionChange, followCamera = true, selectionMode, selectionRect, onSelectionChange, onLayerLoadError, autoTime = null }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerSrcMapRef = useRef({})
@@ -305,7 +362,11 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
   // the same tab), so a stored position that differs from this means someone
   // else moved — we follow it instead of fighting it.
   const reportedPositionRef = useRef(null)
-  const prevDateRef = useRef(tab.date)
+  // The TIME value a layer should load — 'default' for reference overlays, a
+  // bare date for daily imagery, a full ISO datetime for a sub-daily frame.
+  // Auto mode (`tab.time` null) uses the newest frame of the day, which the
+  // parent resolves and passes down as `autoTime`.
+  const resolvedTimeFor = (layer) => layerTime(layer, tab.date, timeForLayer(layer, tab, autoTime))
   const [mapReady, setMapReady] = useState(false)
   // Bumped when zooming in out-resolves the tiles we loaded, so the layer sync
   // effect re-runs and refines the cap.
@@ -504,9 +565,9 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       removePending()
       finish()
       if (silent) return // refinement failure — the previous pass is still fine
-      setLoadError({ layerId, date: tab.date, message })
+      setLoadError({ layerId, date: resolvedTimeFor(layer), message })
       if (oldSrcId) {
-        onLayerLoadErrorRef.current?.(layerId, tab.date, layerSrcMapRef.current[layerId]?.date, message)
+        onLayerLoadErrorRef.current?.(layerId, resolvedTimeFor(layer), layerSrcMapRef.current[layerId]?.date, message)
       }
     }
 
@@ -535,16 +596,16 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
     // the user would stare at the spinner until the safety timeout.
     // A refinement pass skips it: this image is already on screen, so the date
     // is known to be covered and the check would only delay the sharper tiles.
-    const coverageCheck = silent ? Promise.resolve(true) : layerHasDate(layer, tab.date)
+    const coverageCheck = silent ? Promise.resolve(true) : layerHasImagery(layer, tab.date)
     coverageCheck.then((covered) => {
       if (settled) return
       if (!covered) {
-        fail(`No imagery available for ${tab.date}`)
+        fail(`No imagery available for ${formatDateTimeLabel(resolvedTimeFor(layer))}`)
         return
       }
 
       newSrcId = `layer-${layerId}-${Date.now()}-${++crossfadeCounterRef.current}`
-      const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, layerTime(layer, tab.date))
+      const url = buildTileUrlTemplate({ wmtsBaseUrl, wmsBaseUrl }, layer, resolvedTimeFor(layer))
 
       map.addSource(newSrcId, rasterSource([url], maxzoom, layer, tileSizeFor(layer)))
       map.addLayer({
@@ -579,7 +640,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         }
         layerSrcMapRef.current[layerId] = {
           srcId: newSrcId,
-          date: layerTime(layer, tab.date),
+          date: resolvedTimeFor(layer),
           maxzoom,
           tileSize: tileSizeFor(layer)
         }
@@ -636,8 +697,6 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
 
     const activeLayers = flattenActive(tab.activeBySection)
     const prevLayers = Object.keys(layerSrcMapRef.current)
-    const dateChanged = prevDateRef.current !== tab.date
-    prevDateRef.current = tab.date
 
     // Remove layers that are no longer active
     for (const layerId of prevLayers) {
@@ -653,15 +712,16 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       }
     }
 
-    // Clear a stale load error once the displayed source matches the current
-    // date (e.g. the parent reverted the date after a failure) or the layer
-    // is no longer active. A layer that failed on initial add keeps its error
+    // Clear a stale load error once the displayed source matches what the view
+    // now asks for (e.g. the user changed the date/time again) or the layer is
+    // no longer active. A layer that failed on initial add keeps its error
     // until it loads or is removed.
     if (loadError) {
       const src = layerSrcMapRef.current[loadError.layerId]
+      const errLayer = layerById.get(loadError.layerId)
       if (!activeLayers.includes(loadError.layerId)) {
         setLoadError(null)
-      } else if (src && src.date === tab.date) {
+      } else if (src && errLayer && src.date === resolvedTimeFor(errLayer)) {
         setLoadError(null)
       }
     }
@@ -684,6 +744,9 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       const isHidden = tab.hiddenLayers.has(layerId)
       const targetOpacity = isHidden ? 0 : settings.opacity
       const section = layerSection(layer)
+      // The TIME this layer should be showing right now (date, or date+time
+      // for a sub-daily frame).
+      const wantedTime = resolvedTimeFor(layer)
       const wantedMaxzoom = maxzoomFor(layer, effectiveQuality(layer, settings, section))
       // Remember what the settings ask for, so a pass that lands later can tell
       // whether refining further is worth another fetch.
@@ -693,7 +756,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         // New layer — add it invisible and fade in once its tiles are ready.
         // Skip if it already failed for the current date (the error pill is
         // showing; a retry happens on the next date change or pill dismiss).
-        if (!(loadError && loadError.layerId === layerId && loadError.date === tab.date)) {
+        if (!(loadError && loadError.layerId === layerId && loadError.date === wantedTime)) {
           // Deep views start coarse and sharpen (see planStartMaxzoom) — a
           // shallow view goes straight to the wanted cap, so no tile is ever
           // fetched twice.
@@ -709,12 +772,14 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
           } catch {}
         }
 
-        // Date changed — crossfade to the new tiles instead of removing the
-        // layer (which blanks the map and reloads block by block). Reference
-        // overlays are date-independent ('default' time), so skip them. Also
-        // skip when the displayed source already matches the date (e.g. the
-        // parent reverted the date after a load failure).
-        const dateOutOfSync = dateChanged && section !== 'reference' && src.date !== tab.date
+        // The displayed source is for a different TIME than the view asks for
+        // — crossfade to the new tiles instead of removing the layer (which
+        // blanks the map and reloads block by block). Comparing the resolved
+        // per-layer TIME (rather than the tab's date) is what makes this
+        // correct for sub-daily layers: changing only the time-of-day reloads
+        // the sub-daily layer while daily imagery and the date-independent
+        // reference overlays stay exactly as they are.
+        const outOfSync = section !== 'reference' && src.date !== wantedTime
 
         // Resolution changed in the sidebar, or zooming in has out-resolved
         // what we loaded: a source's maxzoom is fixed at creation, so picking
@@ -726,7 +791,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
           wantedMaxzoom > src.maxzoom &&
           zoomBeyondTileCap(map.getZoom(), src.maxzoom, src.tileSize)
 
-        if (dateOutOfSync) {
+        if (outOfSync) {
           const startMaxzoom = planStartMaxzoom(layer, wantedMaxzoom, map.getZoom())
           crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity, { maxzoom: startMaxzoom })
         } else if (needsSharper && !transitionsRef.current[layerId]) {
@@ -740,7 +805,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
 
     // Reorder layers to match active order (reverse because 0 = top in our model)
     reorderLayers(map, activeLayers)
-  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, loadError, mapReady, zoomTick, layerById, wmtsBaseUrl, wmsBaseUrl])
+  }, [tab.activeBySection, tab.layerSettings, tab.hiddenLayers, tab.date, tab.time, autoTime, loadError, mapReady, zoomTick, layerById, wmtsBaseUrl, wmsBaseUrl])
 
   return (
     <div ref={containerRef} className="globe-map">
@@ -756,7 +821,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       {loadError && (
         <div className="globe-load-error">
           <Icon icon="fluent:warning-16-regular" width="14" height="14" />
-          <span>{loadError.message || `Couldn't load ${layerById.get(loadError.layerId)?.name || 'imagery'} for ${loadError.date}`}</span>
+          <span>{loadError.message || `Couldn't load ${layerById.get(loadError.layerId)?.name || 'imagery'} for ${formatDateTimeLabel(loadError.date)}`}</span>
           <button type="button" className="globe-load-error-dismiss" onClick={() => setLoadError(null)} aria-label="Dismiss">
             <Icon icon="fluent:dismiss-16-regular" width="12" height="12" />
           </button>
@@ -805,6 +870,10 @@ export default function Globe() {
   const [compareBId, setCompareBId] = useState(null)
   // Per-side date overrides — only affect the compare view, never the shared tabs.
   const [compareDateOverrides, setCompareDateOverrides] = useState({ before: null, after: null })
+  // Per-side time-of-day overrides for sub-daily layers. `null` = not
+  // overridden (follow the view's own time), 'auto' = explicitly the newest
+  // frame of the day, 'HH:MM' = a chosen UTC clock time.
+  const [compareTimeOverrides, setCompareTimeOverrides] = useState({ before: null, after: null })
   // Compare overlay stays visible when the sidebar is hidden (like grid view).
   const [compareViewActive, setCompareViewActive] = useState(false)
   // Compare blend mode: 'split' clips the top view at the handle; 'fade'
@@ -819,7 +888,7 @@ export default function Globe() {
   const [tlAspect, setTlAspect] = useState(16 / 9)        // null = freeform, else ratio
   const [tlStartDate, setTlStartDate] = useState(() => addDaysIso(defaultDate, -30))
   const [tlEndDate, setTlEndDate] = useState(defaultDate)
-  const [tlInterval, setTlInterval] = useState(1)         // days: 1 | 3 | 7 | 30
+  const [tlInterval, setTlInterval] = useState(1440)      // MINUTES: 1440 = daily
   const [tlAvailableDates, setTlAvailableDates] = useState([])
   const [tlFrames, setTlFrames] = useState([])            // [{ time, label, delay, caption? }] — delay is seconds (default 2)
   const [tlEditFrameTime, setTlEditFrameTime] = useState(null) // frame.time being edited (caption/delay)
@@ -860,6 +929,7 @@ export default function Globe() {
         layerSettings: initialSettings,
         hiddenLayers: new Set(),
         date: defaultDate,
+        time: null, // UTC 'HH:MM' for sub-daily layers; null = newest frame of the day
         mapPosition: { center: INITIAL_CENTER, zoom: INITIAL_ZOOM }
       }
     ]
@@ -991,27 +1061,111 @@ export default function Globe() {
   const compareTabA = tabs.find(t => t.id === compareAId) || tabs[0]
   const compareTabB = tabs.find(t => t.id === compareBId) || tabs[1] || tabs[0]
 
-  // Date overrides shallow-copy the tab so only the compare view sees the new date.
-  const effectiveCompareTabA = compareDateOverrides.before
-    ? { ...compareTabA, date: compareDateOverrides.before }
-    : compareTabA
-  const effectiveCompareTabB = compareDateOverrides.after
-    ? { ...compareTabB, date: compareDateOverrides.after }
-    : compareTabB
+  // Overrides shallow-copy the tab so only the compare view sees them — the
+  // shared views keep their own date and time.
+  const applyCompareOverrides = (tab, dateOverride, timeOverride) => {
+    let next = tab
+    if (dateOverride) next = { ...next, date: dateOverride }
+    if (timeOverride !== null && timeOverride !== undefined) {
+      next = { ...next, time: timeOverride === 'auto' ? null : timeOverride }
+    }
+    return next
+  }
+  const effectiveCompareTabA = applyCompareOverrides(compareTabA, compareDateOverrides.before, compareTimeOverrides.before)
+  const effectiveCompareTabB = applyCompareOverrides(compareTabB, compareDateOverrides.after, compareTimeOverrides.after)
 
   const handleCompareDateChange = useCallback((side, date) => {
     setCompareDateOverrides(prev => ({ ...prev, [side]: date }))
+  }, [])
+
+  const handleCompareTimeChange = useCallback((side, hhmm) => {
+    setCompareTimeOverrides(prev => ({ ...prev, [side]: hhmm }))
   }, [])
 
   const handleCompareAssign = useCallback((side, tabId) => {
     if (side === 'before') setCompareAId(tabId)
     else setCompareBId(tabId)
     setCompareDateOverrides(prev => ({ ...prev, [side]: null }))
+    setCompareTimeOverrides(prev => ({ ...prev, [side]: null }))
   }, [])
 
+  // ── Sub-daily Auto time ─────────────────────────────────────────────
+  // A view with a sub-daily layer and no explicit time shows the newest frame
+  // of its selected date. That is a lookup, not an assumption — GIBS answers
+  // with the real availability runs (gaps included) — so it resolves
+  // asynchronously and is cached per view + date + layer set. Until it lands
+  // the layer renders the day's default frame and crossfades, which keeps the
+  // first paint fast and needs no extra data file.
+  const [autoFrames, setAutoFrames] = useState({})
+
+  const autoTargets = useMemo(() => {
+    const seen = new Map()
+    for (const tab of [activeTab, effectiveCompareTabA, effectiveCompareTabB]) {
+      const layers = subDailyLayersOf(tab)
+      if (!layers.length) continue
+      const key = autoTimeKey(tab, layers)
+      if (!seen.has(key)) seen.set(key, { key, date: datePart(tab.date), layers })
+    }
+    return [...seen.values()]
+  }, [activeTab, effectiveCompareTabA, effectiveCompareTabB])
+
+  const autoSig = autoTargets.map(t => t.key).join(';')
+  const autoTargetsRef = useRef(autoTargets)
+  autoTargetsRef.current = autoTargets
+
+  useEffect(() => {
+    if (!autoSig) return
+    let cancelled = false
+    ;(async () => {
+      const resolved = {}
+      await Promise.all(autoTargetsRef.current.map(async (target) => {
+        const frames = (await Promise.all(target.layers.map(l => framesForDay(l, target.date)))).flat().sort()
+        if (frames.length) {
+          resolved[target.key] = { date: target.date, frames, latest: frames[frames.length - 1] }
+        }
+      }))
+      if (cancelled || !Object.keys(resolved).length) return
+      setAutoFrames(prev => ({ ...prev, ...resolved }))
+    })()
+    return () => { cancelled = true }
+  }, [autoSig])
+
+  // Frames of the selected date for a view's sub-daily layers, or null when the
+  // view has none (or the lookup is still in flight): { frames, latest }.
+  const autoFrameFor = useCallback((tab) => {
+    const layers = subDailyLayersOf(tab)
+    if (!layers.length) return null
+    return autoFrames[autoTimeKey(tab, layers)] || null
+  }, [autoFrames])
+
+  // Props for the time-of-day control, or null when the view has no sub-daily
+  // layer (in which case nothing is rendered at all).
+  const timeControlFor = (tab, timeOverride = null) => {
+    const layers = subDailyLayersOf(tab)
+    if (!layers.length) return null
+    const info = autoFrames[autoTimeKey(tab, layers)] || null
+    const raw = timeOverride === null || timeOverride === undefined ? tab.time : timeOverride
+    const explicit = normalizeHHMM(raw)
+    return {
+      time: explicit || info?.latest || null,
+      auto: !explicit,
+      stepMinutes: layers[0].timeStepMinutes || 30,
+      frames: info?.frames || []
+    }
+  }
+
+  // Stepping a compare side can cross midnight, so it writes a date override
+  // alongside the time (the two travel together).
+  const handleCompareTimeStep = useCallback((side, minutes) => {
+    const tab = side === 'before' ? effectiveCompareTabA : effectiveCompareTabB
+    const from = normalizeHHMM(tab?.time) || autoFrameFor(tab)?.latest || '00:00'
+    const next = addMinutesToDateTime(tab?.date, from, minutes)
+    setCompareDateOverrides(prev => ({ ...prev, [side]: next.date }))
+    setCompareTimeOverrides(prev => ({ ...prev, [side]: next.hhmm }))
+  }, [effectiveCompareTabA, effectiveCompareTabB, autoFrameFor])
+
   // In compare mode each map writes its camera back to its own tab.
-  const handleCompareMapPositionChange = useCallback((index) => (pos) => {
-    const id = index === 0 ? compareTabA?.id : compareTabB?.id
+  const handleCompareMapPositionChange = useCallback((index) => (pos) => {    const id = index === 0 ? compareTabA?.id : compareTabB?.id
     if (!id) return
     setTabs(prev => prev.map(t => (t.id === id ? { ...t, mapPosition: pos } : t)))
   }, [compareTabA?.id, compareTabB?.id])
@@ -1041,12 +1195,12 @@ export default function Globe() {
       // Pre-fill with the side's actual date + layer names so the user can
       // edit directly (same behaviour as the grid captions).
       const tab = side === 'before' ? effectiveCompareTabA : effectiveCompareTabB
-      const date = tab?.date || ''
+      const when = tab ? joinDateTime(tab.date, normalizeHHMM(tab.time)) : ''
       const layerNames = (tab?.activeBySection?.imagery || [])
         .map(id => layerById.get(id)?.name)
         .filter(Boolean)
         .join(', ')
-      const text = `${date}\n${layerNames || tab?.label || ''}`
+      const text = `${formatFrameLabel(when)}\n${layerNames || tab?.label || ''}`
       return { ...prev, [side]: { ...current, text, visible: true } }
     })
   }, [effectiveCompareTabA, effectiveCompareTabB, layerById])
@@ -1076,6 +1230,25 @@ export default function Globe() {
     [tlTab],
   )
 
+  // Sub-daily products want a finer default: the first time the timelapse sees
+  // one, drop the interval from daily to hourly so a fetch shows movement
+  // rather than one frame per day. A deliberate choice is never overridden.
+  const tlSubDailyLayers = tlImageryLayers.filter(isSubDailyLayer)
+  const tlHasSubDaily = tlSubDailyLayers.length > 0
+  // Finest cadence on offer — a 30-minute product has nothing between its
+  // frames, so the panel hides intervals finer than this.
+  const tlSubDailyStep = tlHasSubDaily
+    ? Math.min(...tlSubDailyLayers.map(l => l.timeStepMinutes || 30))
+    : null
+  const tlSubDailySeenRef = useRef(false)
+  useEffect(() => {
+    if (tlHasSubDaily && !tlSubDailySeenRef.current) {
+      tlSubDailySeenRef.current = true
+      setTlInterval(prev => (prev === 1440 ? 60 : prev))
+    }
+    if (!tlHasSubDaily) tlSubDailySeenRef.current = false
+  }, [tlHasSubDaily])
+
   const updateActiveTab = useCallback((updates) => {
     setTabs(prev => prev.map(tab =>
       tab.id === activeTabId ? { ...tab, ...updates } : tab
@@ -1092,6 +1265,31 @@ export default function Globe() {
   const handleTabDateChange = useCallback((newDate) => {
     updateActiveTab({ date: newDate })
   }, [updateActiveTab])
+
+  // Time-of-day for the active view's sub-daily layers. `null` hands control
+  // back to Auto (newest frame of the selected day) and is kept across date
+  // changes, so an explicitly chosen clock time stays put when you step days.
+  const handleTabTimeChange = useCallback((hhmm) => {
+    updateActiveTab({ time: normalizeHHMM(hhmm) })
+  }, [updateActiveTab])
+
+  // Step the time (and roll the date over midnight when it must). Stepping
+  // starts from whatever is on screen, so it works the same in Auto mode.
+  const handleTabTimeStep = useCallback((minutes) => {
+    const from = normalizeHHMM(activeTab.time) || autoFrameFor(activeTab)?.latest || '00:00'
+    const next = addMinutesToDateTime(activeTab.date, from, minutes)
+    updateActiveTab({ date: next.date, time: next.hhmm })
+  }, [activeTab, autoFrameFor, updateActiveTab])
+
+  // Jump to the newest imagery this view's sub-daily layers actually have.
+  // Leaves the time in Auto so the newest frame of that day is shown.
+  const handleTabLatest = useCallback(async () => {
+    const layers = subDailyLayersOf(activeTab)
+    if (!layers.length) return
+    const latest = (await Promise.all(layers.map(l => getLayerLatestTime(l)))).filter(Boolean).sort()
+    if (!latest.length) return
+    updateActiveTab({ date: datePart(latest[latest.length - 1]), time: null })
+  }, [activeTab, updateActiveTab])
 
   // A layer failed to load for a date — tell the user, but never change the
   // chosen date. The map keeps showing the last successfully loaded imagery
@@ -1261,6 +1459,12 @@ export default function Globe() {
   // by the "Fetch" button, or with a one-off `range` override (e.g. the
   // initial seed from the active view). When `range` is given it takes
   // precedence over the current state values.
+  // Explicit fetch of the union of available times across all active imagery
+  // layers + range. A moment is offered if ANY imagery layer has it. Triggered
+  // by the "Fetch" button, or with a one-off `range` override.
+  // The interval is in MINUTES: daily layers have one frame per day so a daily
+  // interval (1440) thins them exactly as before, while sub-daily layers can be
+  // sampled every 10/30/60 minutes to animate a storm frame by frame.
   const handleTlFetch = useCallback(async (range, layersOverride) => {
     const start = range?.startDate ?? tlStartDate
     const end = range?.endDate ?? tlEndDate
@@ -1270,10 +1474,15 @@ export default function Globe() {
     setTlFetchError(null)
     try {
       const perLayer = await Promise.all(
-        layers.map(l => availableDates(l.id, start, end, tlInterval)),
+        layers.map(l => availableTimes(l.id, start, end, tlInterval)),
       )
       const union = [...new Set(perLayer.flat())].sort()
-      setTlAvailableDates(union)
+      // Mixing a sub-daily layer with a daily one yields both hourly frames and
+      // the daily layer's bare-date frames. GIBS snaps a daily layer to whatever
+      // time we ask for, so the finer grid already covers those days — dropping
+      // the bare duplicates keeps the frame list readable.
+      const subDailyDays = new Set(union.filter(v => v.includes('T')).map(datePart))
+      setTlAvailableDates(union.filter(v => v.includes('T') || !subDailyDays.has(v)))
       setTlFetched(true)
       setTlSelected(new Set())
       // New date range → back to list mode; no previews until confirmed.
@@ -1416,6 +1625,7 @@ export default function Globe() {
       layerSettings: { ...sourceTab.layerSettings },
       hiddenLayers: new Set(sourceTab.hiddenLayers),
       date: sourceTab.date,
+      time: sourceTab.time ?? null,
       mapPosition: { ...sourceTab.mapPosition }
     }
     setTabs(prev => [...prev, newTab])
@@ -1551,10 +1761,10 @@ export default function Globe() {
       if (!hasCustomText) {
         const tabId = gridConfig.cells[cellIndex]?.tabId
         const tab = tabs.find(t => t.id === tabId)
-        const date = tab?.date || ''
+        const when = tab ? joinDateTime(tab.date, normalizeHHMM(tab.time)) : ''
         const layerNames = (tab?.activeBySection?.imagery || [])
           .map(id => layerById.get(id)?.name).filter(Boolean).join(', ')
-        const text = `${date}\n${layerNames || tab?.label || ''}`
+        const text = `${formatFrameLabel(when)}\n${layerNames || tab?.label || ''}`
         const newCaptions = { ...gridConfig.captions }
         newCaptions[cellIndex] = { ...(newCaptions[cellIndex] || DEFAULT_CAPTION), text, visible: true }
         const newConfig = { ...gridConfig, captions: newCaptions }
@@ -1681,7 +1891,9 @@ export default function Globe() {
       const additions = [...tlSelected]
         .sort()
         .filter(t => !existing.has(t))
-        .map(t => ({ time: t, label: t, delay: DEFAULT_FRAME_DELAY }))
+        // Frame rows and the GIF stamp show `label`, so make it readable
+        // rather than a raw ISO datetime.
+        .map(t => ({ time: t, label: formatFrameLabel(t), delay: DEFAULT_FRAME_DELAY }))
       return additions.length ? [...prev, ...additions] : prev
     })
     setTlSelected(new Set())
@@ -1834,7 +2046,7 @@ export default function Globe() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `gibson-timelapse-${tlStartDate}-to-${tlEndDate}.gif`
+      link.download = `gibson-timelapse-${safeFilenameStamp(tlStartDate)}-to-${safeFilenameStamp(tlEndDate)}.gif`
       link.click()
       URL.revokeObjectURL(url)
     } catch (err) {
@@ -1846,8 +2058,14 @@ export default function Globe() {
     }
   }, [tlRect, tlFrames, tlImageryLayers, tlBaseLayers, tlReferenceLayers, tlExporting, tlStampDates, wmsBaseUrl, tlStartDate, tlEndDate])
 
-  const resolveTemplate = (text, date, layerName) =>
-    text.replace(/%date%/g, date).replace(/%layer%/g, layerName)
+  // %date% / %time% / %layer% caption substitution. `when` may be a bare date
+  // (daily views) or a full ISO datetime (sub-daily frames): %date% always
+  // renders the day and %time% the UTC clock time, so templates written before
+  // sub-daily support keep working unchanged.
+  const resolveTemplate = (text, when, layerName) => text
+    .replace(/%date%/g, datePart(when))
+    .replace(/%time%/g, formatTimeShort(when))
+    .replace(/%layer%/g, layerName)
 
   const drawCaption = (ctx, caption, text, x, y, width, height) => {
     if (!caption?.visible || !caption?.text) return
@@ -2200,6 +2418,7 @@ export default function Globe() {
             onEndDateChange={setTlEndDate}
             interval={tlInterval}
             onIntervalChange={setTlInterval}
+            subDailyStep={tlSubDailyStep}
             aspect={tlAspect}
             onApplyPreset={handleTlApplyPreset}
             onResetRect={handleTlResetRect}
@@ -2250,6 +2469,7 @@ export default function Globe() {
                 onMapGone={() => untrackMapInstance(scopedKey.timelapse)}
                 onMapPositionChange={(pos) => handleTabMapPositionChange(tlTab.id, pos)}
                 followCamera={timelapseVisible}
+                autoTime={autoFrameFor(tlTab)?.latest || null}
                 onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tlTab.id, failedDate, displayedDate, message)}
                 selectionMode
                 selectionRect={tlRect}
@@ -2299,6 +2519,7 @@ export default function Globe() {
               setCompareAId(compareTabB.id)
               setCompareBId(compareTabA.id)
               setCompareDateOverrides(prev => ({ before: prev.after, after: prev.before }))
+              setCompareTimeOverrides(prev => ({ before: prev.after, after: prev.before }))
             }}
             onClose={() => setActiveTool(null)}
             captions={compareCaptions}
@@ -2307,6 +2528,12 @@ export default function Globe() {
             defaultCaption={DEFAULT_CAPTION}
             dateOverrides={compareDateOverrides}
             onDateChange={handleCompareDateChange}
+            timeControls={{
+              before: timeControlFor(effectiveCompareTabA, compareTimeOverrides.before),
+              after: timeControlFor(effectiveCompareTabB, compareTimeOverrides.after)
+            }}
+            onTimeChange={handleCompareTimeChange}
+            onTimeStep={handleCompareTimeStep}
             layerById={layerById}
           />
           )}
@@ -2324,6 +2551,8 @@ export default function Globe() {
               onSplitPosChange={setCompareSplitPos}
               anchorPosition={activeTab?.mapPosition}
               visible={compareVisible}
+              autoTimeA={autoFrameFor(effectiveCompareTabA)?.latest || null}
+              autoTimeB={autoFrameFor(effectiveCompareTabB)?.latest || null}
               onMapReady={(index, map) => trackMapInstance(scopedKey.compare(index), map)}
               onMapPositionChange={handleCompareMapPositionChange}
               onLayerLoadError={(index, layerId, failedDate, displayedDate, message) =>
@@ -2376,7 +2605,8 @@ export default function Globe() {
               const caption = gridConfig.captions[cellIndex]
               const resolvedText = caption?.visible && caption?.text
                 ? caption.text
-                    .replace(/%date%/g, tab?.date || '')
+                    .replace(/%date%/g, datePart(tab?.date))
+                    .replace(/%time%/g, formatTimeShort(tab ? joinDateTime(tab.date, normalizeHHMM(tab.time)) : ''))
                     .replace(/%layer%/g, tab?.layer?.name || tab?.label || '')
                 : null
               const captionLines = resolvedText ? resolvedText.split('\n') : []
@@ -2397,6 +2627,7 @@ export default function Globe() {
                       onMapGone={() => untrackMapInstance(scopedKey.grid(tab.id))}
                       onMapPositionChange={(pos) => handleTabMapPositionChange(tab.id, pos)}
                       followCamera={gridVisible}
+                      autoTime={autoFrameFor(tab)?.latest || null}
                       onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, failedDate, displayedDate, message)}
                     />
                   ) : (
@@ -2493,6 +2724,7 @@ export default function Globe() {
             onMapGone={() => untrackMapInstance(scopedKey.single(tab.id))}
             onMapPositionChange={(pos) => handleTabMapPositionChange(tab.id, pos)}
             followCamera={singleVisible && tab.id === activeTabId}
+            autoTime={autoFrameFor(tab)?.latest || null}
             onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, failedDate, displayedDate, message)}
           />
         </div>
@@ -2531,6 +2763,10 @@ export default function Globe() {
         onTabRename={handleTabRename}
         activeTabDate={activeTab.date}
         onTabDateChange={handleTabDateChange}
+        timeControl={timeControlFor(activeTab)}
+        onTabTimeChange={handleTabTimeChange}
+        onTabTimeStep={handleTabTimeStep}
+        onTabLatest={handleTabLatest}
         onSearchSelect={handleSearchSelect}
       />
       )}

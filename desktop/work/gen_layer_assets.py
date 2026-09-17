@@ -29,6 +29,7 @@ PREVIEW_DIR = os.path.join(ROOT, 'public', 'layer-previews')
 LEGEND_DIR = os.path.join(ROOT, 'public', 'legends')
 
 SNAPSHOT = 'https://wvs.earthdata.nasa.gov/api/v1/snapshot'
+WMS_GETMAP = 'https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi'
 LEGEND_URL = 'https://gibs.earthdata.nasa.gov/legends/{name}_V.svg'
 
 # Default composite base per section (bottom layer of the preview).
@@ -68,6 +69,16 @@ PREVIEWS = {
     'GRACE_Tellus_Liquid_Water_Equivalent_Thickness_Mascon_CRI': ('5,8,20,18', '2022-06-01', 'BlueMarble_NextGeneration'),
     'MODIS_Terra_L3_Land_Surface_Temp_Daily_Day': ('30,0,50,15', '2022-03-15', None),
     'SMAP_L3_Passive_Day_Soil_Moisture': ('30,0,50,15', '2022-03-15', None),
+    # Geostationary (sub-daily) layers. The layer is opaque inside its disk and
+    # empty outside it, so the base is composited underneath to show what the
+    # empty part looks like in the app. Times are full datetimes (a bare date
+    # means 00:00Z, i.e. the middle of the night over most of these disks).
+    'GOES-East_ABI_GeoColor': ('-95,0,-25,50', '2026-09-10T18:00:00Z', 'MODIS_Terra_CorrectedReflectance_TrueColor'),
+    'GOES-West_ABI_GeoColor': ('-165,10,-100,55', '2026-09-10T18:00:00Z', 'MODIS_Terra_CorrectedReflectance_TrueColor'),
+    'Himawari_AHI_Band3_Red_Visible_1km': ('100,-15,160,40', '2026-09-10T02:00:00Z', 'MODIS_Terra_CorrectedReflectance_TrueColor'),
+    'GOES-East_ABI_Band13_Clean_Infrared': ('-95,0,-25,50', '2026-09-10T18:00:00Z', 'MODIS_Terra_CorrectedReflectance_TrueColor'),
+    'GOES-West_ABI_Band13_Clean_Infrared': ('-165,10,-100,55', '2026-09-10T18:00:00Z', 'MODIS_Terra_CorrectedReflectance_TrueColor'),
+    'Himawari_AHI_Band13_Clean_Infrared': ('100,-15,160,40', '2026-09-10T02:00:00Z', 'MODIS_Terra_CorrectedReflectance_TrueColor'),
 }
 
 
@@ -137,6 +148,37 @@ def snapshot_preview(layer_id, bbox, time_, base, out_path):
         f.write(data)
 
 
+def _mercator(lon, lat):
+    import math
+    x = lon * math.pi * 6378137.0 / 180.0
+    y = math.log(math.tan(math.pi / 4 + math.radians(lat) / 2)) * 6378137.0
+    return x, y
+
+
+def wms_preview(layer_id, bbox, time_, base, out_path):
+    """Preview via GIBS WMS instead of the Worldview snapshot API.
+
+    Used for the sub-daily geostationary layers: the snapshot API answers with
+    a blank image for the ABI/AHI disks, while WMS (the endpoint the app itself
+    renders them from) composites them correctly. `bbox` is in degrees
+    (lon/lat, EPSG:4326); WMS 1.3.0 needs metres in EPSG:3857.
+    """
+    l0, b0, l1, b1 = [float(v) for v in bbox.split(',')]
+    x0, y0 = _mercator(l0, b0)
+    x1, y1 = _mercator(l1, b1)
+    # Bottom layer first: the base fills the frame, the product goes on top.
+    layers = layer_id if not base else f'{base},{layer_id}'
+    url = (f'{WMS_GETMAP}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS={layers}'
+           f'&STYLES=&FORMAT=image%2Fjpeg&TRANSPARENT=TRUE&CRS=EPSG:3857'
+           f'&WIDTH=480&HEIGHT=480&TIME={time_}'
+           f'&BBOX={x0:.0f},{y0:.0f},{x1:.0f},{y1:.0f}')
+    data = fetch(url, timeout=90)
+    if data[:5] == b'<?xml':
+        raise RuntimeError(f'WMS returned an error for {layer_id}: {data[:200]!r}')
+    with open(out_path, 'wb') as f:
+        f.write(data)
+
+
 def main():
     layers = json.load(open(LAYERS_JSON, encoding='utf-8'))
     content = json.load(open(CONTENT_JSON, encoding='utf-8'))
@@ -155,10 +197,15 @@ def main():
         c = content.get(lid, {})
 
         # 1. Dates from caps (authoritative availability window).
-        if cap.get('from'):
-            layer['startDate'] = cap['from']
-        if cap.get('to'):
-            layer['endDate'] = cap['to']
+        #    NOT for sub-daily layers: the capabilities document only lists the
+        #    latest ~100 time periods, which for a 10-minute product is the last
+        #    ~17 hours — their real window comes from DescribeDomains (see
+        #    work/add_subdaily_layers.py) and is already in layers.json.
+        if not layer.get('subdaily'):
+            if cap.get('from'):
+                layer['startDate'] = cap['from']
+            if cap.get('to'):
+                layer['endDate'] = cap['to']
 
         # 2. Legend (rasterize the GIBS vertical SVG legend).
         legend_name = cap.get('legend')
@@ -177,7 +224,7 @@ def main():
         if not legend_name:
             layer.pop('legend', None)
 
-        # 3. Preview image (GIBS snapshot).
+        # 3. Preview image (GIBS snapshot, or WMS for the geostationary disks).
         if lid in PREVIEWS:
             bbox, time_, base = PREVIEWS[lid]
             if base is None:
@@ -187,7 +234,10 @@ def main():
             if not os.path.exists(out):
                 print(f'preview {lid}')
                 try:
-                    snapshot_preview(lid, bbox, time_, base, out)
+                    if layer.get('subdaily'):
+                        wms_preview(lid, bbox, time_, base, out)
+                    else:
+                        snapshot_preview(lid, bbox, time_, base, out)
                 except Exception as e:  # noqa: BLE001
                     print(f'  !! preview failed for {lid}: {e}')
                     out = None

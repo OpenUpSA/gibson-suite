@@ -20,8 +20,13 @@ const loadImage = (url) =>
     img.src = url
   })
 
-const resolveTemplate = (text, date, layerName) =>
-  text.replace(/%date%/g, date).replace(/%layer%/g, layerName)
+// %date% / %time% / %layer% substitution. `when` may be a bare date or a full
+// ISO datetime (sub-daily frames) — %date% renders the day, %time% the UTC
+// clock time, so templates written before sub-daily support keep working.
+const resolveTemplate = (text, when, layerName) => text
+  .replace(/%date%/g, String(when ?? '').split('T')[0])
+  .replace(/%time%/g, when && String(when).includes('T') ? `${String(when).slice(11, 16)}Z` : '')
+  .replace(/%layer%/g, layerName)
 
 // Draws a caption block (same look as the grid-view captions) onto the frame.
 const drawCaption = (ctx, caption, date, layerName, width, height) => {

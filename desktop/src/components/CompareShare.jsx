@@ -18,6 +18,7 @@ const buildTab = (data, id, fallbackLabel) => ({
   layerSettings: Object.fromEntries(layerCatalog.map(l => [l.id, DEFAULT_SETTINGS(l)])),
   hiddenLayers: new Set(),
   date: data.d,
+  time: data.t || null, // sub-daily time-of-day, absent in older links → Auto
   mapPosition: data.p ? { center: data.p.c, zoom: data.p.z } : undefined
 })
 

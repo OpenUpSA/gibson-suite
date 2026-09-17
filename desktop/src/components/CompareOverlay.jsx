@@ -12,7 +12,7 @@ import './CompareOverlay.css'
  * locked to the same camera (pan/zoom on one is mirrored to the other); the
  * top map is inert — interaction happens on the bottom map.
  */
-const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition, mode = 'split', splitPos: splitPosProp, onSplitPosChange, onLayerLoadError, visible = true }) => {
+const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition, mode = 'split', splitPos: splitPosProp, onSplitPosChange, onLayerLoadError, visible = true, autoTimeA = null, autoTimeB = null }) => {
   const [internalSplitPos, setInternalSplitPos] = useState(50)
   const containerRef = useRef(null)
   const mapsRef = useRef([null, null])
@@ -139,6 +139,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
     const tab = side === 'before' ? tabA : tabB
     const text = cap.text
       .replace(/%date%/g, tab?.date || '')
+      .replace(/%time%/g, tab?.time ? `${tab.time}Z` : '')
       .replace(/%layer%/g, layerNames(tab))
     const lines = text.split('\n')
     return (
@@ -174,6 +175,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
           layerCatalog={layerCatalog}
           wmtsBaseUrl={wmtsBaseUrl}
           mapSettings={mapSettings}
+          autoTime={autoTimeB}
           followCamera={false}
           onMapReady={handleMapReady(1)}
           onMapPositionChange={onMapPositionChange ? onMapPositionChange(1) : undefined}
@@ -193,6 +195,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
           layerCatalog={layerCatalog}
           wmtsBaseUrl={wmtsBaseUrl}
           mapSettings={mapSettings}
+          autoTime={autoTimeA}
           followCamera={false}
           onMapReady={handleMapReady(0)}
           onMapPositionChange={onMapPositionChange ? onMapPositionChange(0) : undefined}

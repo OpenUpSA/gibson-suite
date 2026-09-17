@@ -4,11 +4,23 @@ import { Icon } from '@iconify/react'
 import DateRangePicker from './DateRangePicker'
 import './TimelapsePanel.css'
 
-const INTERVALS = [
-  { value: 1, short: '1D', label: 'Every day' },
-  { value: 3, short: '3D', label: 'Every 3 days' },
-  { value: 7, short: '7D', label: 'Every 7 days' },
-  { value: 30, short: '30D', label: 'Every 30 days' },
+// Intervals are MINUTES. Daily layers only have one frame a day, so the daily
+// options behave exactly as before (1440 = every day); sub-daily layers
+// (precipitation, GOES) can be sampled frame by frame.
+const DAILY_INTERVALS = [
+  { value: 1440, short: '1D', label: 'Every day' },
+  { value: 4320, short: '3D', label: 'Every 3 days' },
+  { value: 10080, short: '7D', label: 'Every 7 days' },
+  { value: 43200, short: '30D', label: 'Every 30 days' },
+]
+
+const SUBDAILY_INTERVALS = [
+  { value: 10, short: '10m', label: 'Every 10 minutes' },
+  { value: 30, short: '30m', label: 'Every 30 minutes' },
+  { value: 60, short: '1h', label: 'Every hour' },
+  { value: 180, short: '3h', label: 'Every 3 hours' },
+  { value: 360, short: '6h', label: 'Every 6 hours' },
+  { value: 720, short: '12h', label: 'Every 12 hours' },
 ]
 
 const PRESETS = [
@@ -23,6 +35,9 @@ const TimelapsePanel = ({
   onViewTabChange,
   layerSummary,
   hasLayers,
+  // Finest sub-daily cadence in the layer set (minutes), or null when there is
+  // no sub-daily layer — hides the per-minute/hour interval choices then.
+  subDailyStep = null,
   startDate,
   endDate,
   onStartDateChange,
@@ -36,6 +51,9 @@ const TimelapsePanel = ({
   onClose,
   children,
 }) => {
+  const intervals = subDailyStep
+    ? [...SUBDAILY_INTERVALS.filter(i => i.value >= subDailyStep), ...DAILY_INTERVALS]
+    : DAILY_INTERVALS
   const [viewFlyout, setViewFlyout] = useState(false)
   const [flyoutPos, setFlyoutPos] = useState(null)
 
@@ -156,12 +174,12 @@ const TimelapsePanel = ({
                   onChange={(e) => onIntervalChange(parseInt(e.target.value, 10))}
                   title="Interval between frames"
                 >
-                  {INTERVALS.map((i) => (
+                  {intervals.map((i) => (
                     <option key={i.value} value={i.value}>{i.label}</option>
                   ))}
                 </select>
                 <span className="timelapse-interval-short">
-                  {(INTERVALS.find(i => i.value === interval) || INTERVALS[0]).short}
+                  {(intervals.find(i => i.value === interval) || intervals[0]).short}
                 </span>
               </div>
             </div>

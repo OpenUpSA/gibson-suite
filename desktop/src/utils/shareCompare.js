@@ -22,9 +22,12 @@ const b64urlDecode = (str) => {
 }
 
 // Compact serialization of one tab — only what the share view needs.
+// `t` is the sub-daily time-of-day (UTC 'HH:MM'); kept optional so payloads
+// written before sub-daily support still decode (v stays 1).
 const serializeTab = (tab) => ({
   l: tab.label,
   d: tab.date,
+  ...(tab.time ? { t: tab.time } : {}),
   s: {
     imagery: tab.activeBySection?.imagery || [],
     base: tab.activeBySection?.base || [],

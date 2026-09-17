@@ -328,7 +328,7 @@ const LayoutSidebar = ({
                     value={gridConfig.captions?.[selectedCell]?.text || defaultCaption?.text || ''}
                     onChange={e => onCaptionChange(selectedCell, 'text', e.target.value)}
                     rows={3}
-                    placeholder="%date%  %layer%"
+                    placeholder="%date%  %time%  %layer%"
                   />
                   <Icon
                     icon="fluent:question-circle-20-filled"

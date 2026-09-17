@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 import './Sidebar.css'
 import './TabbedSidebar.css'
 import DateBox from './DateBox'
+import TimeBox from './TimeBox'
 import EditableTabLabel from './EditableTabLabel'
 import PlaceSearch from './PlaceSearch'
 import { QUALITY_ORDER, qualitySupport } from '../utils/layerQuality'
@@ -31,6 +32,11 @@ const TabbedSidebar = ({
   onTabRename,
   activeTabDate,
   onTabDateChange,
+  // Time of day for sub-daily layers — null when the view has none.
+  timeControl,
+  onTabTimeChange,
+  onTabTimeStep,
+  onTabLatest,
   onSearchSelect,
 }) => {
   const [expandedId, setExpandedId] = useState(null)
@@ -246,8 +252,22 @@ const TabbedSidebar = ({
           selectedDate={activeTabDate}
           onDateChange={onTabDateChange}
           showStepButtons
+          allowToday={Boolean(timeControl)}
         />
       </div>
+
+      {/* Time of day — only when the view has a sub-daily layer on the map */}
+      {timeControl && (
+        <TimeBox
+          value={timeControl.time}
+          auto={timeControl.auto}
+          stepMinutes={timeControl.stepMinutes}
+          frames={timeControl.frames}
+          onChange={onTabTimeChange}
+          onStep={onTabTimeStep}
+          onLatest={onTabLatest}
+        />
+      )}
 
       <div className="sidebar-top-panel" ref={contentRef}>
 

@@ -66,7 +66,7 @@ export const DateBoxField = ({ value, onDraftChange, onCommit, onOpenPicker, tit
  * Compact date box: editable yyyy-mm-dd text + popup calendar with month
  * ◀ ▶ navigation and day selection, plus day-step ◀ ▶ in the footer.
  */
-const DateBox = ({ selectedDate, onDateChange, startYear = 2010, showStepButtons = false }) => {
+const DateBox = ({ selectedDate, onDateChange, startYear = 2010, showStepButtons = false, allowToday = false }) => {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState(null)
   const [draft, setDraft] = useState(null) // text being typed; null = not editing
@@ -83,8 +83,11 @@ const DateBox = ({ selectedDate, onDateChange, startYear = 2010, showStepButtons
   }, [selectedDate])
 
   const today = new Date()
+  // Daily GIBS imagery lags ~a day, so yesterday is the usual ceiling. Sub-daily
+  // products (IMERG NRT, GOES) publish frames for today, so views that have one
+  // on the map pass allowToday.
   const maxDate = new Date(today)
-  maxDate.setDate(maxDate.getDate() - 1)
+  if (!allowToday) maxDate.setDate(maxDate.getDate() - 1)
   const minDate = new Date(startYear, 0, 1)
 
   const selected = parseIso(selectedDate)

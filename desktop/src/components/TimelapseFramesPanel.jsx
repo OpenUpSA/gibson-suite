@@ -172,7 +172,7 @@ const TimelapseFramesPanel = ({
                         value={selectedFrame.caption.text || ''}
                         onChange={(e) => onCaptionChange(selectedFrame.time, { text: e.target.value })}
                         rows={3}
-                        placeholder="%date%  %layer%"
+                        placeholder="%date%  %time%  %layer%"
                       />
                       <Icon
                         icon="fluent:question-circle-20-filled"

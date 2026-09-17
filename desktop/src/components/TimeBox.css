@@ -1,0 +1,137 @@
+/* Time-of-day control for sub-daily layers — sits directly under the date box.
+   Same box language as DateBox (34px cells, 8% white fill, monospace) so the
+   two read as one control. Flush like the rest of the sidebar (the date picker
+   above it is edge-to-edge too). Only rendered when a sub-daily layer is active. */
+.timebox {
+  padding: 0 0 10px;
+}
+
+.timebox--compact {
+  padding: 0;
+}
+
+.timebox-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.timebox-step,
+.timebox-field {
+  height: 34px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  color: #fff;
+}
+
+.timebox-step {
+  flex: 0 0 30px;
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.timebox-step:hover {
+  background: rgba(79, 195, 217, 0.22);
+  border-color: rgba(79, 195, 217, 0.6);
+  color: #fff;
+}
+
+/* Joined cells — one visual unit, like the timelapse date range. */
+.timebox-step + .timebox-field,
+.timebox-field + .timebox-step {
+  border-left: 0;
+}
+
+.timebox-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  cursor: text;
+}
+
+.timebox-field:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.timebox-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 0;
+  caret-color: #4FC3D9;
+}
+
+.timebox-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.timebox-zone {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.timebox-latest {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  padding: 0 10px;
+  height: 34px;
+  box-sizing: border-box;
+  background: rgba(79, 195, 217, 0.22);
+  border: 1px solid rgba(79, 195, 217, 0.6);
+  border-radius: 0;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timebox-latest:hover {
+  background: rgba(79, 195, 217, 0.32);
+  border-color: rgba(79, 195, 217, 0.7);
+}
+
+.timebox-hint {
+  margin-top: 6px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.3;
+}
+
+.timebox-hint--auto {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.timebox-auto-tag {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 5px;
+  background: rgba(79, 195, 217, 0.25);
+  border: 1px solid rgba(79, 195, 217, 0.5);
+  color: #4FC3D9;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}

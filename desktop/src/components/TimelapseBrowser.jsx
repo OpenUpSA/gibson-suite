@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import './TimelapseBrowser.css'
 import { buildWmsUrl } from '../config/tileUrl'
+import { formatFrameLabel } from '../utils/timeFormat'
 
 const PREVIEW_W = 128
 
@@ -114,14 +115,14 @@ const TimelapseBrowser = ({
               type="button"
               className={`tl-row${selected.has(date) ? ' selected' : ''}`}
               onClick={() => onToggleSelect(date)}
-              title={date}
+              title={formatFrameLabel(date)}
             >
               <span className="tl-row-check">
                 {selected.has(date) ? (
                   <Icon icon="fluent:checkmark-20-filled" width="14" height="14" />
                 ) : null}
               </span>
-              <span className="tl-row-date">{date}</span>
+              <span className="tl-row-date">{formatFrameLabel(date)}</span>
               {cov
                 ? [...cov.entries()].map(([layerId, has]) => (
                     <span
@@ -197,14 +198,14 @@ const TimelapseBrowser = ({
               type="button"
               className="tl-date-group-header"
               onClick={() => onToggleSelect(date)}
-              title={date}
+              title={formatFrameLabel(date)}
             >
               <span className="tl-date-group-check">
                 {selected.has(date) ? (
                   <Icon icon="fluent:checkmark-20-filled" width="14" height="14" />
                 ) : null}
               </span>
-              <span className="tl-date-group-date">{date}</span>
+              <span className="tl-date-group-date">{formatFrameLabel(date)}</span>
             </button>
           )
 
@@ -257,14 +258,14 @@ const TimelapseBrowser = ({
                             ? 'tl-layer-thumb tl-thumb-placeholder tl-thumb--error'
                             : 'tl-layer-thumb'
                         }
-                        title={`${layerId} · ${date}`}
+                        title={`${layerId} · ${formatFrameLabel(date)}`}
                       >
                         {thumbErrors[thumbKey] ? (
                           <span className="tl-thumb-msg">Preview unavailable</span>
                         ) : (
                           <img
                             src={layerPreviewUrl(layerEntry, date)}
-                            alt={`${layerId} ${date}`}
+                            alt={`${layerId} ${formatFrameLabel(date)}`}
                             loading="lazy"
                             onError={() =>
                               setThumbErrors((prev) => ({ ...prev, [thumbKey]: true }))

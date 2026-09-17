@@ -1,4 +1,4 @@
-const CACHE = 'gibson-v7'
+const CACHE = 'gibson-v8'
 const TILE_CACHE = 'gibson-tiles-v1'
 const PRECACHE = ['/', '/index.html']
 // Data files that change with every deploy — never cache, always fetch fresh.

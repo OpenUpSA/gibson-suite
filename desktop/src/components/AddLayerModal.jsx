@@ -67,7 +67,9 @@ const FIELD_ICONS = {
 
 const formatDate = (d) => {
   if (!d) return null
-  const dt = new Date(`${d}T00:00:00Z`)
+  // Only the day is meaningful in these labels — sub-daily layers carry a time
+  // component in their coverage bounds.
+  const dt = new Date(`${String(d).split('T')[0]}T00:00:00Z`)
   if (Number.isNaN(dt.getTime())) return d
   return dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
@@ -286,8 +288,14 @@ const AddLayerModal = ({ catalog, categories = {}, activeLayers, onAdd, onRemove
                       // Prefer the live-resolved last date; fall back to the
                       // static snapshot when availability is unknown.
                       const effectiveEnd = runtimeLast[layer.id] || layer.endDate
-                      const noDataBefore = layer.startDate && selectedDate && selectedDate < layer.startDate
-                      const noDataAfter = effectiveEnd && selectedDate && selectedDate > effectiveEnd
+                      // Compare by DAY: sub-daily layers carry a time component in
+                      // their bounds (…T05:30:00Z), which would otherwise look
+                      // "after" the day-only map date and warn about a date that
+                      // is actually covered.
+                      const datePartOf = (v) => String(v || '').split('T')[0]
+                      const selDay = datePartOf(selectedDate)
+                      const noDataBefore = layer.startDate && selDay && selDay < datePartOf(layer.startDate)
+                      const noDataAfter = effectiveEnd && selDay && selDay > datePartOf(effectiveEnd)
                       const availLabel = noDataBefore
                         ? `No data before ${formatDate(layer.startDate)}`
                         : noDataAfter

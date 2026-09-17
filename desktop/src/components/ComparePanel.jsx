@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 import { encodeCompareShare, shareUrlFor } from '../utils/shareCompare'
 import { layerNamesForTab } from '../utils/layerNames'
 import DateBox from './DateBox'
+import TimeBox from './TimeBox'
 import GridCaptionColorPicker from './GridCaptionColorPicker'
 import './ComparePanel.css'
 
@@ -29,6 +30,10 @@ const ComparePanel = ({
   defaultCaption,
   dateOverrides,
   onDateChange,
+  // Per-side time-of-day controls for sub-daily layers (null when a side has none).
+  timeControls,
+  onTimeChange,
+  onTimeStep,
   layerById
 }) => {
   const [cellFlyout, setCellFlyout] = useState(null) // 'before' | 'after' | null
@@ -183,7 +188,7 @@ const ComparePanel = ({
                 value={cap.text || ''}
                 onChange={(e) => onCaptionChange(side, 'text', e.target.value)}
                 rows={3}
-                placeholder="%date%  %layer%"
+                placeholder="%date%  %time%  %layer%"
               />
               <Icon
                 icon="fluent:question-circle-20-filled"
@@ -322,7 +327,20 @@ const ComparePanel = ({
               selectedDate={dateOverrides?.[selectedSide] || sideTab(selectedSide)?.date}
               onDateChange={(d) => onDateChange(selectedSide, d)}
               showStepButtons
+              allowToday={Boolean(timeControls?.[selectedSide])}
             />
+            {timeControls?.[selectedSide] && (
+              <TimeBox
+                compact
+                showLatest={false}
+                value={timeControls[selectedSide].time}
+                auto={timeControls[selectedSide].auto}
+                stepMinutes={timeControls[selectedSide].stepMinutes}
+                frames={timeControls[selectedSide].frames}
+                onChange={(v) => onTimeChange(selectedSide, v)}
+                onStep={(minutes) => onTimeStep(selectedSide, minutes)}
+              />
+            )}
             {renderCaptionEditor(selectedSide)}
           </div>
         )}

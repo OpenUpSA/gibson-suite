@@ -71,7 +71,7 @@
         {
           "id": "IMERG_Precipitation_Rate_30min",
           "name": "Precipitation — Right Now",
-          "description": "Near-real-time global precipitation, 10km, updated every 30 min. The 'is it raining there today' layer. Use dates within the last few days.",
+          "description": "Near-real-time global precipitation, 10km, a new frame every 30 min. The 'is it raining there today' layer — pick a time of day to watch a storm move.",
           "role": "primary",
           "storyDefault": true,
           "tileMatrixSet": "GoogleMapsCompatible_Level6",
@@ -80,6 +80,8 @@
           "section": "imagery",
           "category": "Precipitation",
           "subtitle": "IMERG NRT",
+          "subdaily": true,
+          "timeStepMinutes": 30,
           "metadata": {
             "mission": "Global Precipitation Measurement (GPM)",
             "satellite": "GPM Core Observatory",
@@ -96,7 +98,7 @@
         {
           "id": "IMERG_Precipitation_Rate",
           "name": "Precipitation — Historical Event",
-          "description": "IMERG archive for reconstructing a specific past storm. Needs a full ISO datetime. Example default set to Cyclone Freddy's Mozambique landfall.",
+          "description": "IMERG archive for reconstructing a specific past storm — one daily rainfall map back to 2000, ideal for long before/after comparisons. For hour-by-hour rain, use 'Precipitation — Right Now'.",
           "role": "secondary",
           "storyDefault": false,
           "tileMatrixSet": "GoogleMapsCompatible_Level6",
@@ -898,6 +900,176 @@
           }
         }
       ]
+    },
+    "Storms": {
+      "icon": "fluent:weather-thunderstorm-20-filled",
+      "description": "Live geostationary views, refreshed every 10 minutes. Satellites parked over one spot on Earth watch a single hemisphere continuously — hurricanes, typhoons and overnight storm intensification as they happen. Each layer covers its own part of the world (Americas/Atlantic, Pacific, Asia-Pacific).",
+      "layers": [
+        {
+          "id": "GOES-East_ABI_GeoColor",
+          "name": "Storms — Americas & Atlantic",
+          "description": "Natural-colour view of the Americas and Atlantic, a new frame every 10 minutes. The layer for tracking hurricanes and storms as they happen — a night-time component keeps them visible after dark.",
+          "role": "primary",
+          "section": "imagery",
+          "category": "Storms",
+          "subtitle": "GOES-East GeoColor",
+          "tileMatrixSet": "GoogleMapsCompatible_Level7",
+          "format": "image/png",
+          "subdaily": true,
+          "timeStepMinutes": 10,
+          "legendId": null,
+          "metadata": {
+            "mission": "GOES-R Series (NOAA / NASA)",
+            "sensors": "ABI (Advanced Baseline Imager)",
+            "energySource": "Passive",
+            "spectralRange": "Visible & Infrared",
+            "spectralResolution": "16 bands",
+            "spatialResolution": "0.5–2 km",
+            "temporalResolution": "10 minutes",
+            "satellite": "GOES-East (75°W)",
+            "orbit": "Geostationary, 35,786 km — Americas & Atlantic",
+            "spatialCoverage": "Americas + Atlantic (full disk)"
+          },
+          "startDate": "2021-04-29T18:00:00Z",
+          "endDate": "2026-09-17T12:00:00Z"
+        },
+        {
+          "id": "GOES-West_ABI_GeoColor",
+          "name": "Storms — East Pacific",
+          "description": "Natural-colour view of the eastern Pacific and western Americas, refreshed every 10 minutes — Pacific storm systems and hurricanes closing on Mexico or the US.",
+          "role": "primary",
+          "section": "imagery",
+          "category": "Storms",
+          "subtitle": "GOES-West GeoColor",
+          "tileMatrixSet": "GoogleMapsCompatible_Level7",
+          "format": "image/png",
+          "subdaily": true,
+          "timeStepMinutes": 10,
+          "legendId": null,
+          "metadata": {
+            "mission": "GOES-R Series (NOAA / NASA)",
+            "sensors": "ABI (Advanced Baseline Imager)",
+            "energySource": "Passive",
+            "spectralRange": "Visible & Infrared",
+            "spectralResolution": "16 bands",
+            "spatialResolution": "0.5–2 km",
+            "temporalResolution": "10 minutes",
+            "satellite": "GOES-West (137°W)",
+            "orbit": "Geostationary, 35,786 km — East Pacific",
+            "spatialCoverage": "E Pacific + W Americas (full disk)"
+          },
+          "startDate": "2021-04-29T18:00:00Z",
+          "endDate": "2026-09-17T12:10:00Z"
+        },
+        {
+          "id": "Himawari_AHI_Band3_Red_Visible_1km",
+          "name": "Storms — Asia-Pacific",
+          "description": "Daylight natural-colour view of Asia and the western Pacific, a new frame every 10 minutes — typhoon and monsoon tracking at 1 km.",
+          "role": "primary",
+          "section": "imagery",
+          "category": "Storms",
+          "subtitle": "Himawari Red Visible",
+          "tileMatrixSet": "GoogleMapsCompatible_Level7",
+          "format": "image/png",
+          "subdaily": true,
+          "timeStepMinutes": 10,
+          "legendId": null,
+          "metadata": {
+            "mission": "Himawari (Japan Meteorological Agency)",
+            "satellite": "Himawari-9 (geostationary)",
+            "sensors": "AHI (Advanced Himawari Imager)",
+            "energySource": "Passive",
+            "spectralRange": "Visible & Infrared",
+            "spectralResolution": "16 bands",
+            "spatialResolution": "0.5–2 km",
+            "temporalResolution": "10 minutes"
+          },
+          "startDate": "2020-01-03T00:00:00Z",
+          "endDate": "2026-09-17T12:10:00Z"
+        },
+        {
+          "id": "GOES-East_ABI_Band13_Clean_Infrared",
+          "name": "Cloud Tops — Americas & Atlantic",
+          "description": "Cloud-top temperatures over the Americas and Atlantic every 10 minutes. The coldest tops are the tallest, most intense storms — and it works day and night.",
+          "role": "primary",
+          "section": "imagery",
+          "category": "Storms",
+          "subtitle": "GOES-East Clean IR",
+          "tileMatrixSet": "GoogleMapsCompatible_Level6",
+          "format": "image/png",
+          "subdaily": true,
+          "timeStepMinutes": 10,
+          "legendId": "Clean_Longwave_Infrared_Window_Band",
+          "metadata": {
+            "mission": "GOES-R Series (NOAA / NASA)",
+            "sensors": "ABI (Advanced Baseline Imager)",
+            "energySource": "Passive",
+            "spectralRange": "Visible & Infrared",
+            "spectralResolution": "16 bands",
+            "spatialResolution": "0.5–2 km",
+            "temporalResolution": "10 minutes",
+            "satellite": "GOES-East (75°W)",
+            "orbit": "Geostationary, 35,786 km — Americas & Atlantic",
+            "spatialCoverage": "Americas + Atlantic (full disk)"
+          },
+          "startDate": "2019-08-06T00:00:00Z",
+          "endDate": "2026-09-17T12:20:00Z"
+        },
+        {
+          "id": "GOES-West_ABI_Band13_Clean_Infrared",
+          "name": "Cloud Tops — East Pacific",
+          "description": "Cloud-top temperatures over the eastern Pacific every 10 minutes — storm intensity day and night for Pacific systems.",
+          "role": "primary",
+          "section": "imagery",
+          "category": "Storms",
+          "subtitle": "GOES-West Clean IR",
+          "tileMatrixSet": "GoogleMapsCompatible_Level6",
+          "format": "image/png",
+          "subdaily": true,
+          "timeStepMinutes": 10,
+          "legendId": "Clean_Longwave_Infrared_Window_Band",
+          "metadata": {
+            "mission": "GOES-R Series (NOAA / NASA)",
+            "sensors": "ABI (Advanced Baseline Imager)",
+            "energySource": "Passive",
+            "spectralRange": "Visible & Infrared",
+            "spectralResolution": "16 bands",
+            "spatialResolution": "0.5–2 km",
+            "temporalResolution": "10 minutes",
+            "satellite": "GOES-West (137°W)",
+            "orbit": "Geostationary, 35,786 km — East Pacific",
+            "spatialCoverage": "E Pacific + W Americas (full disk)"
+          },
+          "startDate": "2021-01-26T10:40:00Z",
+          "endDate": "2026-09-17T12:10:00Z"
+        },
+        {
+          "id": "Himawari_AHI_Band13_Clean_Infrared",
+          "name": "Cloud Tops — Asia-Pacific",
+          "description": "Cloud-top temperatures over Asia and the western Pacific every 10 minutes — typhoon intensity, day or night.",
+          "role": "primary",
+          "section": "imagery",
+          "category": "Storms",
+          "subtitle": "Himawari Clean IR",
+          "tileMatrixSet": "GoogleMapsCompatible_Level6",
+          "format": "image/png",
+          "subdaily": true,
+          "timeStepMinutes": 10,
+          "legendId": "Clean_Longwave_Infrared_Window_Band",
+          "metadata": {
+            "mission": "Himawari (Japan Meteorological Agency)",
+            "satellite": "Himawari-9 (geostationary)",
+            "sensors": "AHI (Advanced Himawari Imager)",
+            "energySource": "Passive",
+            "spectralRange": "Visible & Infrared",
+            "spectralResolution": "16 bands",
+            "spatialResolution": "0.5–2 km",
+            "temporalResolution": "10 minutes"
+          },
+          "startDate": "2020-01-03T00:00:00Z",
+          "endDate": "2026-09-17T12:10:00Z"
+        }
+      ]
     }
   },
   "sections": {
@@ -978,6 +1150,248 @@
     ],
     "imagery": [
       {
+        "id": "GOES-East_ABI_GeoColor",
+        "name": "Storms — Americas & Atlantic",
+        "subtitle": "GOES-East GeoColor",
+        "description": "Natural-colour view of the Americas and Atlantic, a new frame every 10 minutes. The layer for tracking hurricanes and storms as they happen — a night-time component keeps them visible after dark.",
+        "role": "primary",
+        "section": "imagery",
+        "category": "Storms",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "subdaily": true,
+        "timeStepMinutes": 10,
+        "metadata": {
+          "mission": "GOES-R Series (NOAA / NASA)",
+          "sensors": "ABI (Advanced Baseline Imager)",
+          "energySource": "Passive",
+          "spectralRange": "Visible & Infrared",
+          "spectralResolution": "16 bands",
+          "spatialResolution": "0.5–2 km",
+          "temporalResolution": "10 minutes",
+          "satellite": "GOES-East (75°W)",
+          "orbit": "Geostationary, 35,786 km — Americas & Atlantic",
+          "spatialCoverage": "Americas + Atlantic (full disk)"
+        },
+        "startDate": "2021-04-29T18:00:00Z",
+        "endDate": "2026-09-17T12:00:00Z",
+        "latestDate": "2026-09-17",
+        "preview": "/layer-previews/GOES-East_ABI_GeoColor.jpg",
+        "about": "GOES-East sits over the equator at 75°W watching one hemisphere continuously, so unlike the polar-orbiting daily layers it can show a storm growing hour by hour. GeoColor is a natural-colour composite with a night-time component (city lights, fires and low cloud), which means a hurricane or a dust plume stays visible overnight. Outside the satellite's disk there is no data — that part of the map shows the base layer only.",
+        "links": [
+          {
+            "label": "View in NASA Worldview",
+            "url": "https://worldview.earthdata.nasa.gov/?l=GOES-East_ABI_GeoColor"
+          },
+          {
+            "label": "GOES-R mission",
+            "url": "https://www.goes-r.gov/"
+          }
+        ]
+      },
+      {
+        "id": "GOES-West_ABI_GeoColor",
+        "name": "Storms — East Pacific",
+        "subtitle": "GOES-West GeoColor",
+        "description": "Natural-colour view of the eastern Pacific and western Americas, refreshed every 10 minutes — Pacific storm systems and hurricanes closing on Mexico or the US.",
+        "role": "primary",
+        "section": "imagery",
+        "category": "Storms",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "subdaily": true,
+        "timeStepMinutes": 10,
+        "metadata": {
+          "mission": "GOES-R Series (NOAA / NASA)",
+          "sensors": "ABI (Advanced Baseline Imager)",
+          "energySource": "Passive",
+          "spectralRange": "Visible & Infrared",
+          "spectralResolution": "16 bands",
+          "spatialResolution": "0.5–2 km",
+          "temporalResolution": "10 minutes",
+          "satellite": "GOES-West (137°W)",
+          "orbit": "Geostationary, 35,786 km — East Pacific",
+          "spatialCoverage": "E Pacific + W Americas (full disk)"
+        },
+        "startDate": "2021-04-29T18:00:00Z",
+        "endDate": "2026-09-17T12:10:00Z",
+        "latestDate": "2026-09-17",
+        "preview": "/layer-previews/GOES-West_ABI_GeoColor.jpg",
+        "about": "GOES-West watches the eastern Pacific from 137°W. Same 10-minute GeoColor product as its eastern twin, pointed at the other half of the Americas' weather.",
+        "links": [
+          {
+            "label": "View in NASA Worldview",
+            "url": "https://worldview.earthdata.nasa.gov/?l=GOES-West_ABI_GeoColor"
+          },
+          {
+            "label": "GOES-R mission",
+            "url": "https://www.goes-r.gov/"
+          }
+        ]
+      },
+      {
+        "id": "Himawari_AHI_Band3_Red_Visible_1km",
+        "name": "Storms — Asia-Pacific",
+        "subtitle": "Himawari Red Visible",
+        "description": "Daylight natural-colour view of Asia and the western Pacific, a new frame every 10 minutes — typhoon and monsoon tracking at 1 km.",
+        "role": "primary",
+        "section": "imagery",
+        "category": "Storms",
+        "tileMatrixSet": "GoogleMapsCompatible_Level7",
+        "format": "image/png",
+        "subdaily": true,
+        "timeStepMinutes": 10,
+        "metadata": {
+          "mission": "Himawari (Japan Meteorological Agency)",
+          "satellite": "Himawari-9 (geostationary)",
+          "sensors": "AHI (Advanced Himawari Imager)",
+          "energySource": "Passive",
+          "spectralRange": "Visible & Infrared",
+          "spectralResolution": "16 bands",
+          "spatialResolution": "0.5–2 km",
+          "temporalResolution": "10 minutes"
+        },
+        "startDate": "2020-01-03T00:00:00Z",
+        "endDate": "2026-09-17T12:10:00Z",
+        "latestDate": "2026-09-17",
+        "preview": "/layer-previews/Himawari_AHI_Band3_Red_Visible_1km.jpg",
+        "about": "Himawari-9 (Japan Meteorological Agency) watches Asia and the western Pacific from 140.7°E. This is its red visible band: sharp 1 km daylight imagery, but unlike GeoColor it shows nothing at night.",
+        "links": [
+          {
+            "label": "View in NASA Worldview",
+            "url": "https://worldview.earthdata.nasa.gov/?l=Himawari_AHI_Band3_Red_Visible_1km"
+          },
+          {
+            "label": "Himawari (JMA)",
+            "url": "https://www.data.jma.go.jp/mscweb/en/himawari89/"
+          }
+        ]
+      },
+      {
+        "id": "GOES-East_ABI_Band13_Clean_Infrared",
+        "name": "Cloud Tops — Americas & Atlantic",
+        "subtitle": "GOES-East Clean IR",
+        "description": "Cloud-top temperatures over the Americas and Atlantic every 10 minutes. The coldest tops are the tallest, most intense storms — and it works day and night.",
+        "role": "primary",
+        "section": "imagery",
+        "category": "Storms",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "subdaily": true,
+        "timeStepMinutes": 10,
+        "legendId": "Clean_Longwave_Infrared_Window_Band",
+        "metadata": {
+          "mission": "GOES-R Series (NOAA / NASA)",
+          "sensors": "ABI (Advanced Baseline Imager)",
+          "energySource": "Passive",
+          "spectralRange": "Visible & Infrared",
+          "spectralResolution": "16 bands",
+          "spatialResolution": "0.5–2 km",
+          "temporalResolution": "10 minutes",
+          "satellite": "GOES-East (75°W)",
+          "orbit": "Geostationary, 35,786 km — Americas & Atlantic",
+          "spatialCoverage": "Americas + Atlantic (full disk)"
+        },
+        "startDate": "2019-08-06T00:00:00Z",
+        "endDate": "2026-09-17T12:20:00Z",
+        "latestDate": "2026-09-17",
+        "legend": "/legends/Clean_Longwave_Infrared_Window_Band.png",
+        "preview": "/layer-previews/GOES-East_ABI_Band13_Clean_Infrared.jpg",
+        "about": "Clean Infrared (band 13, 10.3 µm) measures the temperature of whatever the satellite sees: the colder the top, the higher and more violent the cloud. That makes it the standard way to judge storm intensity — and unlike visible imagery it keeps working after sunset, when many storms peak.",
+        "links": [
+          {
+            "label": "View in NASA Worldview",
+            "url": "https://worldview.earthdata.nasa.gov/?l=GOES-East_ABI_Band13_Clean_Infrared"
+          },
+          {
+            "label": "GOES-R mission",
+            "url": "https://www.goes-r.gov/"
+          }
+        ]
+      },
+      {
+        "id": "GOES-West_ABI_Band13_Clean_Infrared",
+        "name": "Cloud Tops — East Pacific",
+        "subtitle": "GOES-West Clean IR",
+        "description": "Cloud-top temperatures over the eastern Pacific every 10 minutes — storm intensity day and night for Pacific systems.",
+        "role": "primary",
+        "section": "imagery",
+        "category": "Storms",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "subdaily": true,
+        "timeStepMinutes": 10,
+        "legendId": "Clean_Longwave_Infrared_Window_Band",
+        "metadata": {
+          "mission": "GOES-R Series (NOAA / NASA)",
+          "sensors": "ABI (Advanced Baseline Imager)",
+          "energySource": "Passive",
+          "spectralRange": "Visible & Infrared",
+          "spectralResolution": "16 bands",
+          "spatialResolution": "0.5–2 km",
+          "temporalResolution": "10 minutes",
+          "satellite": "GOES-West (137°W)",
+          "orbit": "Geostationary, 35,786 km — East Pacific",
+          "spatialCoverage": "E Pacific + W Americas (full disk)"
+        },
+        "startDate": "2021-01-26T10:40:00Z",
+        "endDate": "2026-09-17T12:10:00Z",
+        "latestDate": "2026-09-17",
+        "legend": "/legends/Clean_Longwave_Infrared_Window_Band.png",
+        "preview": "/layer-previews/GOES-West_ABI_Band13_Clean_Infrared.jpg",
+        "about": "The infrared twin of the GOES-East cloud-top layer, watching the eastern Pacific. Cold, high cloud tops show where a system is deepening; the imagery is unaffected by the day/night line.",
+        "links": [
+          {
+            "label": "View in NASA Worldview",
+            "url": "https://worldview.earthdata.nasa.gov/?l=GOES-West_ABI_Band13_Clean_Infrared"
+          },
+          {
+            "label": "GOES-R mission",
+            "url": "https://www.goes-r.gov/"
+          }
+        ]
+      },
+      {
+        "id": "Himawari_AHI_Band13_Clean_Infrared",
+        "name": "Cloud Tops — Asia-Pacific",
+        "subtitle": "Himawari Clean IR",
+        "description": "Cloud-top temperatures over Asia and the western Pacific every 10 minutes — typhoon intensity, day or night.",
+        "role": "primary",
+        "section": "imagery",
+        "category": "Storms",
+        "tileMatrixSet": "GoogleMapsCompatible_Level6",
+        "format": "image/png",
+        "subdaily": true,
+        "timeStepMinutes": 10,
+        "legendId": "Clean_Longwave_Infrared_Window_Band",
+        "metadata": {
+          "mission": "Himawari (Japan Meteorological Agency)",
+          "satellite": "Himawari-9 (geostationary)",
+          "sensors": "AHI (Advanced Himawari Imager)",
+          "energySource": "Passive",
+          "spectralRange": "Visible & Infrared",
+          "spectralResolution": "16 bands",
+          "spatialResolution": "0.5–2 km",
+          "temporalResolution": "10 minutes"
+        },
+        "startDate": "2020-01-03T00:00:00Z",
+        "endDate": "2026-09-17T12:10:00Z",
+        "latestDate": "2026-09-17",
+        "legend": "/legends/Clean_Longwave_Infrared_Window_Band.png",
+        "preview": "/layer-previews/Himawari_AHI_Band13_Clean_Infrared.jpg",
+        "about": "Himawari's infrared band, refreshed every 10 minutes. Where the visible band goes dark, this one keeps showing the structure of a typhoon or a monsoon surge.",
+        "links": [
+          {
+            "label": "View in NASA Worldview",
+            "url": "https://worldview.earthdata.nasa.gov/?l=Himawari_AHI_Band13_Clean_Infrared"
+          },
+          {
+            "label": "Himawari (JMA)",
+            "url": "https://www.data.jma.go.jp/mscweb/en/himawari89/"
+          }
+        ]
+      },
+      {
         "id": "MODIS_Combined_Flood_1-Day",
         "name": "Flood Extent — MODIS 1-Day",
         "subtitle": "MODIS Terra+Aqua",
@@ -1022,7 +1436,7 @@
           }
         },
         "startDate": "2021-01-01",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "legend": "/legends/MODIS_Flood.png",
         "preview": "/layer-previews/MODIS_Combined_Flood_1-Day.jpg",
         "about": "MODIS flood detection maps surface water at 250 m. The 1-day product is the sharpest; use it for historical events like the 2022 Nigeria floods, Lake Chad and the Sudd.",
@@ -1082,7 +1496,7 @@
           }
         },
         "startDate": "2021-01-01",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "legend": "/legends/MODIS_Flood.png",
         "preview": "/layer-previews/MODIS_Combined_Flood_3-Day.jpg",
         "about": "Averages three days of detections to minimise cloud false-positives. Best for clean, presentation-ready historical flood maps.",
@@ -1122,7 +1536,7 @@
           "temporalResolution": "Daily"
         },
         "startDate": "2025-06-03",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "legend": "/legends/MODIS_Flood.png",
         "preview": "/layer-previews/VIIRS_Combined_Flood_1-Day.jpg",
         "about": "VIIRS flood detection at 375 m, updated daily. Note: this layer only has data from mid-2025 — for older floods use the MODIS flood layers.",
@@ -1221,7 +1635,7 @@
           "temporalResolution": "Every 2–3 days (revisit)"
         },
         "startDate": "2016-01-07",
-        "endDate": "2026-09-14",
+        "endDate": "2026-09-15",
         "legend": "/legends/OPERA_Dynamic_Surface_Water_Extent.png",
         "preview": "/layer-previews/OPERA_L3_Dynamic_Surface_Water_Extent-HLS.jpg",
         "about": "OPERA's Dynamic Surface Water Extent from Harmonized Landsat Sentinel-2 (HLS) detects rivers, lakes, reservoirs and floodplains at 30 m. Zoom to level 10+ for full detail.",
@@ -1281,7 +1695,7 @@
           }
         },
         "startDate": "2021-01-01",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "legend": "/legends/MODIS_Flood.png",
         "preview": "/layer-previews/MODIS_Combined_Flood_2-Day.jpg",
         "about": "Combines two days of MODIS flood detections to reduce cloud false-positives while keeping good temporal detail.",
@@ -1321,7 +1735,7 @@
           "temporalResolution": "2-day"
         },
         "startDate": "2025-06-03",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "legend": "/legends/MODIS_Flood.png",
         "preview": "/layer-previews/VIIRS_Combined_Flood_2-Day.jpg",
         "about": "Combines two days of VIIRS flood detections. Data from mid-2025 onward.",
@@ -1361,7 +1775,7 @@
           "temporalResolution": "3-day"
         },
         "startDate": "2025-06-03",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "legend": "/legends/MODIS_Flood.png",
         "preview": "/layer-previews/VIIRS_Combined_Flood_3-Day.jpg",
         "about": "Averages three days of VIIRS detections. Data from mid-2025 onward.",
@@ -1441,7 +1855,7 @@
           "temporalResolution": "Daily"
         },
         "startDate": "2000-02-24",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "preview": "/layer-previews/MODIS_Terra_CorrectedReflectance_Bands721.jpg",
         "about": "Water absorbs near- and shortwave-infrared, so open water and flooded ground appear very dark in this 7-2-1 composite while vegetation stays bright green. Daily since 2000.",
         "links": [
@@ -1480,7 +1894,7 @@
           "temporalResolution": "Daily"
         },
         "startDate": "2015-11-24",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "preview": "/layer-previews/VIIRS_SNPP_CorrectedReflectance_BandsM11-I2-I1.jpg",
         "about": "The M11-I2-I1 band combination from VIIRS at 375 m. Water and flooded ground appear dark while vegetation is bright — useful for delineating flood extent and vegetation stress. Daily since 2015.",
         "links": [
@@ -1559,7 +1973,7 @@
           "temporalResolution": "30 minutes (archived)"
         },
         "startDate": "2000-06-01",
-        "endDate": "2026-09-14",
+        "endDate": "2026-09-15",
         "legend": "/legends/GPM_Precipitation_Rate.png",
         "preview": "/layer-previews/IMERG_Precipitation_Rate.jpg",
         "about": "IMERG merges microwave and infrared observations from the GPM Core Observatory and partner satellites into a 10 km global rain map every 30 minutes. The archive lets you replay any storm since June 2000.",
@@ -1586,6 +2000,8 @@
         "section": "imagery",
         "category": "Precipitation",
         "subtitle": "IMERG NRT",
+        "subdaily": true,
+        "timeStepMinutes": 30,
         "metadata": {
           "mission": "Global Precipitation Measurement (GPM)",
           "satellite": "GPM Core Observatory",
@@ -1640,7 +2056,7 @@
           "temporalResolution": "Daily (day + night)"
         },
         "startDate": "2002-07-04",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "preview": "/layer-previews/MODIS_Combined_Thermal_Anomalies_All.jpg",
         "about": "MODIS detects thermal anomalies (fires) day and night at 1 km resolution. It is the longest fire record in Gibson, ideal for 'is this worse than previous years' stories.",
         "links": [
@@ -1679,7 +2095,7 @@
           "temporalResolution": "Daily"
         },
         "startDate": "2017-04-19",
-        "endDate": "2026-09-15",
+        "endDate": "2026-09-16",
         "legend": "/legends/MODIS_Combined_Value_Added_AOD.png",
         "preview": "/layer-previews/MODIS_Combined_Value_Added_AOD.jpg",
         "about": "Aerosol Optical Depth (AOD) measures how much sunlight airborne particles block: high values mean dusty or smoky air. MODIS combines Terra and Aqua observations for daily global coverage.",
@@ -1718,7 +2134,7 @@
           "temporalResolution": "Daily"
         },
         "startDate": "2000-02-24",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "latestDate": "2026-09-16",
         "category": "True Color",
         "subtitle": "MODIS Terra",
@@ -1840,7 +2256,7 @@
           "temporalResolution": "Daily (daytime)"
         },
         "startDate": "2015-03-31",
-        "endDate": "2026-09-13",
+        "endDate": "2026-09-14",
         "legend": "/legends/SMAP_Soil_Moisture.png",
         "preview": "/layer-previews/SMAP_L3_Passive_Day_Soil_Moisture.jpg",
         "about": "SMAP measures the microwave signal of water in the top 5 cm of soil at ~36 km resolution. It reacts quickly to dry spells, making it the go-to layer for tracking a drought as it develops.",
@@ -1960,7 +2376,7 @@
           "temporalResolution": "Daily"
         },
         "startDate": "2018-01-05",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "preview": "/layer-previews/VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1.jpg",
         "about": "The M11-I2-I1 band combination highlights burned ground. Use it alongside the active-fire points to show the full extent of a fire season.",
         "links": [
@@ -2041,7 +2457,7 @@
           "temporalResolution": "Daily (day + night)"
         },
         "startDate": "2020-01-01",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "preview": "/layer-previews/VIIRS_NOAA20_Thermal_Anomalies_375m_All.jpg",
         "about": "VIIRS detects fires at 375 m — sharper than MODIS — making it the headline wildfire layer for current events.",
         "links": [
@@ -2080,7 +2496,7 @@
           "temporalResolution": "Daily"
         },
         "startDate": "2023-02-10",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "latestDate": "2026-09-16",
         "category": "True Color",
         "preview": "/layer-previews/VIIRS_NOAA21_CorrectedReflectance_TrueColor.jpg",
@@ -2123,7 +2539,7 @@
           "temporalResolution": "Daily (day + night)"
         },
         "startDate": "2024-01-17",
-        "endDate": "2026-09-16",
+        "endDate": "2026-09-17",
         "preview": "/layer-previews/VIIRS_NOAA21_Thermal_Anomalies_375m_All.jpg",
         "about": "Same product family as the NOAA-20 fire layer, from the newer NOAA-21 satellite. Together the two satellites catch more fires per day.",
         "links": [
@@ -2164,7 +2580,7 @@
           "temporalResolution": "Daily (day + night)"
         },
         "startDate": "2012-01-20",
-        "endDate": "2026-09-15",
+        "endDate": "2026-09-17",
         "preview": "/layer-previews/VIIRS_SNPP_Thermal_Anomalies_375m_All.jpg",
         "about": "The oldest VIIRS platform, providing the longest VIIRS fire record and maximum daily coverage when combined with the other VIIRS satellites.",
         "links": [

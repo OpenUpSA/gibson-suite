@@ -12,6 +12,7 @@ export const serializeProject = ({ tabs, gridConfig, compareCaptions, compareMod
     id: tab.id,
     label: tab.label,
     date: tab.date,
+    time: tab.time ?? null, // UTC 'HH:MM' for sub-daily layers; null = Auto
     activeBySection: tab.activeBySection,
     layerSettings: tab.layerSettings,
     hiddenLayers: Array.from(tab.hiddenLayers || []),
@@ -39,6 +40,9 @@ export const deserializeProject = (jsonText) => {
         id: t.id,
         label: t.label || `View ${t.id}`,
         date: t.date,
+        // Absent in projects saved before sub-daily support → undefined, which
+        // the map treats as Auto (newest frame of the day).
+        time: typeof t.time === 'string' ? t.time : null,
         activeBySection: {
           imagery: Array.isArray(t.activeBySection?.imagery) ? t.activeBySection.imagery : [],
           base: Array.isArray(t.activeBySection?.base) ? t.activeBySection.base : [],
