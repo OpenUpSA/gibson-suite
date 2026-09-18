@@ -349,7 +349,7 @@ const rasterSource = (tiles, maxzoom, layer, tileSize) => ({
 // that both setPaintProperty calls fire — no black frames.
 
 // MapInstance component - renders a single map pane for a tab
-export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapGone, onMapPositionChange, followCamera = true, selectionMode, selectionRect, onSelectionChange, onLayerLoadError, autoTime = null }) {
+export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapGone, onMapPositionChange, followCamera = true, selectionMode, selectionRect, onSelectionChange, onLayerLoadError, onLayerLoadOk, autoTime = null }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerSrcMapRef = useRef({})
@@ -358,16 +358,17 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
   // whether a finished pass should refine further.
   const wantedMaxzoomRef = useRef({})
   const crossfadeCounterRef = useRef(0)
-  // layerId → the TIME its last non-silent crossfade failed for. A layer that
-  // failed for the time the view still asks for is NOT retried automatically:
-  // the layer-sync effect re-runs whenever `loadError` changes (and failing is
-  // what sets it), so retrying there re-runs the same failing fetch on every
-  // pass — an endless render/fetch loop that locks the tab up and eventually
-  // gets it killed, with nothing thrown (so nothing in the console). Only a
-  // new date/time (which changes the key) or dismissing the pill (which clears
-  // the entry) retries. Tracked per layer, because `loadError` remembers only
-  // one failure at a time — two uncovered layers would otherwise take turns
-  // unblocking each other.
+  // layerId → `{ time, message }` for the TIME its last non-silent crossfade
+  // failed for, plus the reason to show. A layer that failed for the time the
+  // view still asks for is NOT retried automatically: the layer-sync effect
+  // re-runs whenever `loadError` changes (and failing is what sets it), so
+  // retrying there re-runs the same failing fetch on every pass — an endless
+  // render/fetch loop that locks the tab up and eventually gets it killed,
+  // with nothing thrown (so nothing in the console). Only a new date/time
+  // (which changes the key) or dismissing the pill (which clears the entry)
+  // retries. Tracked per layer, because `loadError` remembers only one failure
+  // at a time — two uncovered layers would otherwise take turns unblocking
+  // each other.
   const failedTimeRef = useRef({})
   // Last camera this map reported upwards. The tab's stored position is shared
   // between panes (single view + a grid cell + the compare tool can all show
@@ -396,10 +397,12 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
   const onMapGoneRef = useRef(onMapGone)
   const onPositionChangeRef = useRef(onMapPositionChange)
   const onLayerLoadErrorRef = useRef(onLayerLoadError)
+  const onLayerLoadOkRef = useRef(onLayerLoadOk)
   onMapReadyRef.current = onMapReady
   onMapGoneRef.current = onMapGone
   onPositionChangeRef.current = onMapPositionChange
   onLayerLoadErrorRef.current = onLayerLoadError
+  onLayerLoadOkRef.current = onLayerLoadOk
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -500,6 +503,22 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
     reportedPositionRef.current = { center: [pos.center[0], pos.center[1]], zoom: pos.zoom }
   }, [tab.mapPosition, mapReady, followCamera])
 
+  // Remove a layer's tiles from the map, leaving its part of the pane blank.
+  // Used whenever the frame on screen belongs to a DIFFERENT moment than the
+  // view asks for: an old frame left up under a new date reads as if it were
+  // that date, and there is nothing on the image that says otherwise. A blank
+  // layer plus the error message is the honest state — never imagery the user
+  // could mistake for the requested time. No-op when nothing is displayed.
+  const blankDisplayed = (map, layerId) => {
+    const displayed = layerSrcMapRef.current[layerId]
+    if (!displayed) return
+    delete layerSrcMapRef.current[layerId]
+    try {
+      if (map.getLayer(displayed.srcId)) map.removeLayer(displayed.srcId)
+      if (map.getSource(displayed.srcId)) map.removeSource(displayed.srcId)
+    } catch (_) {}
+  }
+
   // Place layers in stacking order (reverse because index 0 = top in our model).
   // Layers with an in-flight crossfade are skipped — their new layer is already
   // on top and gets reordered when the crossfade completes.
@@ -534,6 +553,10 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
   const crossfadeLayer = (map, layerId, layer, oldSrcId, settings, targetOpacity, opts = {}) => {
     const { silent = false } = opts
     const maxzoom = opts.maxzoom ?? maxzoomFor(layer, effectiveQuality(layer, settings, layerSection(layer)))
+    // The moment this pass loads. Stamped on the transition entry so the sync
+    // effect can cancel a pass the view has moved on from, and used for the
+    // crossfade's own bookkeeping — one value per pass, never re-resolved.
+    const passTime = resolvedTimeFor(layer)
 
     // Cancel any in-flight transition for this layer (e.g. rapid date changes).
     transitionsRef.current[layerId]?.cleanup()
@@ -570,25 +593,36 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       delete transitionsRef.current[layerId]
     }
 
-    // Tiles failed or never arrived — drop the pending layer, keep the old one
-    // visible, and report the failure so the parent can revert the date.
+    // Tiles failed or never arrived — drop the pending layer, blank the frame
+    // that is on screen when it shows a different moment, and report the
+    // failure. Nothing of this layer is ever left on the map under a time it
+    // does not belong to.
     const fail = (message) => {
       if (settled) return
       removePending()
       finish()
-      if (silent) return // refinement failure — the previous pass is still fine
-      const failedTime = resolvedTimeFor(layer)
-      // Stop this layer+time from being auto-retried (see failedTimeRef).
-      failedTimeRef.current[layerId] = failedTime
-      setLoadError({ layerId, date: failedTime, message })
+      if (silent) return // refinement failure — the previous pass shows this same moment
+      const failedTime = passTime
+      const displayedTime = layerSrcMapRef.current[layerId]?.date
+      if (displayedTime !== failedTime) blankDisplayed(map, layerId)
+      const msg = message ||
+        `Couldn't load ${layer.name || layerId} for ${formatDateTimeLabel(failedTime)} — layer left blank`
+      // Stop this layer+time from being auto-retried (see failedTimeRef) — and
+      // remember the exact failure state object, so the sync effect can put the
+      // same message back up without ever mistaking two failures for one
+      // (identical objects compare equal, new ones would re-run the effect).
+      const error = { layerId, date: failedTime, message: msg }
+      failedTimeRef.current[layerId] = { time: failedTime, message: msg, error }
+      setLoadError(error)
       if (oldSrcId) {
-        onLayerLoadErrorRef.current?.(layerId, failedTime, layerSrcMapRef.current[layerId]?.date, message)
+        onLayerLoadErrorRef.current?.(layerId, failedTime, displayedTime, msg)
       }
     }
 
     // Register a cancellable entry immediately so rapid date changes can
     // cancel this crossfade even while the coverage check is in flight.
     transitionsRef.current[layerId] = {
+      time: passTime,
       cleanup() {
         if (settled) return
         settled = true
@@ -615,7 +649,9 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
     coverageCheck.then((covered) => {
       if (settled) return
       if (!covered) {
-        fail(`No imagery available for ${formatDateTimeLabel(resolvedTimeFor(layer))}`)
+        // Name the layer AND the moment: "no imagery" alone leaves the user
+        // guessing which layer it is about and what the map is showing instead.
+        fail(`No imagery available for ${layer.name || layerId} on ${formatDateTimeLabel(passTime)} — layer left blank`)
         return
       }
 
@@ -655,13 +691,16 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         }
         layerSrcMapRef.current[layerId] = {
           srcId: newSrcId,
-          date: resolvedTimeFor(layer),
+          date: passTime,
           maxzoom,
           tileSize: tileSizeFor(layer)
         }
         // The layer is showing this time now — a later failure of the same
         // time is a fresh failure, not a retry of an old one.
         delete failedTimeRef.current[layerId]
+        // Tell the parent this layer is correctly showing the asked-for moment
+        // now, so a stale failure message for it can be taken down.
+        onLayerLoadOkRef.current?.(layerId)
         // Remove the old layer after its fade-out completes.
         setTimeout(() => {
           try {
@@ -732,21 +771,11 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       }
     }
 
-    // Clear a stale load error once the displayed source matches what the view
-    // now asks for (e.g. the user changed the date/time again) or the layer is
-    // no longer active. A layer that failed on initial add keeps its error
-    // until it loads or is removed.
-    if (loadError) {
-      const src = layerSrcMapRef.current[loadError.layerId]
-      const errLayer = layerById.get(loadError.layerId)
-      if (!activeLayers.includes(loadError.layerId)) {
-        setLoadError(null)
-      } else if (src && errLayer && src.date === resolvedTimeFor(errLayer)) {
-        setLoadError(null)
-      }
-    }
-
-    // Add/update active layers and reorder them
+    // Add/update active layers and reorder them. The first layer blocked on
+    // the moment its view asks for becomes the pill candidate (see below): a
+    // layer left blank must always say why.
+    let blockedCandidateId = null
+    const wantedTimes = {}
     for (const layerId of activeLayers) {
       let layer = layerById.get(layerId)
       if (!layer) continue
@@ -767,6 +796,7 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       // The TIME this layer should be showing right now (date, or date+time
       // for a sub-daily frame).
       const wantedTime = resolvedTimeFor(layer)
+      wantedTimes[layerId] = wantedTime
       const wantedMaxzoom = maxzoomFor(layer, effectiveQuality(layer, settings, section))
       // Remember what the settings ask for, so a pass that lands later can tell
       // whether refining further is worth another fetch.
@@ -775,13 +805,25 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       // Blocked when this layer already failed for the very time we are still
       // asking for — see failedTimeRef. This is what stops a date the layer
       // has no imagery for from being re-requested on every pass of this
-      // effect (each failure re-runs the effect), which hangs and ultimately
-      // crashes the tab.
-      const failedForWanted = failedTimeRef.current[layerId] === wantedTime
+      // effect (each failure sets `loadError`, which re-runs the effect), which
+      // hangs and ultimately crashes the tab.
+      const failed = failedTimeRef.current[layerId]
+      const failedForWanted = failed?.time === wantedTime
+      if (failedForWanted && !blockedCandidateId) blockedCandidateId = layerId
+
+      // A crossfade still loading a DIFFERENT moment than the view now asks
+      // for is stale (date changed, then changed back before the tiles
+      // arrived). Discard it — otherwise its tiles could fade in later and sit
+      // on the map under a date they do not belong to.
+      const inflight = transitionsRef.current[layerId]
+      if (inflight && inflight.time !== wantedTime) inflight.cleanup()
 
       if (!src || !map.getSource(srcId)) {
         // New layer — add it invisible and fade in once its tiles are ready.
-        if (!failedForWanted) {
+        // Skip when a pass for this same moment is already in flight (this
+        // branch runs again whenever `loadError` changes) so the fetch is not
+        // restarted from scratch mid-download.
+        if (!failedForWanted && transitionsRef.current[layerId]?.time !== wantedTime) {
           // Deep views start coarse and sharpen (see planStartMaxzoom) — a
           // shallow view goes straight to the wanted cap, so no tile is ever
           // fetched twice.
@@ -823,6 +865,12 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
           if (!failedForWanted) {
             const startMaxzoom = planStartMaxzoom(layer, wantedMaxzoom, map.getZoom())
             crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity, { maxzoom: startMaxzoom })
+          } else {
+            // The asked-for time already failed, so no fetch is started — but
+            // what is on screen is a different time. Blank it: never show one
+            // moment's imagery under another moment's date.
+            transitionsRef.current[layerId]?.cleanup()
+            blankDisplayed(map, layerId)
           }
         } else if (needsSharper && !failedForWanted && !transitionsRef.current[layerId]) {
           crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity, {
@@ -832,6 +880,29 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         }
       }
     }
+
+    // ── Error pill: one at a time, chosen deterministically ─────────────
+    // Keep the message that is still true (its layer is active and still
+    // blocked on the moment it names), otherwise show the first blocked layer
+    // in stacking order. Reusing each failure's own state object — and picking
+    // the candidate the same way on every pass — is what keeps two uncovered
+    // layers from taking turns swapping the pill, which would re-run this
+    // effect forever.
+    let pill = null
+    if (loadError) {
+      const entry = failedTimeRef.current[loadError.layerId]
+      if (entry?.error === loadError && entry.time === wantedTimes[loadError.layerId]) {
+        pill = loadError
+      }
+    }
+    if (!pill && blockedCandidateId) {
+      const entry = failedTimeRef.current[blockedCandidateId]
+      if (entry) {
+        if (!entry.error) entry.error = { layerId: blockedCandidateId, date: entry.time, message: entry.message }
+        pill = entry.error
+      }
+    }
+    if (pill !== loadError) setLoadError(pill)
 
     // Reorder layers to match active order (reverse because 0 = top in our model)
     reorderLayers(map, activeLayers)
@@ -1367,15 +1438,28 @@ export default function Globe() {
   }, [activeTab, updateActiveTab])
 
   // A layer failed to load for a date — tell the user, but never change the
-  // chosen date. The map keeps showing the last successfully loaded imagery
-  // for that layer; the user can pick another date or layer themselves.
-  const handleLayerLoadError = useCallback((tabId, failedDate, displayedDate, message) => {
-    setLoadErrorToast(message || `No imagery available for ${failedDate}`)
+  // chosen date. The map pane blanks that layer (see MapInstance) so what is
+  // on screen can never be mistaken for the moment the view asks for; the
+  // message names the layer and the moment it has none.
+  const handleLayerLoadError = useCallback((tabId, layerId, failedDate, displayedDate, message) => {
+    setLoadErrorToast({
+      layerId,
+      message: message || `No imagery available for ${layerById.get(layerId)?.name || layerId} on ${formatDateTimeLabel(failedDate)} — layer left blank`
+    })
+  }, [])
+
+  // The same layer is now showing the moment the view asks for (a new date, or
+  // a retry after the pill was dismissed) — the failure message is stale.
+  const handleLayerLoadOk = useCallback((layerId) => {
+    setLoadErrorToast(prev => (prev && prev.layerId === layerId ? null : prev))
   }, [])
 
   // Compare-view variant — same as above: report the failure, keep the date.
-  const handleCompareLayerLoadError = useCallback((side, tabId, failedDate, displayedDate, message) => {
-    setLoadErrorToast(message || `No imagery available for ${failedDate}`)
+  const handleCompareLayerLoadError = useCallback((side, tabId, layerId, failedDate, displayedDate, message) => {
+    setLoadErrorToast({
+      layerId,
+      message: message || `No imagery available for ${layerById.get(layerId)?.name || layerId} on ${formatDateTimeLabel(failedDate)} — layer left blank`
+    })
   }, [])
 
   // Wrappers to update the active tab's state
@@ -1415,6 +1499,8 @@ export default function Globe() {
   const removeLayer = (id) => {
     const section = layerSection(layerById.get(id) || {})
     setActiveBySectionTabbed(prev => ({ ...prev, [section]: prev[section].filter(x => x !== id) }))
+    // A failure message for a layer that is no longer on the map is stale.
+    setLoadErrorToast(prev => (prev && prev.layerId === id ? null : prev))
   }
 
   // Reusable "story" preset: opens a before/after Compare view for a layer
@@ -2592,7 +2678,8 @@ export default function Globe() {
                 onMapPositionChange={(pos) => handleTabMapPositionChange(tlTab.id, pos)}
                 followCamera={timelapseVisible}
                 autoTime={autoFrameFor(tlTab)?.latest || null}
-                onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tlTab.id, failedDate, displayedDate, message)}
+                onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tlTab.id, layerId, failedDate, displayedDate, message)}
+                onLayerLoadOk={handleLayerLoadOk}
                 selectionMode
                 selectionRect={tlRect}
                 onSelectionChange={setTlRect}
@@ -2681,11 +2768,13 @@ export default function Globe() {
                 handleCompareLayerLoadError(
                   index === 0 ? 'before' : 'after',
                   (index === 0 ? effectiveCompareTabA : effectiveCompareTabB).id,
+                  layerId,
                   failedDate,
                   displayedDate,
                   message
                 )
               }
+              onLayerLoadOk={(index, layerId) => handleLayerLoadOk(layerId)}
             />
           </div>
         </div>
@@ -2752,7 +2841,8 @@ export default function Globe() {
                       onMapPositionChange={(pos) => handleTabMapPositionChange(tab.id, pos)}
                       followCamera={gridVisible}
                       autoTime={autoFrameFor(tab)?.latest || null}
-                      onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, failedDate, displayedDate, message)}
+                      onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, layerId, failedDate, displayedDate, message)}
+                      onLayerLoadOk={handleLayerLoadOk}
                     />
                   ) : (
                     <div className="globe-grid-empty">Empty</div>
@@ -2849,7 +2939,8 @@ export default function Globe() {
             onMapPositionChange={(pos) => handleTabMapPositionChange(tab.id, pos)}
             followCamera={singleVisible && tab.id === activeTabId}
             autoTime={autoFrameFor(tab)?.latest || null}
-            onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, failedDate, displayedDate, message)}
+            onLayerLoadError={(layerId, failedDate, displayedDate, message) => handleLayerLoadError(tab.id, layerId, failedDate, displayedDate, message)}
+            onLayerLoadOk={handleLayerLoadOk}
           />
         </div>
       ))}
@@ -2960,7 +3051,7 @@ export default function Globe() {
       {loadErrorToast && (
         <Toast
           className="app-toast--stacked"
-          message={loadErrorToast}
+          message={loadErrorToast.message}
           onDismiss={() => setLoadErrorToast(null)}
         />
       )}
