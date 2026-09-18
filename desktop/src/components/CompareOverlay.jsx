@@ -15,9 +15,14 @@ import './CompareOverlay.css'
 const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapSettings, onMapReady, onMapPositionChange, captions, anchorPosition, mode = 'split', splitPos: splitPosProp, onSplitPosChange, onLayerLoadError, visible = true, autoTimeA = null, autoTimeB = null }) => {
   const [internalSplitPos, setInternalSplitPos] = useState(50)
   const containerRef = useRef(null)
-  const mapsRef = useRef([null, null])
+  // Both panes' MapLibre instances, as [top (view A), bottom (view B)]. Held in
+  // state rather than a ref so the lockstep and anchoring effects re-run
+  // whenever the pair changes. A "both maps ready" counter is not enough: the
+  // panes are keyed by view id, so swapping the view on ONE side remounts only
+  // that pane — the counter would never reach two again and the surviving map
+  // would be dropped, leaving the two panes free to drift apart for good.
+  const [maps, setMaps] = useState([null, null])
   const syncingRef = useRef(false)
-  const [readyCount, setReadyCount] = useState(0)
   const isFade = mode === 'fade'
 
   // Controlled (splitPos prop) or uncontrolled (internal state). The Globe
@@ -29,46 +34,62 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
     else setInternalSplitPos(value)
   }
 
-  // When the compared views change, the MapInstances remount (keys) and
-  // report new instances — reset the tracked refs until both are ready.
-  useEffect(() => {
-    mapsRef.current = [null, null]
-    setReadyCount(0)
-  }, [tabA?.id, tabB?.id])
-
+  // A pane reports its map when it mounts, and again when it is torn down.
+  // Both handlers check the instance they were handed against the slot it owns,
+  // so the late cleanup of a map that has already been replaced can never clear
+  // its successor's slot.
   const handleMapReady = useCallback((index) => (map) => {
-    mapsRef.current[index] = map
-    setReadyCount(c => c + 1)
+    setMaps(prev => {
+      if (prev[index] === map) return prev
+      const next = [...prev]
+      next[index] = map
+      return next
+    })
     onMapReady?.(index, map)
   }, [onMapReady])
 
-  // Always start geographically locked: once both maps are ready, snap both
-  // to the SAME camera. The anchor is the active view's position (passed in)
-  // so compare opens at the location the user was just looking at; fall back
-  // to the interactive bottom map's camera. The maps are kept alive while the
+  const handleMapGone = useCallback((index) => (map) => {
+    setMaps(prev => {
+      if (prev[index] !== map) return prev
+      const next = [...prev]
+      next[index] = null
+      return next
+    })
+  }, [])
+
+  // Always start geographically locked: once both maps exist, snap both to the
+  // SAME camera. The anchor is the active view's position (passed in) so
+  // compare opens at the location the user was just looking at; fall back to
+  // the interactive bottom map's camera. The maps are kept alive while the
   // compare view is hidden (so leaving and returning doesn't reload tiles), so
   // this also re-runs when compare is reopened — it IS the "opens where you
   // are looking" behaviour, which a fresh mount used to provide for free.
+  //
+  // This re-runs whenever the PAIR changes, which is what re-locks the panes
+  // after one side is reassigned: the remounted pane starts at its own view's
+  // saved camera, which need not match its partner's.
   const anchorRef = useRef(anchorPosition)
   anchorRef.current = anchorPosition
 
   useEffect(() => {
     if (!visible) return
-    const maps = mapsRef.current
-    if (!maps[0] || !maps[1]) return
+    const [top, bottom] = maps
+    if (!top || !bottom) return
     const anchor = anchorRef.current || {
-      center: maps[1].getCenter(),
-      zoom: maps[1].getZoom(),
-      pitch: maps[1].getPitch(),
-      bearing: maps[1].getBearing()
+      center: bottom.getCenter(),
+      zoom: bottom.getZoom(),
+      pitch: bottom.getPitch(),
+      bearing: bottom.getBearing()
     }
     maps.forEach(m => m.jumpTo(anchor))
-  }, [readyCount, tabA?.id, tabB?.id, visible])
+  }, [maps, visible])
 
   // Keep both cameras in lockstep while either map moves (pan, zoom, rotate).
+  // The guard is safe because MapLibre fires the 'move' that jumpTo raises
+  // synchronously, so the partner's handler is still inside this call.
   useEffect(() => {
-    const maps = mapsRef.current
-    if (!maps[0] || !maps[1]) return
+    const [top, bottom] = maps
+    if (!top || !bottom) return
 
     const sync = (sourceIndex) => {
       if (syncingRef.current) return
@@ -95,7 +116,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
     return () => {
       maps.forEach((m, i) => m.off('move', handlers[i]))
     }
-  }, [readyCount, tabA?.id, tabB?.id])
+  }, [maps])
 
   const startDrag = (startClientX) => {
     const container = containerRef.current
@@ -178,6 +199,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
           autoTime={autoTimeB}
           followCamera={false}
           onMapReady={handleMapReady(1)}
+          onMapGone={handleMapGone(1)}
           onMapPositionChange={onMapPositionChange ? onMapPositionChange(1) : undefined}
           onLayerLoadError={(layerId, failedDate, displayedDate, message) => onLayerLoadError?.(1, layerId, failedDate, displayedDate, message)}
         />
@@ -198,6 +220,7 @@ const CompareOverlay = ({ tabA, tabB, layerById, layerCatalog, wmtsBaseUrl, mapS
           autoTime={autoTimeA}
           followCamera={false}
           onMapReady={handleMapReady(0)}
+          onMapGone={handleMapGone(0)}
           onMapPositionChange={onMapPositionChange ? onMapPositionChange(0) : undefined}
           onLayerLoadError={(layerId, failedDate, displayedDate, message) => onLayerLoadError?.(0, layerId, failedDate, displayedDate, message)}
         />
