@@ -357,6 +357,17 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
   // whether a finished pass should refine further.
   const wantedMaxzoomRef = useRef({})
   const crossfadeCounterRef = useRef(0)
+  // layerId → the TIME its last non-silent crossfade failed for. A layer that
+  // failed for the time the view still asks for is NOT retried automatically:
+  // the layer-sync effect re-runs whenever `loadError` changes (and failing is
+  // what sets it), so retrying there re-runs the same failing fetch on every
+  // pass — an endless render/fetch loop that locks the tab up and eventually
+  // gets it killed, with nothing thrown (so nothing in the console). Only a
+  // new date/time (which changes the key) or dismissing the pill (which clears
+  // the entry) retries. Tracked per layer, because `loadError` remembers only
+  // one failure at a time — two uncovered layers would otherwise take turns
+  // unblocking each other.
+  const failedTimeRef = useRef({})
   // Last camera this map reported upwards. The tab's stored position is shared
   // between panes (single view + a grid cell + the compare tool can all show
   // the same tab), so a stored position that differs from this means someone
@@ -565,9 +576,12 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       removePending()
       finish()
       if (silent) return // refinement failure — the previous pass is still fine
-      setLoadError({ layerId, date: resolvedTimeFor(layer), message })
+      const failedTime = resolvedTimeFor(layer)
+      // Stop this layer+time from being auto-retried (see failedTimeRef).
+      failedTimeRef.current[layerId] = failedTime
+      setLoadError({ layerId, date: failedTime, message })
       if (oldSrcId) {
-        onLayerLoadErrorRef.current?.(layerId, resolvedTimeFor(layer), layerSrcMapRef.current[layerId]?.date, message)
+        onLayerLoadErrorRef.current?.(layerId, failedTime, layerSrcMapRef.current[layerId]?.date, message)
       }
     }
 
@@ -644,6 +658,9 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
           maxzoom,
           tileSize: tileSizeFor(layer)
         }
+        // The layer is showing this time now — a later failure of the same
+        // time is a fresh failure, not a retry of an old one.
+        delete failedTimeRef.current[layerId]
         // Remove the old layer after its fade-out completes.
         setTimeout(() => {
           try {
@@ -709,6 +726,8 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
           if (srcId && map.getSource(srcId)) map.removeSource(srcId)
         } catch {}
         delete layerSrcMapRef.current[layerId]
+        // Re-adding the layer later starts from a clean slate.
+        delete failedTimeRef.current[layerId]
       }
     }
 
@@ -752,11 +771,16 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
       // whether refining further is worth another fetch.
       wantedMaxzoomRef.current[layerId] = wantedMaxzoom
 
+      // Blocked when this layer already failed for the very time we are still
+      // asking for — see failedTimeRef. This is what stops a date the layer
+      // has no imagery for from being re-requested on every pass of this
+      // effect (each failure re-runs the effect), which hangs and ultimately
+      // crashes the tab.
+      const failedForWanted = failedTimeRef.current[layerId] === wantedTime
+
       if (!src || !map.getSource(srcId)) {
         // New layer — add it invisible and fade in once its tiles are ready.
-        // Skip if it already failed for the current date (the error pill is
-        // showing; a retry happens on the next date change or pill dismiss).
-        if (!(loadError && loadError.layerId === layerId && loadError.date === wantedTime)) {
+        if (!failedForWanted) {
           // Deep views start coarse and sharpen (see planStartMaxzoom) — a
           // shallow view goes straight to the wanted cap, so no tile is ever
           // fetched twice.
@@ -792,9 +816,14 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
           zoomBeyondTileCap(map.getZoom(), src.maxzoom, src.tileSize)
 
         if (outOfSync) {
-          const startMaxzoom = planStartMaxzoom(layer, wantedMaxzoom, map.getZoom())
-          crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity, { maxzoom: startMaxzoom })
-        } else if (needsSharper && !transitionsRef.current[layerId]) {
+          // Same guard as the new-layer branch above: without it, a date this
+          // layer has no imagery for is re-requested on every pass of this
+          // effect (each failure sets `loadError`, which re-runs the effect).
+          if (!failedForWanted) {
+            const startMaxzoom = planStartMaxzoom(layer, wantedMaxzoom, map.getZoom())
+            crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity, { maxzoom: startMaxzoom })
+          }
+        } else if (needsSharper && !failedForWanted && !transitionsRef.current[layerId]) {
           crossfadeLayer(map, layerId, layer, srcId, settings, targetOpacity, {
             maxzoom: wantedMaxzoom,
             silent: true
@@ -822,7 +851,16 @@ export function MapInstance({ tab, layerById, layerCatalog, wmtsBaseUrl, mapSett
         <div className="globe-load-error">
           <Icon icon="fluent:warning-16-regular" width="14" height="14" />
           <span>{loadError.message || `Couldn't load ${layerById.get(loadError.layerId)?.name || 'imagery'} for ${formatDateTimeLabel(loadError.date)}`}</span>
-          <button type="button" className="globe-load-error-dismiss" onClick={() => setLoadError(null)} aria-label="Dismiss">
+          <button
+            type="button"
+            className="globe-load-error-dismiss"
+            onClick={() => {
+              // Dismissing is the user asking for a retry — clear the block.
+              delete failedTimeRef.current[loadError.layerId]
+              setLoadError(null)
+            }}
+            aria-label="Dismiss"
+          >
             <Icon icon="fluent:dismiss-16-regular" width="12" height="12" />
           </button>
         </div>
