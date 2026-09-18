@@ -21,6 +21,9 @@ const TabbedSidebar = ({
   onSettingsChange,
   onToggleVisibility,
   onAddClick,
+  // Quick-add a layer straight from a section's "+" dropdown (base/reference).
+  // Sections are short lists there, so they do not need the imagery browser.
+  onQuickAdd,
   open,
   onClose,
   // Tab-specific props
@@ -42,6 +45,8 @@ const TabbedSidebar = ({
   const [expandedId, setExpandedId] = useState(null)
   const [infoLayerId, setInfoLayerId] = useState(null)
   const [overflowOpen, setOverflowOpen] = useState(false)
+  // Section key whose quick-add dropdown is open, or null.
+  const [flyoutSection, setFlyoutSection] = useState(null)
   const contentRef = useRef(null)
   const tabBarRef = useRef(null)
 
@@ -54,6 +59,7 @@ const TabbedSidebar = ({
 
   useEffect(() => {
     if (!open && dragIndex !== null) cancelDrag()
+    if (!open) setFlyoutSection(null)
   }, [open])
 
   const cancelDrag = useCallback(() => {
@@ -159,6 +165,16 @@ const TabbedSidebar = ({
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [overflowOpen])
+
+  // Close the quick-add dropdown on an outside click
+  useEffect(() => {
+    if (!flyoutSection) return
+    const handleClick = (e) => {
+      if (!e.target.closest('.sidebar-add-wrap')) setFlyoutSection(null)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [flyoutSection])
 
 
   const totalActive = sections.reduce((n, s) => n + s.ids.length, 0)
@@ -293,11 +309,36 @@ const TabbedSidebar = ({
                         <button
                           type="button"
                           className="sidebar-add-btn"
-                          onClick={onAddClick}
+                          onClick={() => {
+                            // The catalog modal browses imagery only. Base and
+                            // reference are short, fixed lists — their "+"
+                            // opens a dropdown of what is not on the map yet.
+                            if (section.key !== 'imagery' && onQuickAdd) {
+                              setFlyoutSection(flyoutSection === section.key ? null : section.key)
+                            } else {
+                              onAddClick()
+                            }
+                          }}
                           title={`Add ${section.title}`}
                         >
                           <Icon icon="fluent:add-16-filled" width="14" height="14" />
                         </button>
+                        {section.key !== 'imagery' && flyoutSection === section.key && (
+                          <div className="sidebar-flyout">
+                            {availableLayers.map(layer => (
+                              <button
+                                key={layer.id}
+                                type="button"
+                                className="sidebar-flyout-item"
+                                onClick={() => { onQuickAdd(layer); setFlyoutSection(null) }}
+                                title={layer.description || layer.name}
+                              >
+                                <span className="sidebar-flyout-name">{layer.name}</span>
+                                {layer.subtitle && <span className="sidebar-flyout-sub">{layer.subtitle}</span>}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

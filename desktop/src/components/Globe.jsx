@@ -2968,6 +2968,7 @@ export default function Globe() {
         onSettingsChange={updateLayerSettings}
         onToggleVisibility={toggleVisibility}
         onAddClick={() => setAddLayerOpen(true)}
+        onQuickAdd={addLayer}
         open={activeTool === 'layers'}
         onClose={() => setActiveTool(null)}
         tabs={tabs}

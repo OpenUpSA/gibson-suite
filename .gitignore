@@ -19,3 +19,5 @@ node_modules
 
 # Misc local data
 **/*/db.json
+
+/desktop/work
