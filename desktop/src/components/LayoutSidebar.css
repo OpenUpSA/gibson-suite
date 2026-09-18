@@ -395,7 +395,41 @@
 
 .layout-sidebar .sidebar-grid-controls,
 .layout-sidebar .sidebar-grid-span-controls,
+.layout-sidebar .sidebar-grid-date-controls,
 .layout-sidebar .sidebar-grid-caption-controls {
   padding: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Per-cell date (+ time-of-day) editor — a flush row of attached 34px boxes,
+   directly under the span controls. Same control the compare panel gives each
+   side; the value it writes lives on the grid cell, never on the view. */
+.layout-sidebar .sidebar-grid-date-controls {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.layout-sidebar .sidebar-grid-date-controls .datebox-row {
+  width: 100%;
+}
+
+/* Small badge on a preview cell whose date/time no longer follows its view */
+.layout-sidebar .sidebar-grid-cell-date {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1px;
+  padding: 0 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #4FC3D9;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* Lift the name a touch so the two lines don't collide in short cells */
+.layout-sidebar .sidebar-grid-cell.has-view:has(.sidebar-grid-cell-date) .sidebar-grid-cell-label {
+  transform: translateY(-4px);
 }

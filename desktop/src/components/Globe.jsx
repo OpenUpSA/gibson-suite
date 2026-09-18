@@ -143,6 +143,7 @@ import {
   datePart,
   formatDateTimeLabel,
   formatFrameLabel,
+  formatTimeShort,
   joinDateTime,
   normalizeHHMM,
   safeFilenameStamp,
@@ -1127,6 +1128,42 @@ export default function Globe() {
     setCompareTimeOverrides(prev => ({ ...prev, [side]: null }))
   }, [])
 
+  // ── Grid cell date overrides ────────────────────────────────────────
+  // A grid cell can show its view on a different date (and time-of-day for
+  // sub-daily layers) than the view itself — e.g. the same imagery for four
+  // dates in a 2×2 grid. The override is stored ON THE CELL (`date`/`time`),
+  // never on the tab: the shared view keeps its own date, so the single view,
+  // other cells and the sidebar tab all stay exactly as they were. Storing it
+  // on the cell also means it travels with the layout in project files, and
+  // assigning another view to the cell drops it (the new cell starts fresh,
+  // same as the compare sides).
+  const applyGridOverrides = useCallback((tab, cell) => {
+    if (!tab || !cell) return tab
+    let next = tab
+    if (cell.date) next = { ...next, date: cell.date }
+    if (cell.time !== null && cell.time !== undefined) {
+      next = { ...next, time: cell.time === 'auto' ? null : cell.time }
+    }
+    return next
+  }, [])
+
+  // The tab a grid cell actually renders: its view, with the cell's date/time
+  // override applied. Returns null for an empty cell.
+  const effectiveGridTab = useCallback((cellIndex) => {
+    const cell = gridConfig.cells[cellIndex]
+    if (!cell) return null
+    const tab = tabs.find(t => t.id === cell.tabId)
+    return tab ? applyGridOverrides(tab, cell) : null
+  }, [gridConfig.cells, tabs, applyGridOverrides])
+
+  // One effective tab per assigned cell — feeds the sub-daily Auto lookup
+  // below, so a cell on an overridden date resolves the newest frame for THAT
+  // date the same way the view and compare sides do.
+  const gridCellTabs = useMemo(
+    () => Object.keys(gridConfig.cells).map(k => effectiveGridTab(Number(k))).filter(Boolean),
+    [gridConfig.cells, effectiveGridTab]
+  )
+
   // ── Sub-daily Auto time ─────────────────────────────────────────────
   // A view with a sub-daily layer and no explicit time shows the newest frame
   // of its selected date. That is a lookup, not an assumption — GIBS answers
@@ -1138,14 +1175,14 @@ export default function Globe() {
 
   const autoTargets = useMemo(() => {
     const seen = new Map()
-    for (const tab of [activeTab, effectiveCompareTabA, effectiveCompareTabB]) {
+    for (const tab of [activeTab, effectiveCompareTabA, effectiveCompareTabB, ...gridCellTabs]) {
       const layers = subDailyLayersOf(tab)
       if (!layers.length) continue
       const key = autoTimeKey(tab, layers)
       if (!seen.has(key)) seen.set(key, { key, date: datePart(tab.date), layers })
     }
     return [...seen.values()]
-  }, [activeTab, effectiveCompareTabA, effectiveCompareTabB])
+  }, [activeTab, effectiveCompareTabA, effectiveCompareTabB, gridCellTabs])
 
   const autoSig = autoTargets.map(t => t.key).join(';')
   const autoTargetsRef = useRef(autoTargets)
@@ -1759,6 +1796,35 @@ export default function Globe() {
     setSelectedCell(null)
   }, [gridConfig])
 
+  // Date/time shown by one grid cell — written to the cell, never to the view,
+  // so the shared tab keeps its own date (see applyGridOverrides). Same idea as
+  // the compare view's per-side date overrides.
+  const patchGridCell = useCallback((cellIndex, changes) => {
+    setGridConfig(prev => {
+      const cell = prev.cells[cellIndex]
+      if (!cell) return prev
+      return { ...prev, cells: { ...prev.cells, [cellIndex]: { ...cell, ...changes } } }
+    })
+  }, [])
+
+  const handleGridCellDateChange = useCallback((cellIndex, date) => {
+    patchGridCell(cellIndex, { date })
+  }, [patchGridCell])
+
+  const handleGridCellTimeChange = useCallback((cellIndex, hhmm) => {
+    patchGridCell(cellIndex, { time: hhmm })
+  }, [patchGridCell])
+
+  // Stepping a cell's time can cross midnight, so it writes a date alongside
+  // the time (the two travel together) — same as the compare view.
+  const handleGridCellTimeStep = useCallback((cellIndex, minutes) => {
+    const tab = effectiveGridTab(cellIndex)
+    if (!tab) return
+    const from = normalizeHHMM(tab.time) || autoFrameFor(tab)?.latest || '00:00'
+    const next = addMinutesToDateTime(tab.date, from, minutes)
+    patchGridCell(cellIndex, { date: next.date, time: next.hhmm })
+  }, [effectiveGridTab, autoFrameFor, patchGridCell])
+
   // Open the assign-view flyout for a grid cell (same pattern as the compare
   // and timelapse view cells — chevron-down button + portal listing all tabs).
   const openGridCellFlyout = useCallback((e, cellIndex) => {
@@ -1797,8 +1863,9 @@ export default function Globe() {
       const hasCustomText = gridConfig.captions[cellIndex] &&
         gridConfig.captions[cellIndex].text !== DEFAULT_CAPTION.text
       if (!hasCustomText) {
-        const tabId = gridConfig.cells[cellIndex]?.tabId
-        const tab = tabs.find(t => t.id === tabId)
+        // The cell's effective tab — a date/time override must show up in the
+        // caption text the user then edits.
+        const tab = effectiveGridTab(cellIndex)
         const when = tab ? joinDateTime(tab.date, normalizeHHMM(tab.time)) : ''
         const layerNames = (tab?.activeBySection?.imagery || [])
           .map(id => layerById.get(id)?.name).filter(Boolean).join(', ')
@@ -1812,7 +1879,7 @@ export default function Globe() {
     }
 
     handleCaptionChange(cellIndex, 'visible', !current.visible)
-  }, [gridConfig, tabs, layerById, handleCaptionChange])
+  }, [gridConfig, effectiveGridTab, layerById, handleCaptionChange])
 
   // ── Map instance tracking ─────────────────────────────────────────────
   // Now that panes outlive view switches and several panes can show the same
@@ -1822,7 +1889,9 @@ export default function Globe() {
 
   const scopedKey = {
     single: (tabId) => `single:${tabId}`,
-    grid: (tabId) => `grid:${tabId}`,
+    // Grid panes are keyed by CELL, not by view: the same view can sit in
+    // several cells at once (each on its own date), and each cell owns a map.
+    grid: (cellIndex) => `grid:${cellIndex}`,
     compare: (index) => `compare:${index}`,
     timelapse: 'timelapse'
   }
@@ -1835,15 +1904,26 @@ export default function Globe() {
     delete mapInstancesRef.current[key]
   }, [])
 
+  // The grid cell currently showing a view, if any. With per-cell date
+  // overrides the same view can legitimately sit in several cells, so lookups
+  // go through the cell (and its own map) rather than the view's id.
+  const gridCellForTab = useCallback((tabId) => {
+    const key = Object.keys(gridConfig.cells).find(k => gridConfig.cells[k]?.tabId === tabId)
+    return key === undefined ? null : Number(key)
+  }, [gridConfig.cells])
+
   // The map the user is currently looking at — used by place search, which
   // should drive whatever is on screen rather than a hidden pane.
   const visibleMapInstance = useCallback((tabId) => {
     const registry = mapInstancesRef.current
-    if (gridViewActive) return registry[scopedKey.grid(tabId)] || null
+    if (gridViewActive) {
+      const cellIndex = gridCellForTab(tabId)
+      return (cellIndex !== null ? registry[scopedKey.grid(cellIndex)] : null) || null
+    }
     if (activeTool === 'timelapse') return registry[scopedKey.timelapse] || null
     if (compareViewActive) return registry[scopedKey.compare(1)] || registry[scopedKey.compare(0)] || null
     return registry[scopedKey.single(tabId)] || null
-  }, [gridViewActive, activeTool, compareViewActive])
+  }, [gridViewActive, gridCellForTab, activeTool, compareViewActive])
 
   // Fly the visible map to a searched place (Nominatim result).
   const handleSearchSelect = useCallback((lat, lon) => {
@@ -2220,7 +2300,9 @@ export default function Globe() {
 
     const drawOps = []
     Object.entries(cells).forEach(([cellIndex, cellData]) => {
-      const map = mapInstancesRef.current[scopedKey.grid(cellData.tabId)] || visibleMapInstance(cellData.tabId)
+      // Each cell owns its map — the same view can appear in several cells, so
+      // the view's id would resolve to the wrong pane (and the wrong date).
+      const map = mapInstancesRef.current[scopedKey.grid(cellIndex)]
       if (!map) return
       const cellEl = containerEl.querySelector(`[data-cell-index="${cellIndex}"]`)
       if (!cellEl) return // not currently placed in the grid
@@ -2240,7 +2322,9 @@ export default function Globe() {
           ctx.strokeStyle = '#333'
           ctx.lineWidth = 2
           ctx.strokeRect(x, y, w, h)
-          const tab = tabs.find(t => t.id === cellData.tabId)
+          // Effective tab — the caption must show the date the cell actually
+          // renders (its override), not the view's own date.
+          const tab = effectiveGridTab(Number(cellIndex))
           const caption = gridConfig.captions?.[cellIndex]
           if (caption?.visible) {
             const layerNames = (tab?.activeBySection?.imagery || [])
@@ -2263,7 +2347,7 @@ export default function Globe() {
       drawMapToCanvas(map, ctx, x, y, w, h).then(() => drawNext(index + 1))
     }
     drawNext(0)
-  }, [gridConfig, tabs, layerById])
+  }, [gridConfig, effectiveGridTab, layerById])
 
   // ── Project file (the only save/share mechanism) ────────────────────
   const handleSaveProject = useCallback(() => {
@@ -2639,7 +2723,9 @@ export default function Globe() {
                   </div>
                 )
               }
-              const tab = tabs.find(t => t.id === cellData.tabId)
+              // Effective tab — the cell's own date/time override applied to its
+              // view. Never touches the shared tab (see applyGridOverrides).
+              const tab = effectiveGridTab(cellIndex)
               const caption = gridConfig.captions[cellIndex]
               const resolvedText = caption?.visible && caption?.text
                 ? caption.text
@@ -2661,8 +2747,8 @@ export default function Globe() {
                       layerCatalog={layerCatalog}
                       wmtsBaseUrl={wmtsBaseUrl}
                       mapSettings={mapSettings}
-                      onMapReady={(map) => trackMapInstance(scopedKey.grid(tab.id), map)}
-                      onMapGone={() => untrackMapInstance(scopedKey.grid(tab.id))}
+                      onMapReady={(map) => trackMapInstance(scopedKey.grid(cellIndex), map)}
+                      onMapGone={() => untrackMapInstance(scopedKey.grid(cellIndex))}
                       onMapPositionChange={(pos) => handleTabMapPositionChange(tab.id, pos)}
                       followCamera={gridVisible}
                       autoTime={autoFrameFor(tab)?.latest || null}
@@ -2828,6 +2914,12 @@ export default function Globe() {
         onCaptionToggleVisible={handleCaptionToggleVisible}
         defaultCaption={DEFAULT_CAPTION}
         captionPositions={CAPTION_POSITIONS}
+        // Per-cell date/time override — the selected cell's effective tab
+        // drives the same DateBox/TimeBox pair the compare panel uses.
+        onCellDateChange={handleGridCellDateChange}
+        cellTimeControl={selectedCell !== null ? timeControlFor(effectiveGridTab(selectedCell)) : null}
+        onCellTimeChange={handleGridCellTimeChange}
+        onCellTimeStep={handleGridCellTimeStep}
         onExportGrid={handleExportGrid}
       />
       )}

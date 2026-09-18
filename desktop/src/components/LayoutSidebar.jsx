@@ -5,6 +5,8 @@ import './Sidebar.css'
 import './TabbedSidebar.css'
 import './LayoutSidebar.css'
 import GridCaptionColorPicker from './GridCaptionColorPicker'
+import DateBox from './DateBox'
+import TimeBox from './TimeBox'
 import { layerNamesForTab } from '../utils/layerNames'
 
 // Grid layout presets
@@ -38,6 +40,11 @@ const LayoutSidebar = ({
   onAssignView,
   onClearCell,
   gridPlacement,
+  // Per-cell date/time override (grid-only — never touches the shared view)
+  onCellDateChange,
+  cellTimeControl,
+  onCellTimeChange,
+  onCellTimeStep,
   // Caption props
   onCaptionChange,
   onCaptionToggleVisible,
@@ -72,6 +79,20 @@ const LayoutSidebar = ({
     const current = gridConfig.captions?.[selectedCell]?.position || defaultCaption?.position || 'bottom-left'
     const next = positions[(positions.indexOf(current) + 1) % positions.length]
     onCaptionChange(selectedCell, 'position', next)
+  }
+
+  const selectedCellData = selectedCell !== null ? gridConfig.cells[selectedCell] : null
+  const selectedCellTab = selectedCellData ? tabs.find(t => t.id === selectedCellData.tabId) : null
+  // The date the selected cell renders: its own override, else the view's date.
+  const selectedCellDate = selectedCellData?.date || selectedCellTab?.date
+
+  // Badge for a preview cell that no longer follows its view's own date/time.
+  const cellOverrideLabel = (cell) => {
+    if (!cell) return ''
+    const parts = []
+    if (cell.date) parts.push(cell.date)
+    if (cell.time) parts.push(cell.time === 'auto' ? 'auto' : `${cell.time}Z`)
+    return parts.join(' · ')
   }
 
   return (
@@ -196,6 +217,7 @@ const LayoutSidebar = ({
             const isSelected = selectedCell === cellIndex
             const rowSpan = cellData?.rowSpan || 1
             const colSpan = cellData?.colSpan || 1
+            const overrideLabel = cellOverrideLabel(cellData)
             return (
               <div
                 key={cellIndex}
@@ -213,6 +235,11 @@ const LayoutSidebar = ({
                 {tab ? (
                   <>
                     <span className="sidebar-grid-cell-label">{tab.label}</span>
+                    {overrideLabel && (
+                      <span className="sidebar-grid-cell-date" title="This cell shows the view on its own date">
+                        {overrideLabel}
+                      </span>
+                    )}
                     <button
                       type="button"
                       className="sidebar-grid-cell-info"
@@ -314,6 +341,32 @@ const LayoutSidebar = ({
                 <Icon icon="fluent:dismiss-16-regular" width="16" height="16" />
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Date (+ time-of-day for sub-daily layers) for the selected cell —
+            the same DateBox/TimeBox pair the compare panel gives each side.
+            The date is stored on the CELL, so the view itself is untouched. */}
+        {selectedCell !== null && selectedCellData && onCellDateChange && (
+          <div className="sidebar-grid-date-controls">
+            <DateBox
+              selectedDate={selectedCellDate}
+              onDateChange={(d) => onCellDateChange(selectedCell, d)}
+              showStepButtons
+              allowToday={Boolean(cellTimeControl)}
+            />
+            {cellTimeControl && (
+              <TimeBox
+                compact
+                showLatest={false}
+                value={cellTimeControl.time}
+                auto={cellTimeControl.auto}
+                stepMinutes={cellTimeControl.stepMinutes}
+                frames={cellTimeControl.frames}
+                onChange={(v) => onCellTimeChange(selectedCell, v)}
+                onStep={(minutes) => onCellTimeStep(selectedCell, minutes)}
+              />
+            )}
           </div>
         )}
 

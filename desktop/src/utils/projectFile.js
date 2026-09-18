@@ -66,11 +66,16 @@ export const deserializeProject = (jsonText) => {
     for (const [idx, cell] of Object.entries(g.cells || {})) {
       const i = parseInt(idx, 10)
       if (Number.isFinite(i) && cell?.tabId && tabs.some(tab => tab.id === cell.tabId)) {
-        gridConfig.cells[i] = {
+        const parsed = {
           tabId: cell.tabId,
           rowSpan: Math.max(1, Number(cell.rowSpan) || 1),
           colSpan: Math.max(1, Number(cell.colSpan) || 1)
         }
+        // Per-cell date/time override (grid-only, never written back to the
+        // view) — absent in projects saved before it existed.
+        if (typeof cell.date === 'string') parsed.date = cell.date
+        if (typeof cell.time === 'string') parsed.time = cell.time
+        gridConfig.cells[i] = parsed
       }
     }
 
